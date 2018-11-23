@@ -1,0 +1,112 @@
+#!/bin/bash
+#####################################################################
+#Script Name  :ren-ext                                              #
+#Description  :Renames file extensions in the current directory     #
+#Dependencies :rename                                               #
+#Args         :File extenstion to be changed                        #
+#Author       :Richard Romig                                        #
+#Email        :rick.romig@gmail.com                                 #
+#Comment      :                                                     #
+#####################################################################
+# Copyright (C) 2018  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+#####################################################################
+
+function usage {
+	echo "Usage: $MYSCRIPT extension"
+	echo "Example: $MYSCRIPT JPG"
+	echo "Supported extensions: BAK, GIF, htm, HTM, HTML, jpeg, JPG, MP3, \
+MP4, PDF, PNG, TXT"
+}
+
+MYSCRIPT=$(basename $0)
+
+echo "$MYSCRIPT - bulk renames file extensions in the current diectory."
+echo ""
+
+# Check for arguments
+if  [ -z "$1"  ]; then
+	echo "Error: Must provide a file extension to be renamed."
+	usage
+	exit 1
+else
+	EXT=$1
+fi
+
+# Check to see if files with the extension exist
+ls *.$EXT > /dev/null 2>&1
+if [ "$?" != 0 ]; then
+	echo "Error: No .$EXT files exist in the current directory."
+	usage
+	exit 1
+fi
+
+# Rename file extenssions based on the passed argument
+case $EXT in
+    BAK)
+        echo "Renaming .BAK files to .bak"
+		rename -v 's/\.BAK$/\.bak/' *.BAK
+		;;
+	GIF)
+		echo "Renaming .GIF files to .gif"
+		rename -v 's/\.GIF$/\.gif/' *.GIF
+		;;
+	htm)
+		echo "Renaming .htm files to .html"
+		rename -v 's/\.htm$/\.html/' *.htm
+		;;
+	HTM)
+		echo "Renaming .HTM files to .html"
+		rename -v 's/\.HTM$/\.html/' *.HTM
+		;;
+	HTML)
+		echo "Renaming .HTML files to .html"
+		rename -v 's/\.HTML$/\.html/' *.HTML
+		;;
+	jpeg)
+		echo "Renaming .jpeg files to .jpg"
+		rename -v 's/\.jpeg$/\.jpg/' *.jpeg
+		;;
+	JPG)
+		echo "Renaming .JPG files to .jpg"
+		rename -v 's/\.JPG$/\.jpg/' *.JPG
+		;;
+	MP3)
+		echo "Renaming .MP3 files to .mp3"
+		rename -v 's/\.MP3$/\.mp3/' *.MP3
+		;;
+	MP4)
+		echo "Renaming .MP4 files to .mp4"
+		rename -v 's/\.MP4$/\.mp4/' *.MP4
+		;;
+	PDF)
+		echo "Renaming .PDF files to .pdf"
+		rename -v 's/\.PDF$/\.pdf/' *.PDF
+		;;
+	PNG)
+		echo "Renaming .PNG files to .png"
+		rename -v 's/\.PNG$/\.png/' *.PNG
+		;;
+	TXT)
+		echo "Renaming .TXT files to .txt"
+		rename -v 's/\.TXT$/\.txt/' *.TXT
+		;;
+	*)
+		echo "Error: Unsupported file extension, $EXT"
+		usage
+		;;
+esac
+exit 0

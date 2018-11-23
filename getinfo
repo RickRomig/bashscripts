@@ -1,0 +1,93 @@
+#!/bin/bash
+#####################################################################
+#Script Name  :getinfo
+#Description  :Gathers system information into a file
+#Dependencies :dmidecode, awk, grep, hdpram, lsblk
+#Args         :None
+#Author       :Richard Romig
+#Email        :rick.romig@gmail.com
+#Comment      :Requires root/sudo privileges
+#####################################################################
+# Copyright (C) 2018  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+####################################################################
+
+clear
+# Set base variables
+MYUSER=$USER
+MYHOST=$HOSTNAME
+INFOFILE="/home/$MYUSER/$MYHOST.info"
+DASHLINE="----------"
+
+# obtain info and place in variables
+MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
+PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
+VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
+SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+PHYSMEM=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
+echo "scale=4; {}/1024^2" | bc)
+CPUINFO=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
+VGAINFO=$(/usr/bin/lspci | grep 'VGA' | cut -c 8-)
+WIREDINFO=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 8-)
+WIFIINFO=$(/usr/bin/lspci | grep 'Network controller' | cut -c 8-)
+OSINFO=$(/usr/bin/lsb_release --description | cut -c 14-)
+HDMODEL=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
+HDSERIAL=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
+HDSIZE=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
+
+# Write data to file in user's host directory
+echo "System information for $MYHOST:" > $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "Manufacturer: $MFGNAME" >> $INFOFILE
+echo "Product name: $PRODNAME" >> $INFOFILE
+echo "Version: $VERNAME" >> $INFOFILE
+echo "Serial number: $SERNUM" >> $INFOFILE
+echo "Operating System: $OSINFO" >> $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "Physical Memory: $PHYSMEM GB" >> $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "CPU info: $CPUINFO" >> $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "Graphics Adapter: $VGAINFO" >> $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "Network Adapters:" >> $INFOFILE
+echo "Wired: $WIREDINFO" >> $INFOFILE
+if [ -z "$WIFIINFO" ]; then
+	echo "Wireless: No wireless interface found." >> $INFOFILE
+else
+	echo "Wireless: $WIFIINFO" >> $INFOFILE
+fi
+echo "Network Interfaces:" >> $INFOFILE
+ls -1 /sys/class/net/ >> $INFOFILE
+echo "$DASHLINE" >> $INFOFILE
+echo "Power Information:" >> $INFOFILE
+if [ "$(ls -A /sys/class/power_supply/)" ]; then
+	ls -1 /sys/class/power_supply/ >> $INFOFILE
+else
+	echo "No Power Information found." >> $INFOFILE
+fi
+echo "$DASHLINE" >> $INFOFILE
+echo "Disk Information:" >> $INFOFILE
+echo "Model Number: $HDMODEL" >> $INFOFILE
+echo "Serial Number: $HDSERIAL" >> $INFOFILE
+echo "Capacity: $HDSIZE" >> $infofiINFOFILEle
+echo "Partitions:" >> $INFOFILE
+/bin/lsblk >> $INFOFILE
+
+# Display the file to the screen
+cat $INFOFILE
+
+exit 0
