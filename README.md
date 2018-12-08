@@ -1,6 +1,13 @@
 # BASH Scripts
 
-I developed the following scripts fix problems or accomplish routine but tedious tasks. Many of the scripts I create are for specific problems or tasks but I felt that these might be of use to others.
+I developed the following scripts fix problems or accomplish routine but tedious tasks. Many of the scripts I create are for specific problems or tasks but I felt that these might be of use to others. It should be noted that these scripts were written for Linux Mint but they should work for most Ubuntu and Debian distributions.
+
+### chkupdates
+1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are avalilable, they are listed.
+
+2. Root (sudo) privileges are necessar for apt-get update.
+
+3. I find it useful to check for updates when accessing a remote system via SSH. Of course, the script needs to be on the remote system.
 
 ### getinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
