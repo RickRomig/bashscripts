@@ -45,7 +45,7 @@ CPUINFO=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
 VGAINFO=$(/usr/bin/lspci | grep 'VGA' | cut -c 8-)
 WIREDINFO=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 8-)
 WIFIINFO=$(/usr/bin/lspci | grep 'Network controller' | cut -c 8-)
-OSINFO=$(/usr/bin/lsb_release --description | cut -c 14-)
+OSINFO=$(/usr/bin/lsb_release -d | cut -c 14-)
 HDMODEL=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
 HDSERIAL=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
 HDSIZE=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
@@ -86,7 +86,7 @@ echo "$DASHLINE" >> $INFOFILE
 echo "Disk Information:" >> $INFOFILE
 echo "Model Number: $HDMODEL" >> $INFOFILE
 echo "Serial Number: $HDSERIAL" >> $INFOFILE
-echo "Capacity: $HDSIZE" >> $infofiINFOFILEle
+echo "Capacity: $HDSIZE" >> $INFOFILE
 echo "Partitions:" >> $INFOFILE
 /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT >> $INFOFILE
 
