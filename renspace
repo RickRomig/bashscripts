@@ -27,6 +27,9 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
+echo "Renspace - renames filenames containing spaces."
+echo "Copyright 2018, Richard Romig"
+
 # check for filenames containing spaces
 ls | egrep '. ' > /dev/null
 

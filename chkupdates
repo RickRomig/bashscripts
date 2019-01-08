@@ -25,7 +25,7 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 echo "Checking for updates..."
-sudo apt-get update >/dev/null
+sudo apt-get update
 NUMUG=$(apt-get upgrade -s | grep -P '^\d+ upgraded'|cut -d" " -f1) >/dev/null 2>&1
 echo "$NUMUG updates available."
 if [ $NUMUG -gt 0 ]; then

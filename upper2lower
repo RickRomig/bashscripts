@@ -32,24 +32,29 @@ function usage {
 	echo "Usage: $MYSCRIPT [filename]"
 	echo "WARNING! If no filename is passed, $MYSCRIPT will change all \
 filenames in the current directory to lowercase."
+        exit 1
 }
+
+echo "Upper2Lower - Changes uppercase in files names to lower case."
+echo "Copyright 2018, Richard Romig"
 
 # if no filename passed then get confirmation from user
 if  [ -z "$1"  ]; then
-        echo "WARNING! $MYSCRIPT without an argument changes all uppercase \
+        echo "WARNING: $MYSCRIPT without an argument changes all uppercase \
 characters in all filenames in the directory to lowercase."
         read -p "Are you sure you want to do this? [y/N] " yn
         case $yn in
-                [Yy]* ) rename -v 'y/A-Z/a-z/' *
+                [Yy]* ) 
+			rename -v 'y/A-Z/a-z/' *
                         ;;
-                * )  usage
-                     ;;
+                * )  
+			usage
+	                ;;
         esac
 elif [ -e "$MYFILE" ]; then
                 rename -v 'y/A-Z/a-z/' $MYFILE
         else
                 echo "Error: $MYFILE does not exist. Try again."
                 usage
-                exit 1
 fi
 exit 0
