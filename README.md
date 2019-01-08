@@ -26,7 +26,7 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 3. Root (sudo) privileges are required since it uses dmidecode and hdparm to extract some of the system data.
 
-4. The dmidecode command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo desktop PC. The error messages can be removed from the file with any text editor.
+4. The dmidecode command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo desktop PC running Linux Mint 18.3. The error messages can be safely ignored and can be removed from the resulting file with any text editor.
 
 ### locale-fix.sh
 1. Fixes an error that sometimes occurs when update-initramfs during an update and the following awarning appears:
