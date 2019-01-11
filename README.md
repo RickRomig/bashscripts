@@ -11,16 +11,17 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 ### getinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
-       - System manufacturer
-       - System product name, version, and serial number.
-       - Operating System
-       - Amount of physical memory
-       - CPU model
-       - Graphics adapter
-       - Network adapters (wired and wireless) with device names
-       - Power information (battery information)
-       - Hard disk information (model, serial number, and capacity)
-       - Partition information from lsblk
+
+> - System manufacturer
+> - System product name, version, and serial number.
+> - Operating System
+> - Amount of physical memory
+> - CPU model
+> - Graphics adapter
+> - Network adapters (wired and wireless) with device names
+> - Power information (battery information)
+> - Hard disk information (model, serial number, and capacity)
+> - Partition information from lsblk
 
 2. The file name is the hostname with an extension of .info and is created in the user's home directory. After the information is written to the file, it is displayed using the cat command.
 
@@ -42,14 +43,15 @@ I developed the following scripts fix problems or accomplish routine but tedious
 2. Sometimes when files are downloaded they sometimes have file extensions that are in all caps or using an alternative extension. The script renames the extensions to lowercase and in a more conventional form.
 
 3. The following file extensions are supported:
-       - BAK is renamed to bak
-       - GIF is renamed to gif
-       - htm, HTM, HTML are renamed to html
-       - jpeg, JPG are renamed to jpg
-       - MP3, MP4 are renamed to mp3 and mp4 respectively
-       - PDF is renamed to pdf
-       - PNG is renamed to png
-       - TXT is renamed to txt
+
+> - BAK is renamed to bak
+> - GIF is renamed to gif
+> - htm, HTM, HTML are renamed to html
+> - jpeg, JPG are renamed to jpg
+> - MP3, MP4 are renamed to mp3 and mp4 respectively
+> - PDF is renamed to pdf
+> - PNG is renamed to png
+> - TXT is renamed to txt
 
 4. The scripts checks to see if an argument has been passed and if any files with that extension exist in the directory. It uses a case statement to check the passed argument against the support extensions. If a test fails, an error message is displayed along with the proper syntax.
 
