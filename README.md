@@ -72,10 +72,10 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 ### Feedback:
 
-Feel free to contact me with comments and suggestions.
+Feel free to contact me with comments and suggestions. I can be reached through my blog, Twitter, and email.
 
-I can be reached through my blog, Twitter, and email.
-
+>[GitHub](https://github.com/RickRomig/bashscripts)
+>
 >[Rick's Tech Stuff](https://ricktech.wordpress.com)
 >
 >[Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
