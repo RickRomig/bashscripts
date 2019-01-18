@@ -45,6 +45,6 @@ echo "Copying new and updated files to $SCRIPTFOLDER."
 find ./ -type f -mtime -1 -print -exec cp -pf {} $SCRIPTFOLDER \;
 echo "Scripts modified in the last 24 hours copied to $SCRIPTFOLDER."
 
-popd
+popd 2>/dev/null
 
 exit 0
