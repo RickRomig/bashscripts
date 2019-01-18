@@ -9,6 +9,11 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 3. I find it useful to check for updates when accessing a remote system via SSH. Of course, the script needs to be on the remote system.
 
+### cleanbin
+1. A clean up script for the ~/bin directory. It removes any backup files ending with a tilde and copies any new files created or modified within the previous 24 hours to a designated folder which is set in the SCRIPTFOLDER variable.
+
+2. If the script is run from anywhere other than the ~/bin directory, it uses pushd to go to the directory for the cleanup and then uses popd to return to directory from where it was launched.
+
 ### getinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
 
@@ -83,7 +88,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 >Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-11 January 2019
+18 January 2019
 
 
 ### DISCLAIMER
