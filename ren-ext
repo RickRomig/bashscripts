@@ -35,7 +35,7 @@ MP4, PDF, PNG, TXT"
 
 MYSCRIPT=$(basename $0)
 
-echo "$MYSCRIPT - bulk renames file extensions in the current diectory.
+echo "$MYSCRIPT - bulk renames file extensions in the current diectory."
 echo -e  "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
