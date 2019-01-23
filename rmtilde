@@ -28,8 +28,7 @@ ls *~ > /dev/null 2>&1
 if [ "$?" != "0" ]; then
 	echo "No files ending with ~ found."
 else
-	ls *~
-	rm *~
+	rm -v *~
 	echo "All files ending with ~ removed."
 fi
 
