@@ -3,16 +3,16 @@
 I developed the following scripts fix problems or accomplish routine but tedious tasks. Many of the scripts I create are for specific problems or tasks but I felt that these might be of use to others. It should be noted that these scripts were written for Linux Mint but they should work for most Ubuntu and Debian distributions.
 
 ### chkupdates
-1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are avalilable, they are listed.
+1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are available, they are listed.
 
 2. Root (sudo) privileges are necessary for apt-get update.
 
-3. I find it useful to check for updates when accessing a remote system via SSH. Of course, the script needs to be on the remote system.
+3. I find it useful to check for updates when accessing a remote system via SSH. Of course, the script also needs to be on the remote system.
 
-### cleanbin
+### clean-bin
 1. A clean up script for the ~/bin directory. It removes any backup files ending with a tilde and copies any new files created or modified within the previous 24 hours to a designated folder which is set in the SCRIPTFOLDER variable.
 
-2. If the script is run from anywhere other than the ~/bin directory, it uses pushd to go to the directory for the cleanup and then uses popd to return to directory from where it was launched.
+2. If the script is run from anywhere other than the ~/bin directory, it uses pushd to go to ~/bin for the cleanup and then uses popd to return to directory from where it was launched.
 
 ### getinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
@@ -88,8 +88,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 >Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-18 January 2019
-
+23 January 2019
 
 ### DISCLAIMER
 
