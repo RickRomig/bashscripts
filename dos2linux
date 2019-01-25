@@ -1,0 +1,52 @@
+#!/bin/bash
+#####################################################################
+# Script Name  : dos2linux
+# Description  : converts DOS text files to Linux format
+# Dependencies : sed
+# Arguments    : file to be converted
+# Author       : Richard Romig, 24 January 2019
+# Email        : rick.romig@gmail.com
+# Comment      : removes DOS '\r' characters
+#####################################################################
+
+# Copyright (C) <2019>  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+myscript=$0
+
+usage () {
+	echo "Usage: $myscript file"
+	exit 1
+}
+
+# check number of arguments
+if  [ -z "$1" ]; then
+	echo "Error: No argments passed."
+	usage
+else
+    myfile=$1
+fi
+
+# check if file exists
+if [ ! -f "$myfile" ]; then
+    echo "Error: $oldfile not found."
+	usage
+fi
+
+# convert the file
+sed -i.bak -e 's/\r//g'  $myfile
+
+exit 0

@@ -14,6 +14,11 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 2. If the script is run from anywhere other than the ~/bin directory, it uses pushd to go to ~/bin for the cleanup and then uses popd to return to directory from where it was launched.
 
+### dos2linux
+1. Removes DOS carriage return characters ('\r') from text files created by DOS and Windows text editors so they work better with some Linux programs. The original file is appended with a .bak extension.
+
+2. The script takes the file to be processed as an argument and checks to see if it exists. It also displays a usage message if the file doesn't exist or no argument is passed.
+
 ### getinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
 
