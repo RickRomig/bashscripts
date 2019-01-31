@@ -1,6 +1,6 @@
 #!/bin/bash
 #####################################################################
-# Script Name  : cleanbin
+# Script Name  : clean-bin
 # Description  : cleas ~/bin of ~ backup files  and copies files
 #              : modfied in last 24 hours to designated folder
 # Dependencies : find, xargs, cp, pushd, popd
@@ -25,28 +25,27 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-SCRIPTFOLDER="/home/rick/Documents/mosfanet/Scripts/bash/my-scripts/"
-OLDDIR=$PWD
+scriptfolder="$HOME/Documents/mosfanet/Scripts/bash/my-scripts/"
+olddir=$PWD
 
-if [ $OLDDIR != ~/bin ]; then
-	pushd ~/bin
+if [ $olddir != ~/bin ]
+then
+	pushd ~/bin > /dev/null
 fi
 
 echo "Cleaning up ~ backup files ..."
 ls *~ > /dev/null 2>&1
-if [ "$?" != "0" ]; then
-	echo "No files ending with ~ found."
-else
+if [ "$?" = "0" ]
+then
      	rm -v *~
-     	echo "All files ending with ~ removed."
 fi
 
-echo "Copying new and updated files to $SCRIPTFOLDER ..."
-find ./ -type f -mtime -1 -print -exec cp -pf {} $SCRIPTFOLDER \;
-echo "Files modified in the last 24 hours copied to $SCRIPTFOLDER."
+echo "Copying new and updated files from the last 24 hours to $scriptfolder ..."
+find ./ -type f -mtime -1 -print -exec cp -pf {} $scriptfolder \;
 
-if [ $OLDDIR != ~/bin ]; then
-	popd
+if [ $olddir != ~/bin ]
+then
+	popd > /dev/null
 fi
 
 exit 0
