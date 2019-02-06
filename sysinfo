@@ -1,0 +1,87 @@
+#!/bin/bash
+#####################################################################
+# Script Name  : sysinfo
+# Description  : Gathers system information to a file in home directory
+# Dependencies : dmidecode, awk, grep, hdpram, lsblk, mncli
+# Args         : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      : Requires root/sudo privileges
+# dmidecode may produce error messages in some systems. They can be
+# safely ignored and removed from file with any text editor.
+#####################################################################
+# Copyright (C) 2018  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+####################################################################
+
+# Set base variables
+myuser=$USER
+myhost=$HOSTNAME
+infofile="/home/$myuser/$myhost.info"
+today=$(date +"%d %B %Y")
+
+# Computer information
+mfgname=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
+prodname=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
+vername=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
+sernum=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+# RAM and CPU
+physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
+echo "scale=4; {}/1024^2" | bc)
+cpuinfo=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
+# Network
+ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
+ethint=$(nmcli dev | grep 'ethernet' | awk '{print $1}')
+wifint=$(nmcli dev | grep 'wifi' | awk '{print $1}')
+wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
+# Hard drive
+hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
+hdserial=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
+hdsize=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
+
+# Write data to file in user's host directory
+clear
+echo "SysInfo, Copyright 2019, Richard Romig" > $infofile
+echo -e "File created: $today\n" >> $infofile
+echo -e "System information for $myhost:\n" >> $infofile
+echo "Manufacturer: $mfgname" >> $infofile
+echo "Product name: $prodname" >> $infofile
+echo "Version: $vername" >> $infofile
+echo -e "Serial number: $sernum\n" >> $infofile
+echo -e "OS: $(/usr/bin/lsb_release -d | cut -c 14-)\n" >> $infofile
+echo "CPU: $cpuinfo" >> $infofile
+echo "RAM: $physmem GB" >> $infofile
+echo "Graphics Adapter: " >> $infofile
+echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)" >> $infofile
+echo "Network Adapters:" >> $infofile
+echo -e "\tEthernet: $ethint = $ethernet" >> $infofile
+if [ -n "$wireless" ]; then
+	echo -e "\tWireless: $wifint = $wireless" >> $infofile
+fi
+echo -e "\nHard Disk information:" >> $infofile
+echo -e "\tModel Number : $hdmodel" >> $infofile
+echo -e "\tSerial Number: $hdserial" >> $infofile
+echo -e "\tCapacity: $hdsize" >> $infofile
+echo -e "\nPartition information:" >> $infofile
+/bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT >> $infofile
+if [ "$(ls -A /sys/class/power_supply/)" ]; then
+	echo -e "\nPower and battery:" >> $infofile
+	ls -1 /sys/class/power_supply >> $infofile
+fi
+# Display the file to the screen
+cat $infofile
+
+exit 0
