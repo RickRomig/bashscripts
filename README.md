@@ -19,7 +19,7 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 2. The script takes the file to be processed as an argument and checks to see if it exists. A usage message is displayed if the file doesn't exist or no argument is passed.
 
-### getinfo
+### sysinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
 
 > - System manufacturer
@@ -29,7 +29,7 @@ I developed the following scripts fix problems or accomplish routine but tedious
 > - CPU model
 > - Graphics adapter
 > - Network adapters (wired and wireless) with device names
-> - Power information (battery information)
+> - Power/battery information
 > - Hard disk information (model, serial number, and capacity)
 > - Partition information from lsblk
 
