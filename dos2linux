@@ -42,7 +42,7 @@ fi
 
 # check if file exists
 if [ ! -f "$myfile" ]; then
-    echo "Error: $oldfile not found."
+    echo "Error: $myfile not found."
 	usage
 fi
 
