@@ -45,3 +45,12 @@ Changed to read
 		usage
 	fi
 ```
+#### 10 February 2010
+
+**chkupdates**
+
+Changed variable names to lower case and enclosed variables in quotes that are in test brackets.
+
+**upper2lowere**
+
+Changed variable names to lowwer case.
