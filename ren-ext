@@ -26,16 +26,16 @@
 #####################################################################
 
 function usage {
-	echo "Usage: $MYSCRIPT extension"
-	echo "Example: $MYSCRIPT JPG"
+	echo "Usage: $myscript extension"
+	echo "Example: $myscript JPG"
 	echo "Supported extensions: BAK, GIF, htm, HTM, HTML, jpeg, JPG, MP3, \
 MP4, PDF, PNG, TXT"
 	exit 1
 }
 
-MYSCRIPT=$(basename $0)
+myscript=$(basename $0)
 
-echo "$MYSCRIPT - bulk renames file extensions in the current diectory."
+echo "$myscript - bulk renames file extensions in the current diectory."
 echo -e  "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
@@ -43,18 +43,18 @@ if  [ -z "$1"  ]; then
 	echo "Error: Must provide a file extension to be renamed."
 	usage
 else
-	EXT=$1
+	ext=$1
 fi
 
 # Check to see if any files with the extension exist
-ls *.$EXT > /dev/null 2>&1
+ls *.$ext > /dev/null 2>&1
 if [ "$?" != 0 ]; then
-	echo "Error: No .$EXT files exist in the current directory."
+	echo "Error: No .$ext files exist in the current directory."
 	usage
 fi
 
 # Rename file extenssions based on the passed argument
-case $EXT in
+case $ext in
 	BAK)
         	echo "Renaming .BAK files to .bak"
 		rename -v 's/\.BAK$/\.bak/' *.BAK
@@ -104,7 +104,7 @@ case $EXT in
 		rename -v 's/\.TXT$/\.txt/' *.TXT
 		;;
 	*)
-		echo "Error: $EXT is an unsupported file extension."
+		echo "Error: $ext is NOT a supported file extension."
 		usage
 		;;
 esac
