@@ -28,7 +28,7 @@ I developed the following scripts fix problems or accomplish routine but tedious
 > - Amount of physical memory
 > - CPU model
 > - Graphics adapter
-> - Network adapters (wired and wireless) with device names
+> - Network adapters (wired and wireless) with device names and MAC addresses
 > - Power/battery information
 > - Hard disk information (model, serial number, and capacity)
 > - Partition information from lsblk
