@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
-# Dependencies : dmidecode, awk, grep, hdpram, lsblk, mncli
+# Dependencies : dmidecode, awk, grep, hdpram, lsblk
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
@@ -43,9 +43,9 @@ physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
 echo "scale=4; {}/1024^2" | bc)
 cpuinfo=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
 # Network
-ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
 ethint=$(nmcli dev | grep 'ethernet' | awk '{print $1}')
 wifint=$(nmcli dev | grep 'wifi' | awk '{print $1}')
+ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
 wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
 # Hard drive
 hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
@@ -68,8 +68,12 @@ echo "Graphics Adapter: " >> $infofile
 echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)" >> $infofile
 echo "Network Adapters:" >> $infofile
 echo -e "\tEthernet: $ethint = $ethernet" >> $infofile
+read ethadd < /sys/class/net/$ethint/address
+echo -e "\tMAC addr: $ethadd" >> $infofile
 if [ -n "$wireless" ]; then
 	echo -e "\tWireless: $wifint = $wireless" >> $infofile
+	read wifiadd < /sys/class/net/$wifint/address
+	echo -e "\tMAC addr: $wifiadd" >> $infofile
 fi
 echo -e "\nHard Disk information:" >> $infofile
 echo -e "\tModel Number : $hdmodel" >> $infofile
@@ -85,3 +89,4 @@ fi
 cat $infofile
 
 exit 0
+
