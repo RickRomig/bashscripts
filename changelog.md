@@ -1,5 +1,10 @@
 # Changelog for bashscripts
 
+#### 19 February 2019
+**ipinfo.sh**
+
+Added script to nicely display basic IP information.
+
 #### 18 February 2018
 **sysinfo**
 

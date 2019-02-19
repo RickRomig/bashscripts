@@ -1,6 +1,6 @@
 # BASH Scripts
 
-I developed the following scripts fix problems or accomplish routine but tedious tasks. Many of the scripts I create are for specific problems or tasks but I felt that these might be of use to others. It should be noted that these scripts were written for Linux Mint but they should work for most Ubuntu and Debian distributions.
+I developed the following scripts to fix problems or to accomplish routine but sometimes tedious tasks. Many of the scripts I've created were for specific problems or tasks but I felt that these scripts might be of use to others. It should be noted that these scripts were written for Linux Mint but they should work for most Ubuntu and Debian distributions.
 
 ### chkupdates
 1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are available, they are listed.
@@ -19,25 +19,14 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 2. The script takes the file to be processed as an argument and checks to see if it exists. A usage message is displayed if the file doesn't exist or no argument is passed.
 
-### sysinfo
-1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
+### ipinfo.sh
+1. A script to display a system's basic IP information in an easy to read format.
 
-> - System manufacturer
-> - System product name, version, and serial number.
-> - Operating System
-> - Amount of physical memory
-> - CPU model
-> - Graphics adapter
-> - Network adapters (wired and wireless) with device names and MAC addresses
-> - Power/battery information
-> - Hard disk information (model, serial number, and capacity)
-> - Partition information from lsblk
-
-2. The file name is the hostname with an extension of .info and is created in the user's home directory. After the information is written to the file, it is displayed using the cat command.
-
-3. Root (sudo) privileges are required since it uses dmidecode and hdparm to extract some of the system data.
-
-4. The dmidecode command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo desktop PC when running Linux Mint 18.x (Ubuntu 16.04). These error messages can be safely ignored and can be removed from the resulting file with any text editor.
+2. Information displayed:
+ * Public IP address
+ * Local (private) IP address with CIDR notation (192.168.1.100/24)
+ * Default gateway
+ * DNS servers
 
 ### locale-fix.sh
 1. Fixes an error that sometimes occurs with update-initramfs during an update and the following awarning appears:
@@ -54,14 +43,14 @@ I developed the following scripts fix problems or accomplish routine but tedious
 
 3. The following file extensions are supported:
 
-> - BAK is renamed to bak
-> - GIF is renamed to gif
-> - htm, HTM, HTML are renamed to html
-> - jpeg, JPG are renamed to jpg
-> - MP3, MP4 are renamed to mp3 and mp4 respectively
-> - PDF is renamed to pdf
-> - PNG is renamed to png
-> - TXT is renamed to txt
+ * BAK is renamed to bak
+ * GIF is renamed to gif
+ * htm, HTM, HTML are renamed to html
+ * jpeg, JPG are renamed to jpg
+ * MP3, MP4 are renamed to mp3 and mp4 respectively
+ * PDF is renamed to pdf
+ * PNG is renamed to png
+ * TXT is renamed to txt
 
 4. The scripts checks to see if an argument has been passed and if any files with that extension exist in the directory. It uses a case statement to check the passed argument against the support extensions. If a test fails, an error message is displayed along with the proper syntax.
 
@@ -72,6 +61,26 @@ I developed the following scripts fix problems or accomplish routine but tedious
 1. Removes backup files in a directory that have a trailing tilde (~).
 
 2. I wrote this script after accidentally deleting an entire directory while attempting to type rm *~.
+
+### sysinfo
+1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
+
+ * System manufacturer
+ * System product name, version, and serial number.
+ * Operating System
+ * Amount of physical memory
+ * CPU model
+ * Graphics adapter
+ * Network adapters (wired and wireless) with device names and MAC addresses
+ * Power/battery information
+ * Hard disk information (model, serial number, and capacity)
+ * Partition information from lsblk
+
+2. The file name is the hostname with an extension of .info and is created in the user's home directory. After the information is written to the file, it is displayed using the cat command.
+
+3. Root (sudo) privileges are required since it uses dmidecode and hdparm to extract some of the system data.
+
+4. The dmidecode command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo desktop PC when running Linux Mint 18.x (Ubuntu 16.04). These error messages can be safely ignored and can be removed from the resulting file with any text editor.
 
 ### upper2lower
 1. Uses rename to change uppercase filenames in a directory to lowercase.
@@ -93,7 +102,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 >Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-23 January 2019
+19 February 2019
 
 ### DISCLAIMER
 
