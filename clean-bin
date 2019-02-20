@@ -28,7 +28,7 @@
 scriptfolder="$HOME/Documents/mosfanet/Scripts/bash/my-scripts/"
 olddir=$PWD
 
-if [ $olddir != ~/bin ]; then
+if [ "$olddir" != ~/bin ]; then
 	pushd ~/bin > /dev/null
 fi
 
@@ -38,7 +38,7 @@ find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 echo "Copying new and updated files from the last 24 hours to $scriptfolder ..."
 find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pf {} $scriptfolder \;
 
-if [ $olddir != ~/bin ]; then
+if [ "$olddir" != ~/bin ]; then
 	popd > /dev/null
 fi
 
