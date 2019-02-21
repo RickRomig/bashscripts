@@ -1,12 +1,12 @@
 #!/bin/bash
 #####################################################################
-#Script Name  :rmtilde                                              #
-#Description  :Remove backup files with trailing ~ (tilde)          #
-#Dependencies :ls, rm                                               #
-#Args         :None                                                 #
-#Author       :Richard Romig                                        #
-#Email        :rick.romig@gmail.com                                 #
-#Comment      :                                                     #
+# Script Name  : rmtilde
+# Description  : Remove backup files with trailing ~ (tilde)
+# Dependencies : ls, rm
+# Arguments    : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
 #####################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -24,8 +24,9 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
+
 ls *~ > /dev/null 2>&1
-if [ "$?" != "0" ]; then
+if [ "$?" -ne "0" ]; then
 	echo "No files ending with ~ found."
 else
 	rm -v *~
@@ -33,3 +34,4 @@ else
 fi
 
 exit
+

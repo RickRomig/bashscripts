@@ -1,12 +1,12 @@
 #!/bin/bash
 #####################################################################
-#Script Name  :ren-ext                                              #
-#Description  :Renames file extensions in the current directory     #
-#Dependencies :rename                                               #
-#Args         :File extenstion to be changed                        #
-#Author       :Richard Romig                                        #
-#Email        :rick.romig@gmail.com                                 #
-#Comment      :                                                     #
+# Script Name  : ren-ext
+# Description  : Renames file extensions in the current directory
+# Dependencies : rename
+# Arguments    : File extenstion to be changed
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      :
 #####################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -48,7 +48,7 @@ fi
 
 # Check to see if any files with the extension exist
 ls *.$ext > /dev/null 2>&1
-if [ "$?" != 0 ]; then
+if [ "$?" -ne "0" ]; then
 	echo "Error: No .$ext files exist in the current directory."
 	usage
 fi
@@ -109,3 +109,4 @@ case $ext in
 		;;
 esac
 exit 0
+

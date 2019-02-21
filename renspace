@@ -32,11 +32,11 @@ echo "Copyright 2018, Richard Romig"
 
 # check for filenames containing spaces
 ls | egrep '. ' > /dev/null
-
-if [ "$?" != "0" ]; then
+if [ "$?" -ne "0" ]; then
 	echo "No filenames containing spaces found."
 else
 	rename -v 's/ /_/g' *
 fi
 
 exit 0
+
