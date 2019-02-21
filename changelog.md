@@ -1,5 +1,18 @@
 # Changelog for bashscripts
 
+#### 21 February 2019
+**ren-ext, renspace, rmtilde**
+
+Changed tests for exit status of commands in the scripts from
+```
+	[ "$?" != "0" ]
+```
+to
+```
+	[ "$?" -ne "0" ]
+```
+since the script are comparing integer values.	
+
 #### 19 February 2019
 **ipinfo.sh**
 
