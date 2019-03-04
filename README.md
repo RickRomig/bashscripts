@@ -41,18 +41,20 @@ I developed the following scripts to fix problems or to accomplish routine but s
 
 2. Sometimes when files are downloaded they sometimes have file extensions that are in all caps or using an alternative extension. The script renames the extensions to lowercase and in a more conventional form.
 
-3. The following file extensions are supported:
+3. The scripts checks to see if an argument has been passed and if any files with that extension exist in the directory. It uses a case statement to check the passed argument against the support extensions. If a test fails, an error message is displayed along with the proper syntax.
 
- * BAK is renamed to bak
- * GIF is renamed to gif
- * htm, HTM, HTML are renamed to html
- * jpeg, JPG are renamed to jpg
- * MP3, MP4 are renamed to mp3 and mp4 respectively
- * PDF is renamed to pdf
- * PNG is renamed to png
- * TXT is renamed to txt
+4. The following file extensions are supported:
 
-4. The scripts checks to see if an argument has been passed and if any files with that extension exist in the directory. It uses a case statement to check the passed argument against the support extensions. If a test fails, an error message is displayed along with the proper syntax.
+| Extension | Action |
+|-----------|--------|
+| BAK | renamed to bak
+| GIF | renamed to gif
+| htm, HTM, HTML | renamed to html
+| jpeg, JPG | renamed to jpg
+| MP3, MP4 | renamed to mp3 and mp4 respectively
+| PDF | renamed to pdf
+| PNG | renamed to png
+| TXT | renamed to txt
 
 ### renspace
 1. Uses rename to replace spaces in filenames with underscores. When run, the scripts renames every filename containing spaces in the current directory.
@@ -60,7 +62,7 @@ I developed the following scripts to fix problems or to accomplish routine but s
 ### rmtilde
 1. Removes backup files in a directory that have a trailing tilde (~).
 
-2. I wrote this script after accidentally deleting an entire directory while attempting to type rm *~.
+2. I wrote this script after accidentally deleting an entire directory while attempting to type rm \*~.
 
 ### sysinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
@@ -93,16 +95,16 @@ I developed the following scripts to fix problems or to accomplish routine but s
 
 Feel free to contact me with comments and suggestions. I can be reached through my blog, Twitter, and email.
 
->[GitHub](https://github.com/RickRomig/bashscripts)
->
->[Rick's Tech Stuff](https://ricktech.wordpress.com)
->
->[Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
->
->Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
+* [GitHub](https://github.com/RickRomig/bashscripts)
+
+* [Rick's Tech Stuff](https://ricktech.wordpress.com)
+
+* [Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
+
+* Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-19 February 2019
+04 March 2019
 
 ### DISCLAIMER
 
