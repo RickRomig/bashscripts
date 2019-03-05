@@ -3,7 +3,7 @@
 #### 21 February 2019
 **ren-ext, renspace, rmtilde**
 
-Changed tests for exit status of commands in the scripts from
+Since the tests for the exit status of commands are comparing integter values, I changed the scripts from
 ```
 [ "$?" != "0" ]
 ```
@@ -11,17 +11,16 @@ to
 ```
 [ "$?" -ne "0" ]
 ```
-since the script are comparing integer values.
 
 #### 19 February 2019
 **ipinfo.sh**
 
-Added script to nicely display basic IP information.
+New script to nicely display basic IP information.
 
 #### 18 February 2018
 **sysinfo**
 
-Added code to get and display MAC address for netork interfaces.
+Added code to display MAC addresses for netork interfaces.
 ```
 echo "Network Adapters:" >> $infofile
 echo -e "\tEthernet: $ethint = $ethernet" >> $infofile
