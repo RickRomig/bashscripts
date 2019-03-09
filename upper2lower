@@ -52,9 +52,9 @@ characters in all filenames in the directory to lowercase."
 	                ;;
         esac
 elif [ -e "$myfile" ]; then
-                rename -v 'y/A-Z/a-z/' $myfile
-        else
-                echo "Error: $myfile does not exist. Try again."
-                usage
+        rename -v 'y/A-Z/a-z/' $myfile
+else
+        echo "Error: $myfile does not exist. Try again."
+        usage
 fi
 exit 0
