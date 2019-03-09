@@ -1,5 +1,16 @@
 # Changelog for bashscripts
 
+#### 8 March 2019
+**clean-bin**
+
+Shortened conditional statements for pushd and popd, eliminating if constructs.
+```
+[ "$olddir" != ~/bin ] && pushd ~/bin > /dev/null
+[ "$olddir" != ~/bin ] && popd < /dev/null
+```
+**upper2lower**
+Made minor modifications to clean up indentation and improve readability. No changes to functional code.
+
 #### 21 February 2019
 **ren-ext, renspace, rmtilde**
 
