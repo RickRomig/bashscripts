@@ -1,5 +1,37 @@
 # Changelog for bashscripts
 
+#### 10 March 2019
+**ren-ext**
+* Made the case patterns case-insensitive by setting the`shopt` Bash builtin and changing the case patterns to lowercase.
+```
+shopt -s nocasematch
+case
+	bak)
+		echo "Renaming .$ext files to .bak"
+		rename -v 's/\.BAK$/\.bak/i' *
+		;;
+	...
+esac
+shopt -u nocasematch
+```
+* Made the rename commands case-insensitive by adding the `i` option and replacing `*.EXT` with `*`.
+```
+FROM
+rename -v 's/\.BAK$/\.bak/' *.BAK
+TO
+rename -v 's/\.BAK$/\.bak/i' *
+```
+* Since supported extensions are now case-insensitive, removed the ls command and the following if statement to check if files with the given extension exist. If no files are renamed, no files are listed.
+```
+# Check to see if any files with the extension exist
+ls *.$ext > /dev/null 2>&1
+if [ "$?" -ne "0" ]; then
+	echo "Error: No .$ext files exist in the current directory."
+	usage
+fi
+```
+* Added support for AVI, FLV, MPG, mpeg, and WMV extensions.
+
 #### 8 March 2019
 **clean-bin**
 
