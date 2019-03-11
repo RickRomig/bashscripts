@@ -28,8 +28,8 @@
 function usage {
 	echo "Usage: $myscript extension"
 	echo "Example: $myscript JPG"
-	echo "Supported extensions: BAK, GIF, htm, HTM, HTML, jpeg, JPG, MP3, \
-MP4, PDF, PNG, TXT"
+	echo "Supported extensions: BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, \
+	MP3, MP4, MPG, mpeg, PDF, PNG, TXT, WMV"
 	exit 1
 }
 
@@ -46,67 +46,74 @@ else
 	ext=$1
 fi
 
-# Check to see if any files with the extension exist
-ls *.$ext > /dev/null 2>&1
-if [ "$?" -ne "0" ]; then
-	echo "Error: No .$ext files exist in the current directory."
-	usage
-fi
-
+shopt -s nocasematch
 # Rename file extenssions based on the passed argument
 case $ext in
-	BAK)
-        	echo "Renaming .BAK files to .bak"
-		rename -v 's/\.BAK$/\.bak/' *.BAK
+	bak)
+        	echo "Renaming .$ext files to .bak"
+		rename -v 's/\.BAK$/\.bak/i' *
 		;;
-	GIF)
-		echo "Renaming .GIF files to .gif"
-		rename -v 's/\.GIF$/\.gif/' *.GIF
+	flv)
+		echo "Renaming .$ext files to .flv"
+		rename -v 's/\.FLV$/\.flv/i' *
+		;;
+	gif)
+		echo "Renaming .$ext files to .gif"
+		rename -v 's/\.GIF$/\.gif/i' *
 		;;
 	htm)
-		echo "Renaming .htm files to .html"
-		rename -v 's/\.htm$/\.html/' *.htm
+		echo "Renaming .$ext files to .html"
+		rename -v 's/\.htm$/\.html/i' *
 		;;
-	HTM)
-		echo "Renaming .HTM files to .html"
-		rename -v 's/\.HTM$/\.html/' *.HTM
-		;;
-	HTML)
-		echo "Renaming .HTML files to .html"
-		rename -v 's/\.HTML$/\.html/' *.HTML
+	html)
+		echo "Renaming .$ext files to .html"
+		rename -v 's/\.HTML$/\.html/i' *
 		;;
 	jpeg)
-		echo "Renaming .jpeg files to .jpg"
-		rename -v 's/\.jpeg$/\.jpg/' *.jpeg
+		echo "Renaming .$ext files to .jpg"
+		rename -v 's/\.jpeg$/\.jpg/i' *
 		;;
-	JPG)
-		echo "Renaming .JPG files to .jpg"
-		rename -v 's/\.JPG$/\.jpg/' *.JPG
+	jpg)
+		echo "Renaming .$ext files to .jpg"
+		rename -v 's/\.JPG$/\.jpg/i' *
 		;;
-	MP3)
-		echo "Renaming .MP3 files to .mp3"
-		rename -v 's/\.MP3$/\.mp3/' *.MP3
+	mp3)
+		echo "Renaming .$ext files to .mp3"
+		rename -v 's/\.MP3$/\.mp3/i' *
 		;;
-	MP4)
-		echo "Renaming .MP4 files to .mp4"
-		rename -v 's/\.MP4$/\.mp4/' *.MP4
+	mp4)
+		echo "Renaming .$ext files to .mp4"
+		rename -v 's/\.MP4$/\.mp4/i' *
 		;;
-	PDF)
-		echo "Renaming .PDF files to .pdf"
-		rename -v 's/\.PDF$/\.pdf/' *.PDF
+	mpg)
+		echo "Renaming .$ext files to .mpg"
+		rename -v 's/\.MPG$/\.mpg/i' *
 		;;
-	PNG)
-		echo "Renaming .PNG files to .png"
-		rename -v 's/\.PNG$/\.png/' *.PNG
+	mpeg)
+		echo "Renaming .$ext files to .mpg"
+		rename -v 's/\.MPEG$/\.mpg/i' *
 		;;
-	TXT)
-		echo "Renaming .TXT files to .txt"
-		rename -v 's/\.TXT$/\.txt/' *.TXT
+	pdf)
+		echo "Renaming .$ext files to .pdf"
+		rename -v 's/\.PDF$/\.pdf/i' *
+		;;
+	png)
+		echo "Renaming .$ext files to .png"
+		rename -v 's/\.PNG$/\.png/i' *
+		;;
+	txt)
+		echo "Renaming .$ext files to .txt"
+		rename -v 's/\.TXT$/\.txt/i' *
+		;;
+	wmv)
+		echo "Renaming .$ext files to .wmv"
+		rename -v 's/\.WMV$/\.wmv/i' *
 		;;
 	*)
-		echo "Error: $ext is NOT a supported file extension."
+		echo "Error: .$ext is NOT a supported file extension."
 		usage
 		;;
 esac
-exit 0
+shopt -u nocasematch
 
+exit 0
