@@ -49,6 +49,10 @@ fi
 shopt -s nocasematch
 # Rename file extenssions based on the passed argument
 case $ext in
+	avi)
+        	echo "Renaming .$ext files to .avi"
+		rename -v 's/\.AVI$/\.avi/i' *
+		;;
 	bak)
         	echo "Renaming .$ext files to .bak"
 		rename -v 's/\.BAK$/\.bak/i' *
@@ -114,6 +118,7 @@ case $ext in
 		usage
 		;;
 esac
+
 shopt -u nocasematch
 
 exit 0
