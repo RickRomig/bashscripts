@@ -1,5 +1,9 @@
 # Changelog for bashscripts
 
+#### 31 March 2018
+**chkupdates**
+* replaced instances of `apt-get` with `apt`. Backward compatibility with Ubuntu 16.04 and Linux Mint 17.x is no longer necessary due to end of life.
+
 #### 10 March 2019
 **ren-ext**
 * Made the case patterns case-insensitive by setting the`shopt` Bash builtin and changing the case patterns to lowercase.
