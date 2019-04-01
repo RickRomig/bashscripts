@@ -26,10 +26,11 @@
 #####################################################################
 echo "Checking for updates..."
 sudo apt update
-nupd=$(apt upgrade -s | grep -P '^\d+ upgraded'|cut -d" " -f1) >/dev/null 2>&1
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) >/dev/null 2>&1
 echo "$nupd updates available."
 if [ $nupd -gt 0 ]; then
-	echo "Available updates..."
+	echo "Available updates:"
 	apt list --upgradeable
 fi
-exit 0
+exit
+
