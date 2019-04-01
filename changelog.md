@@ -1,4 +1,15 @@
 # Changelog for bashscripts
+#### 1 April 2018
+* Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
+* Replaced the if statement to run `apt list --upgradeable` if updates are available.
+```
+OLD CODE:
+if [ $nupd -gt 0 ]; then
+	apt list --upgradeable
+fi
+NEW CODE:
+[ $nupd -gt 0 ] && apt list --upgradeable
+```
 
 #### 31 March 2018
 **chkupdates**

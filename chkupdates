@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : chkupdates
 # Description  : check to see if updates are available
-# Dependencies : apt, apt-get, grep, cut, sudo
+# Dependencies : apt, grep, cut, sudo
 # Arguments    : none
 # Author       : Richard Romig, 08 December 2018
 # Email        : rick.romig@gmail.com
@@ -26,11 +26,7 @@
 #####################################################################
 echo "Checking for updates..."
 sudo apt update
-nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) >/dev/null 2>&1
-echo "$nupd updates available."
-if [ $nupd -gt 0 ]; then
-	echo "Available updates:"
-	apt list --upgradeable
-fi
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) \
+>/dev/null 2>&1
+[ $nupd -gt 0 ] && apt list --upgradeable
 exit
-
