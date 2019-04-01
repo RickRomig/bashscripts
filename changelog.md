@@ -1,5 +1,6 @@
 # Changelog for bashscripts
 #### 1 April 2018
+**chkupdates**
 * Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
 * Replaced the if statement to run `apt list --upgradeable` if updates are available.
 ```
