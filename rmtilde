@@ -25,13 +25,6 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
-ls *~ > /dev/null 2>&1
-if [ "$?" -ne "0" ]; then
-	echo "No files ending with ~ found."
-else
-	rm -v *~
-	echo "All files ending with ~ removed."
-fi
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 
 exit
-

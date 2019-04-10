@@ -28,25 +28,26 @@
 myscript=$0
 
 usage () {
-	echo "Usage: $myscript file"
-	exit 1
+  echo "Usage: $myscript file"
 }
 
 # check number of arguments
-if  [ -z "$1" ]; then
-	echo "Error: No argments passed."
-	usage
+if [ -z "$1" ]; then
+  echo "ERROR: No argments passed." >&2
+  usage
+  exit 1
 else
-    myfile=$1
+  myfile=$1
 fi
 
 # check if file exists
 if [ ! -f "$myfile" ]; then
-    echo "Error: $myfile not found."
-	usage
+  echo "ERROR: $myfile not found." >&2
+  usage
+  exit 1
 fi
 
 # convert the file
 sed -i.bak -e 's/\r//g'  $myfile
 
-exit 0
+exit

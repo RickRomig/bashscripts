@@ -28,11 +28,10 @@
 myscript=$(basename $0)
 myfile=$1
 
-function usage {
-	echo "Usage: $myscript [filename]"
-	echo "WARNING! If no filename is passed, $myscript will change all \
+usage () {
+  echo "Usage: $myscript [filename]"
+  echo "WARNING! If no filename is passed, $myscript will change all \
 filenames in the current directory to lowercase."
-        exit 1
 }
 
 echo "Upper2Lower - Changes uppercase in files names to lower case."
@@ -40,21 +39,22 @@ echo "Copyright 2018, Richard Romig"
 
 # if no filename passed then get confirmation from user
 if  [ -z "$1"  ]; then
-        echo "WARNING: $myscript without an argument changes all uppercase \
-characters in all filenames in the directory to lowercase."
-        read -p "Are you sure you want to do this? [y/N] " yn
-        case $yn in
-                [Yy]* )
-			rename -v 'y/A-Z/a-z/' *
-                        ;;
-                * )
-			usage
-	                ;;
-        esac
+  Usage
+  read -nl -p "Are you sure you want to do this? [y/N] " yn
+  case $yn in
+    [Yy]* )
+      rename -v 'y/A-Z/a-z/' *
+      ;;
+    * )
+       usage
+       exit
+       ;;
+  esac
 elif [ -e "$myfile" ]; then
-        rename -v 'y/A-Z/a-z/' $myfile
+  rename -v 'y/A-Z/a-z/' $myfile
 else
-        echo "Error: $myfile does not exist. Try again."
-        usage
+  echo "ERROR: $myfile does not exist. Try again." >&2
+  usage
+  exit 1
 fi
-exit 0
+exit

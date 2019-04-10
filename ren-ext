@@ -25,12 +25,11 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
-function usage {
-	echo "Usage: $myscript extension"
-	echo "Example: $myscript JPG"
-	echo "Supported extensions: BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, \
-	MP3, MP4, MPG, mpeg, PDF, PNG, TXT, WMV"
-	exit 1
+usage () {
+  echo "Usage: $myscript extension"
+  echo "Example: $myscript JPG"
+  echo "Supported extensions: BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, \
+MP3, MP4, MPG, mpeg, PDF, PNG, TXT, WMV"
 }
 
 myscript=$(basename $0)
@@ -39,86 +38,89 @@ echo "$myscript - bulk renames file extensions in the current diectory."
 echo -e  "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
-if  [ -z "$1"  ]; then
-	echo "Error: Must provide a file extension to be renamed."
-	usage
+if [ -z "$1"  ]; then
+  echo "ERROR: Must provide a file extension to be renamed." >&2
+  usage
+  exit 1
 else
-	ext=$1
+  ext=$1
 fi
 
 shopt -s nocasematch
+
 # Rename file extenssions based on the passed argument
 case $ext in
-	avi)
-        	echo "Renaming .$ext files to .avi"
-		rename -v 's/\.AVI$/\.avi/i' *
-		;;
-	bak)
-        	echo "Renaming .$ext files to .bak"
-		rename -v 's/\.BAK$/\.bak/i' *
-		;;
-	flv)
-		echo "Renaming .$ext files to .flv"
-		rename -v 's/\.FLV$/\.flv/i' *
-		;;
-	gif)
-		echo "Renaming .$ext files to .gif"
-		rename -v 's/\.GIF$/\.gif/i' *
-		;;
-	htm)
-		echo "Renaming .$ext files to .html"
-		rename -v 's/\.htm$/\.html/i' *
-		;;
-	html)
-		echo "Renaming .$ext files to .html"
-		rename -v 's/\.HTML$/\.html/i' *
-		;;
-	jpeg)
-		echo "Renaming .$ext files to .jpg"
-		rename -v 's/\.jpeg$/\.jpg/i' *
-		;;
-	jpg)
-		echo "Renaming .$ext files to .jpg"
-		rename -v 's/\.JPG$/\.jpg/i' *
-		;;
-	mp3)
-		echo "Renaming .$ext files to .mp3"
-		rename -v 's/\.MP3$/\.mp3/i' *
-		;;
-	mp4)
-		echo "Renaming .$ext files to .mp4"
-		rename -v 's/\.MP4$/\.mp4/i' *
-		;;
-	mpg)
-		echo "Renaming .$ext files to .mpg"
-		rename -v 's/\.MPG$/\.mpg/i' *
-		;;
-	mpeg)
-		echo "Renaming .$ext files to .mpg"
-		rename -v 's/\.MPEG$/\.mpg/i' *
-		;;
-	pdf)
-		echo "Renaming .$ext files to .pdf"
-		rename -v 's/\.PDF$/\.pdf/i' *
-		;;
-	png)
-		echo "Renaming .$ext files to .png"
-		rename -v 's/\.PNG$/\.png/i' *
-		;;
-	txt)
-		echo "Renaming .$ext files to .txt"
-		rename -v 's/\.TXT$/\.txt/i' *
-		;;
-	wmv)
-		echo "Renaming .$ext files to .wmv"
-		rename -v 's/\.WMV$/\.wmv/i' *
-		;;
-	*)
-		echo "Error: .$ext is NOT a supported file extension."
-		usage
-		;;
+  avi)
+    echo "Renaming .$ext files to .avi"
+    rename -v 's/\.AVI$/\.avi/i' *
+    ;;
+  bak)
+    echo "Renaming .$ext files to .bak"
+    rename -v 's/\.BAK$/\.bak/i' *
+    ;;
+  flv)
+    echo "Renaming .$ext files to .flv"
+    rename -v 's/\.FLV$/\.flv/i' *
+    ;;
+  gif)
+    echo "Renaming .$ext files to .gif"
+    rename -v 's/\.GIF$/\.gif/i' *
+    ;;
+  htm)
+    echo "Renaming .$ext files to .html"
+    rename -v 's/\.htm$/\.html/i' *
+    ;;
+  html)
+    echo "Renaming .$ext files to .html"
+    rename -v 's/\.HTML$/\.html/i' *
+    ;;
+  jpeg)
+    echo "Renaming .$ext files to .jpg"
+    rename -v 's/\.jpeg$/\.jpg/i' *
+    ;;
+  jpg)
+    echo "Renaming .$ext files to .jpg"
+    rename -v 's/\.JPG$/\.jpg/i' *
+    ;;
+  mp3)
+    echo "Renaming .$ext files to .mp3"
+    rename -v 's/\.MP3$/\.mp3/i' *
+    ;;
+  mp4)
+    echo "Renaming .$ext files to .mp4"
+    rename -v 's/\.MP4$/\.mp4/i' *
+    ;;
+  mpg)
+    echo "Renaming .$ext files to .mpg"
+    rename -v 's/\.MPG$/\.mpg/i' *
+    ;;
+  mpeg)
+    echo "Renaming .$ext files to .mpg"
+    rename -v 's/\.MPEG$/\.mpg/i' *
+    ;;
+  pdf)
+    echo "Renaming .$ext files to .pdf"
+    rename -v 's/\.PDF$/\.pdf/i' *
+    ;;
+  png)
+    echo "Renaming .$ext files to .png"
+    rename -v 's/\.PNG$/\.png/i' *
+    ;;
+  txt)
+    echo "Renaming .$ext files to .txt"
+    rename -v 's/\.TXT$/\.txt/i' *
+    ;;
+  wmv)
+    echo "Renaming .$ext files to .wmv"
+    rename -v 's/\.WMV$/\.wmv/i' *
+    ;;
+  *)
+    echo "ERROR: .$ext is NOT a supported file extension." >&2
+    usage
+    exit 1
+    ;;
 esac
 
 shopt -u nocasematch
 
-exit 0
+exit

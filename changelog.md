@@ -1,4 +1,27 @@
 # Changelog for bashscripts
+### 10 April 2019
+**dos2linux**
+* Redirected error messages to STDERR.
+
+**ren-ext**
+* Redirected error messages to STDERR. Moved `exit` statement out of usage function and applied where needed in the script.
+
+**renspace**
+* Redirected STDERR to /Dev/null with STDOUT.
+
+**rmtilde**
+* Replaced `ls` and if statements with a `find` command since `rm -v *~` did not remove hidden files.
+```
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+```
+
+**sysinfo**
+* Changed indentation of if statements.
+
+**upper2lower**
+* Redirected error messages to STDERR. Moved `exit` statement out of usage function and applied where needed in the script.
+* Replaced the warrning message if there are no arguments with `usage` since the function already contains the warning.
+
 #### 1 April 2018
 **chkupdates**
 * Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
