@@ -1,4 +1,35 @@
 # Changelog for bashscripts
+### 16 May 2019
+**clean-bin**
+* Added a variable to hold the number of files ending with '~' and a conditional statement to determine if execution of find was necessary.
+```
+# Old code:
+echo "Cleaning up ~ backup files ..."
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+# New code:
+num=$(ls -1 *~ 2>/dev/null | wc -l)
+if (( num > 0 )); then
+  echo "Cleaning up $num '~' backup files from ~/bin ..."
+  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+fi
+```
+
+**rmtilde**
+* Added variables to hold the number of files ending with '~' and a conditional statement to determine if execution of find was necessary.
+```
+# Old code:
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+# New code:
+numf=$(ls -1 *~ 2>/dev/null | wc -l)
+dotf=$(ls -1 .*~ 2>/dev/null | wc -l)
+if (( numf > 0 )) || (( dotf > 0 )); then
+  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
+  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+else
+  echo "No files ending with '~' found."
+fi
+```
+
 ### 10 April 2019
 **dos2linux**
 * Redirected error messages to STDERR.
@@ -7,7 +38,7 @@
 * Redirected error messages to STDERR. Moved `exit` statement out of usage function and applied where needed in the script.
 
 **renspace**
-* Redirected STDERR to /Dev/null with STDOUT.
+* Redirected STDERR to /dev/null with STDOUT.
 
 **rmtilde**
 * Replaced `ls` and if statements with a `find` command since `rm -v *~` did not remove hidden files.

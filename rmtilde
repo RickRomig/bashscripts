@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : rmtilde
 # Description  : Remove backup files with trailing ~ (tilde)
-# Dependencies : ls, rm
+# Dependencies : find, rm
 # Arguments    : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
@@ -25,6 +25,14 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
-find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+numf=$(ls -1 *~ 2>/dev/null | wc -l)
+dotf=$(ls -1 .*~ 2>/dev/null | wc -l)
+
+if (( numf > 0 )) || (( dotf > 0 )); then
+  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
+  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+else
+  echo "No files ending with '~' found."
+fi
 
 exit

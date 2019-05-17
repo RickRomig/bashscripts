@@ -25,17 +25,31 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-scriptfolder="$HOME/Documents/mosfanet/Scripts/bash/my-scripts/"
-olddir=$PWD
+# Variables
 
-[ "$olddir" != ~/bin ] && pushd ~/bin > /dev/null
+user=$USER
+scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
+curdir=$PWD
 
-echo "Cleaning up ~ backup files ..."
-find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+# Change directory to ~/bin
 
-echo "Copying new and updated files from the last 24 hours to $scriptfolder ..."
-find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pf {} $scriptfolder \;
+[ "$curdir" != "/home/$user/bin" ] && pushd /home/$user/bin > /dev/null
 
-[ "$olddir" != ~/bin ] && popd > /dev/null
+# Remove files ending with *~
 
-exit 0
+num=$(ls -1 *~ 2>/dev/null | wc -l)
+if (( num > 0 )); then
+  echo "Cleaning up $num '~' backup files from ~/bin ..."
+  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+fi
+
+# Copy files created or modified within the last 24 hours
+
+echo "Copying new and updated files to $scriptfolder ..."
+find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} $scriptfolder \;
+
+# Return to the directory where you started
+
+[ "$curdir" != /home/$user/bin ] && popd > /dev/null
+
+exit
