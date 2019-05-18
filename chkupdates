@@ -24,9 +24,14 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
+
+sudo ls > /dev/null 2>&1
+clear
 echo "Checking for updates..."
 sudo apt update
+echo "..."
 nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) \
->/dev/null 2>&1
-[ $nupd -gt 0 ] && apt list --upgradeable
+  >/dev/null 2>&1
+[ "$nupd" -gt "0" ] && apt list --upgradeable
 exit
+

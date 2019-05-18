@@ -24,7 +24,7 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
  * DNS servers, if system has a static IP, otherwise displays the default gateway address.
 
 ### locale-fix.sh
-1. Fixes an error that sometimes occurs with update-initramfs during an update and the following awarning appears:
+1. Fixes an error that sometimes occurs with update-initramfs during an update and the following warning appears:
 >Warning: No support for locale: us_US.UTF-8
 >
 >The problem is that /usr/share/initramfs-tools/hooks/root_locale is expecting to see individual locale directories in /usr/lib/locale, but locale-gen is configured to generate an archive file by default.

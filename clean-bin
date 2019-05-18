@@ -33,23 +33,20 @@ curdir=$PWD
 
 # Change directory to ~/bin
 
-[ "$curdir" != "/home/$user/bin" ] && pushd /home/$user/bin > /dev/null
+[ "$curdir" != "/home/$user/bin" ] && pushd "/home/$user/bin" > /dev/null
 
 # Remove files ending with *~
 
-num=$(ls -1 *~ 2>/dev/null | wc -l)
-if (( num > 0 )); then
-  echo "Cleaning up $num '~' backup files from ~/bin ..."
-  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
-fi
+echo "Cleaning up '~' backup files from ~/bin..."
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 
 # Copy files created or modified within the last 24 hours
 
 echo "Copying new and updated files to $scriptfolder ..."
-find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} $scriptfolder \;
+find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} "$scriptfolder" \;
 
 # Return to the directory where you started
 
-[ "$curdir" != /home/$user/bin ] && popd > /dev/null
+[ "$curdir" != "/home/$user/bin" ] && popd > /dev/null
 
 exit

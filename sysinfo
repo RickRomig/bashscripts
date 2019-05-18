@@ -27,65 +27,80 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ####################################################################
 
-# Set base variables
+# Base variables
+
 myuser=$USER
 myhost=$HOSTNAME
 infofile="/home/$myuser/$myhost.info"
 today=$(date +"%d %B %Y")
 
 # Computer information
+
 mfgname=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
 prodname=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
 vername=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
 sernum=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+
 # RAM and CPU
+
 physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
 echo "scale=4; {}/1024^2" | bc)
-cpuinfo=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
+cpuinfo=$(grep 'model name' /proc/cpuinfo | uniq | cut -c 14-)
+
 # Network
+
 ethint=$(nmcli dev | grep 'ethernet' | awk '{print $1}')
 wifint=$(nmcli dev | grep 'wifi' | awk '{print $1}')
 ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
 wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
+
 # Hard drive
+
 hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
 hdserial=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
 hdsize=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
 
-# Write data to file in user's host directory
+# Write data to file in user's home directory
+
 clear
-echo "SysInfo, Copyright 2019, Richard Romig" > $infofile
-echo -e "File created: $today\n" >> $infofile
-echo -e "System information for $myhost:\n" >> $infofile
-echo "Manufacturer: $mfgname" >> $infofile
-echo "Product name: $prodname" >> $infofile
-echo "Version: $vername" >> $infofile
-echo -e "Serial number: $sernum\n" >> $infofile
-echo -e "OS: $(/usr/bin/lsb_release -d | cut -c 14-)\n" >> $infofile
-echo "CPU: $cpuinfo" >> $infofile
-echo "RAM: $physmem GB" >> $infofile
-echo "Graphics Adapter: " >> $infofile
-echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)" >> $infofile
-echo "Network Adapters:" >> $infofile
-echo -e "\tEthernet: $ethint = $ethernet" >> $infofile
-read ethadd < /sys/class/net/$ethint/address
-echo -e "\tMAC addr: $ethadd" >> $infofile
-if [ -n "$wireless" ]; then
-  echo -e "\tWireless: $wifint = $wireless" >> $infofile
-  read wifiadd < /sys/class/net/$wifint/address
-  echo -e "\tMAC addr: $wifiadd" >> $infofile
-fi
-echo -e "\nHard Disk information:" >> $infofile
-echo -e "\tModel Number : $hdmodel" >> $infofile
-echo -e "\tSerial Number: $hdserial" >> $infofile
-echo -e "\tCapacity: $hdsize" >> $infofile
-echo -e "\nPartition information:" >> $infofile
-/bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT >> $infofile
-if [ "$(ls -A /sys/class/power_supply/)" ]; then
-  echo -e "\nPower and battery:" >> $infofile
-  ls -1 /sys/class/power_supply >> $infofile
-fi
+echo "SysInfo, Copyright 2019, Richard Romig" > "$infofile"
+{
+  echo -e "File created: $today\n"
+  echo -e "System information for $myhost:\n"
+  echo "Manufacturer: $mfgname"
+  echo "Product name: $prodname"
+  echo "Version: $vername"
+  echo -e "Serial number: $sernum\n"
+  echo -e "OS: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
+  echo "CPU: $cpuinfo"
+  echo "RAM: $physmem GB"
+  echo "Graphics Adapter: "
+  echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
+  echo "Network Adapters:"
+  if [ -n "$ethernet" ]; then
+    echo -e "\tEthernet: $ethint = $ethernet"
+    read -r ethadd < "/sys/class/net/$ethint/address"
+    echo -e "\tMAC addr: $ethadd"
+  fi
+  if [ -n "$wireless" ]; then
+    echo -e "\tWireless: $wifint = $wireless"
+    read -r wifiadd < "/sys/class/net/$wifint/address"
+    echo -e "\tMAC addr: $wifiadd"
+  fi
+  echo -e "\nHard Disk information:"
+  echo -e "\tModel Number : $hdmodel"
+  echo -e "\tSerial Number: $hdserial"
+  echo -e "\tCapacity: $hdsize"
+  echo -e "\nPartition information:"
+  /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+  if [ "$(ls -A /sys/class/power_supply/)" ]; then
+    echo -e "\nPower and battery:"
+    ls -1 /sys/class/power_supply
+  fi
+} >> "$infofile"
+
 # Display the file to the screen
-cat $infofile
+
+cat "$infofile"
 
 exit

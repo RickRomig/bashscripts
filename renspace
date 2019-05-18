@@ -31,11 +31,12 @@ echo "Renspace - renames filenames containing spaces."
 echo "Copyright 2018, Richard Romig"
 
 # check for filenames containing spaces
-ls | egrep '. ' > /dev/null 2>&1
-if [ "$?" -ne "0" ]; then
-	echo "No filenames containing spaces found."
+
+if find . -maxdepth 1 -type f | grep " " >/dev/null
+then
+  rename -v 's/ /_/g' ./*
 else
-	rename -v 's/ /_/g' *
+  echo "No filenames containing spaces found."
 fi
 
-exit 0
+exit

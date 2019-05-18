@@ -1,4 +1,76 @@
 # Changelog for bashscripts
+### 17 May 2019
+**chkupdates**
+* Double-quoted variable references to prevent globbing and word splitting.
+* Added a line to check for sudo privileges before clearing the screen and running the rest of the script.
+```
+# New code:
+sudo ls > /dev/null 2>&1
+clear
+echo "Checking for updates..."
+```
+
+**clean-bin**
+* Romoved the code which calculated the number of \*~ files to be processed, undoing the previous change.
+* Double-quoted variable references to prevent globbing and word splitting.
+
+**dos2linux**
+*  Double-quoted variable references to prevent globbing and word splitting.
+
+**ren-ext**
+* Replaced `*` at the end of each `rename` command with `./*` so that file names containing dashes wouldn't be seen as options.
+
+**renspace**
+* Replaced `*` at the end of the `rename` command with `./*` so that file names containing dashes wouldn't be seen as options.
+```
+# Old code:
+# check for filenames containing spaces
+ls | egrep '. ' > /dev/null 2>&1
+if [ "$?" -ne "0" ]; then
+	echo "No filenames containing spaces found."
+else
+	rename -v 's/ /_/g' *
+fi
+# New code:
+# check for filenames containing spaces
+if find . -maxdepth 1 -type f | grep " " >/dev/null
+then
+  rename -v 's/ /_/g' ./*
+else
+  echo "No filenames containing spaces found."
+fi
+```
+
+**rmtilde**
+* Romoved the code which calculated the number of \*~ files to be processed, undoing the previous change.
+```
+# Old code:
+if (( numf > 0 )) || (( dotf > 0 )); then
+  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
+  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+else
+  echo "No files ending with '~' found."
+fi
+# New code:
+echo "Removing backup files in the current directory ending with '~'..."
+find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+```
+
+**sysinfo**
+* Changed the method for obtaining CPU information (useless cat)
+```
+# Old code:
+cpuinfo=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
+# New code:
+cpuinfo=$(grep 'model name' /proc/cpuinfo | uniq | cut -c 14-)
+```
+* Placed commands redirecting and appending the sysinfo file between brackets to reduce the number of writes to the file.
+* Added blank lines to the variable declarations to make the script more readable.
+
+**upper2lower**
+* Double-quoted variable references to prevent globbing and word splitting.
+*  Replaced `*` at the end of the `rename` command with `./*` so that file names containing dashes wouldn't be seen as options.
+
 ### 16 May 2019
 **clean-bin**
 * Added a variable to hold the number of files ending with '~' and a conditional statement to determine if execution of find was necessary.
