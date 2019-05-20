@@ -28,17 +28,24 @@
 # Variables
 
 user=$USER
-scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
 curdir=$PWD
+scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
+nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
 
 # Change directory to ~/bin
 
 [ "$curdir" != "/home/$user/bin" ] && pushd "/home/$user/bin" > /dev/null
 
+echo "Clean-bin -- Cleaning up /home/$user/bin directory..."
+
 # Remove files ending with *~
 
-echo "Cleaning up '~' backup files from ~/bin..."
-find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+if [ "$nbu" -eq "0" ]; then
+  echo "No '~' backup files ending with '~' found."
+else
+  echo "Cleaning up $nbu '~' backup files from /home/$user/bin..."
+  find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+fi
 
 # Copy files created or modified within the last 24 hours
 

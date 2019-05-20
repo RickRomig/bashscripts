@@ -1,4 +1,31 @@
 # Changelog for bashscripts
+### 20 May 2019
+**clean-bin**
+* Added an improved method to count the number of `*~` files to be removed.
+```
+New code:
+nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
+if [ "$nbu" -eq "0" ]; then
+    echo "No files ending with '~' found."
+else
+    echo "Cleaning up $nbu '~' backup files from /home/$user/bin..."
+    find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+fi
+```
+
+**rmtilde**
+* Added an improved method to count the number of `*~` files to be removed.
+```
+New code:
+nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
+if [ "$nbu" -eq "0" ]; then
+    echo "No files ending with '~' found."
+else
+    echo "Removing $nbu '~' backup files in the current directory..."
+    find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+fi
+```
+
 ### 17 May 2019
 **chkupdates**
 * Double-quoted variable references to prevent globbing and word splitting.
@@ -27,17 +54,17 @@ echo "Checking for updates..."
 # check for filenames containing spaces
 ls | egrep '. ' > /dev/null 2>&1
 if [ "$?" -ne "0" ]; then
-	echo "No filenames containing spaces found."
+    echo "No filenames containing spaces found."
 else
-	rename -v 's/ /_/g' *
+    rename -v 's/ /_/g' *
 fi
 # New code:
 # check for filenames containing spaces
 if find . -maxdepth 1 -type f | grep " " >/dev/null
 then
-  rename -v 's/ /_/g' ./*
+    rename -v 's/ /_/g' ./*
 else
-  echo "No filenames containing spaces found."
+    echo "No filenames containing spaces found."
 fi
 ```
 
@@ -46,10 +73,10 @@ fi
 ```
 # Old code:
 if (( numf > 0 )) || (( dotf > 0 )); then
-  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
-  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+    echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
+    find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 else
-  echo "No files ending with '~' found."
+    echo "No files ending with '~' found."
 fi
 # New code:
 echo "Removing backup files in the current directory ending with '~'..."
@@ -81,8 +108,8 @@ find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 # New code:
 num=$(ls -1 *~ 2>/dev/null | wc -l)
 if (( num > 0 )); then
-  echo "Cleaning up $num '~' backup files from ~/bin ..."
-  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+    echo "Cleaning up $num '~' backup files from ~/bin ..."
+    find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 fi
 ```
 
@@ -95,10 +122,10 @@ find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 numf=$(ls -1 *~ 2>/dev/null | wc -l)
 dotf=$(ls -1 .*~ 2>/dev/null | wc -l)
 if (( numf > 0 )) || (( dotf > 0 )); then
-  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
-  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
+    echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
+    find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 else
-  echo "No files ending with '~' found."
+    echo "No files ending with '~' found."
 fi
 ```
 
@@ -130,11 +157,11 @@ find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 * Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
 * Replaced the if statement to run `apt list --upgradeable` if updates are available.
 ```
-OLD CODE:
+# Old Code:
 if [ $nupd -gt 0 ]; then
-	apt list --upgradeable
+    apt list --upgradeable
 fi
-NEW CODE:
+# New Code:
 [ $nupd -gt 0 ] && apt list --upgradeable
 ```
 
@@ -153,19 +180,19 @@ nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) \
 ```
 shopt -s nocasematch
 case
-	bak)
-		echo "Renaming .$ext files to .bak"
-		rename -v 's/\.BAK$/\.bak/i' *
-		;;
-	...
+    bak)
+        echo "Renaming .$ext files to .bak"
+        rename -v 's/\.BAK$/\.bak/i' *
+        ;;
+    ...
 esac
 shopt -u nocasematch
 ```
 * Made the rename commands case-insensitive by adding the `i` option and replacing `*.EXT` with `*`.
 ```
-FROM
+# Old code:
 rename -v 's/\.BAK$/\.bak/' *.BAK
-TO
+# New Code:
 rename -v 's/\.BAK$/\.bak/i' *
 ```
 * Since supported extensions are now case-insensitive, removed the ls command and the following if statement to check if files with the given extension exist. If no files are renamed, no files are listed.
@@ -173,8 +200,8 @@ rename -v 's/\.BAK$/\.bak/i' *
 # Check to see if any files with the extension exist
 ls *.$ext > /dev/null 2>&1
 if [ "$?" -ne "0" ]; then
-	echo "Error: No .$ext files exist in the current directory."
-	usage
+    echo "Error: No .$ext files exist in the current directory."
+    usage
 fi
 ```
 * Added support for AVI, FLV, MPG, mpeg, and WMV extensions.
@@ -195,10 +222,9 @@ Made minor modifications to clean up indentation and improve readability. No cha
 
 Since the tests for the exit status of commands are comparing integter values, I changed the scripts from
 ```
+# Old Code:
 [ "$?" != "0" ]
-```
-to
-```
+# New code:
 [ "$?" -ne "0" ]
 ```
 
@@ -237,14 +263,13 @@ Changed variable names to lower case.
 
 Replaced the following code to remove \*~ backup files
 ```
+# Old code:
 ls *~ > /dev/null 2>&1
 if [ "$?" = "0" ]
 then
-	rm -v *~
+    rm -v *~
 fi
-```
-with the following
-```
+# New Code:
 find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
 ```
 #### 6 February 2018
@@ -259,13 +284,12 @@ Improved the appearance of the displayed output and changed some methods of gath
 
 Fixed variable name inside the if statement that checks to see if target file exists.
 ```
+#Old code:
 if [ ! -f "$myfile" ]; then
-	echo "Error: $myscript not found."
-	usage
+    echo "Error: $myscript not found."
+    usage
 fi
-```
-Changed to read
-```
+# New code:
 if [ ! -f "$myfile" ]; then
 	echo "Error: $myfile not found."
 	usage

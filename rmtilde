@@ -25,14 +25,15 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
-numf=$(ls -1 *~ 2>/dev/null | wc -l)
-dotf=$(ls -1 .*~ 2>/dev/null | wc -l)
+echo "rmtilde -- removes '~' backup files."
 
-if (( numf > 0 )) || (( dotf > 0 )); then
-  echo "Removing $((numf+dotf)) backup files in the current directory ending with '~'..."
-  find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
-else
+nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
+
+if [ "$nbu" -eq "0" ]; then
   echo "No files ending with '~' found."
+else
+  echo "Removing $nbu '~' backup files in the current directory..."
+  find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 fi
 
 exit
