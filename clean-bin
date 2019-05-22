@@ -30,7 +30,6 @@
 user=$USER
 curdir=$PWD
 scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
-nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
 
 # Change directory to ~/bin
 
@@ -39,6 +38,8 @@ nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
 echo "Clean-bin -- Cleaning up /home/$user/bin directory..."
 
 # Remove files ending with *~
+
+nbu=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
 
 if [ "$nbu" -eq "0" ]; then
   echo "No '~' backup files ending with '~' found."

@@ -1,5 +1,8 @@
 # Changelog for bashscripts
 ### 21 May 2019
+**clean-bin**
+* Moved `nbu` variable declarion to main part of the script before the if statement for removing `*~` files.
+
 **ipinfo**
 * Renamed ipinfo.sh to ipinfo.
 * Modified script to show local IP addresses for both wired and wireless interfaces, if installed.
