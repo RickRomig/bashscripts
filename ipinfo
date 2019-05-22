@@ -37,7 +37,6 @@ wifint=$(nmcli dev | awk '/wifi/ {print $1}')
 publicip=$(wget -qO- http://ipv4.icanhazip.com)
 localip1=$(ip -o -f inet addr show | awk -v name="$ethint" '$0~name {print $4}')
 localip2=$(ip -o -f inet addr show | awk -v name="$wifint" '$0~name {print $4}')
-gateway=$(ip route | awk '/default/ {print $3}')
 
 # Display IP Information
 
@@ -51,14 +50,13 @@ if [ -n "$ethint" ] && [ -n "$localip1" ]; then
 elif [ -n "$ethint" ]; then
   echo -e "\tEthernet: Not connected"
 fi
-
 if [ -n "$wifint" ] && [ -n "$localip2" ]; then
   echo -e "\tWireless: $localip2"
 elif [ -n "$wifint" ]; then
   echo -e "\tWireless: Not connected"
 fi
 echo "Default Gateway:"
-echo -e "\t$gateway"
+/sbin/ip route | awk '/default/ {print "\t"$5"\t"$3}'
 echo "DNS Servers:"
 /usr/bin/nmcli dev show | awk '/IP4.DNS/ {printf "\t%s\n",$2}'
 

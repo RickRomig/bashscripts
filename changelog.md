@@ -34,6 +34,18 @@ elif [ -n "$wifint" ]; then
       echo -e "\tWireless: Not connected"
 fi
 ```
+* Modified code to display the default gateway for each active network interface. Eliminated the `gateway` variable and entered the code directly into the section that displays the IP information.
+```
+# Old code
+gateway=$(ip route | awk '/default/ {print $3}')
+...
+echo "Default Gateway:"
+echo -e "\t$gateway"
+# New code
+echo "Default Gateway:"
+/sbin/ip route | awk '/default/ {print "\t"$5"\t"$3}'
+```
+
 
 ### 20 May 2019
 **clean-bin**
