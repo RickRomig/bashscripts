@@ -15,13 +15,13 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 1. Removes DOS carriage return characters ('\r') from text files created by DOS and Windows text editors so they work better with some Linux programs. The original file is retained and appended with a .bak extension.
 2. The script takes the file to be processed as an argument and checks to see if it exists. A usage message is displayed if the file doesn't exist or no argument is passed.
 
-### ipinfo.sh
+### ipinfo
 1. Displays a system's basic IP information in an easy to read format.
 2. Information displayed:
  * Public IP address
- * Local (private) IP address with CIDR notation (i.e., 192.168.1.100/24)
+ * Local (private) IP address with CIDR notation (i.e., 192.168.1.100/24) for both wired and wireless interfaces, if available.
  * Default gateway
- * DNS servers, if system has a static IP, otherwise displays the default gateway address.
+ * DNS servers if system has a static IP, otherwise displays the DHCP server (default gateway) address.
 
 ### locale-fix.sh
 1. Fixes an error that sometimes occurs with update-initramfs during an update and the following warning appears:

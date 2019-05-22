@@ -1,4 +1,40 @@
 # Changelog for bashscripts
+### 21 May 2019
+**ipinfo**
+* Renamed ipinfo.sh to ipinfo.
+* Modified script to show local IP addresses for both wired and wireless interfaces, if installed.
+  * Added variables for network interfaces:
+```
+ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
+wifint=$(nmcli dev | awk '/wifi/ {print $1}')
+```  
+  * Changed variales to obtain local IP addresses:
+```
+# Old code
+localip=$(ip -o -f inet addr show | awk '/scope global/ {print $4}')
+# New code
+localip1=$(ip -o -f inet addr show | awk -v name="$ethint" '$0~name {print $4}')
+localip2=$(ip -o -f inet addr show | awk -v name="$wifint" '$0~name {print $4}')
+```
+  * Changed code to display local IP information:
+```
+# Old code
+echo "Local IP:"
+echo -e "\t$localip"
+# New code
+echo "Local IP:"
+if [ -n "$ethint" ] && [ -n "$localip1" ]; then
+      echo -e "\tEthernet: $localip1"
+elif [ -n "$ethint" ]; then
+      echo -e "\tEthernet: Not connected"
+fi
+if [ -n "$wifint" ] && [ -n "$localip2" ]; then
+      echo -e "\tWireless: $localip2"
+elif [ -n "$wifint" ]; then
+      echo -e "\tWireless: Not connected"
+fi
+```
+
 ### 20 May 2019
 **clean-bin**
 * Added an improved method to count the number of `*~` files to be removed.
@@ -243,9 +279,9 @@ echo -e "\tEthernet: $ethint = $ethernet" >> $infofile
 read ethadd < /sys/class/net/$ethint/address
 echo -e "\tMAC addr: $ethadd" >> $infofile
 if [ -n "$wireless" ]; then
-	echo -e "\tWireless: $wifint = $wireless" >> $infofile
-	read wifiadd < /sys/class/net/$wifint/address
-	echo -e "\tMAC addr: $wifiadd" >> $infofile
+    echo -e "\tWireless: $wifint = $wireless" >> $infofile
+    read wifiadd < /sys/class/net/$wifint/address
+    echo -e "\tMAC addr: $wifiadd" >> $infofile
 fi
 ```
 #### 10 February 2010
@@ -291,7 +327,7 @@ if [ ! -f "$myfile" ]; then
 fi
 # New code:
 if [ ! -f "$myfile" ]; then
-	echo "Error: $myfile not found."
-	usage
+    echo "Error: $myfile not found."
+    usage
 fi
 ```
