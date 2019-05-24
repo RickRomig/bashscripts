@@ -1,0 +1,111 @@
+#!/bin/bash
+################################################################################
+# Script Name  : yt-dl-install
+# Description  : Installs/updates youtube-dl from https://yt-dl.org
+# Dependencies : apt, chmod, curl
+# Arguments    : -i or --info to dispaly information about the script.
+# Author       : Richard B. Romig, 23 May 2019
+# Email        : rick.romig@gmail.com
+# Comment      : Removes package manager installed version from /usr/bin/
+################################################################################
+# GPL v2
+# Copyright (C) 2019, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+################################################################################
+
+show_info () {
+  cat << EOF
+1, yt-dl-install installs the most current version of youtude-dl from the
+youtube-dl github site at https://ytdl-org.github.io/youtube-dl/index.html.
+Portions of this script is based upon the download instructions on their
+download page.
+
+2, The script was written for Debian and Ubuntu based distributions but your
+experience may vary.
+
+3. The youtube-dl packages contained in the Ubuntu repositories are often older
+and are not regurlarly whereas the version on yt-dl.org is updated quite
+regurlarly (usually monthly if not more often).
+
+4. The version installed by the package manager usually places the application
+in '/usr/bin/' and can't updated unless the version in the Ubuntu repository for
+your distribution is updated.
+
+5. The script will remove the version installed to 'usr/bin' by the package
+manager and install the most current version from yt-dl.org to '/usr/local/bin'.
+
+6. If a version downloaded from yt-dl.org is installed, it will display the
+version number and ask if you want to update to the latest version.
+
+7. Please review the README.md, LICENSE, and WARRANTY in the downloaded ZIP
+archive for more information. They can also be reviewed in my GitHub repository
+at: https://github.com/RickRomig/bashscripts
+
+Richard Romig (GNU/General Public License version 2.0)
+
+EOF
+}
+
+# Display information about the script
+
+if [ "$1" == "-i" ] || [ "$1" == "--info" ]; then
+  show_info
+fi
+
+# Check sudo access and start sudo timer
+
+sudo ls > /dev/null 2>&1
+
+# Install curl, if not installed.
+
+dpkg -l | grep -qw curl || sudo apt install -yyq curl
+
+# Delete older version from /usr/bin/ installed from repositories
+
+if [ -f /usr/bin/youtube-dl ]; then
+  echo "Deleting the older, repository version..."
+  sudo apt remove -yyq youtube-dl
+fi
+
+# Check if youtube-dl is installed.
+# Assumes installed from https;//yt-dl.org to /usr/local/bin/
+
+if which youtube-dl > /dev/null
+then
+  # If installed, prompt to update
+  echo "youtube-dl version: $(youtube-dl --version)"
+  echo "Do you wish to upgrade to the newest version? [yN]"
+  read -rn1 choice
+  case $choice in
+    [Yy]*)
+      echo $'\n'$"Updating youtube-dl to the newest version..."
+      sudo youtube-dl -U
+      ;;
+    *)
+      echo $'\n'$"No action taken - youtube-dl not updated."
+      ;;
+  esac
+else
+  # Install if not already installed
+  echo "Installing youtube-dl from https://yt-dl.org..."
+  sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl \
+   -o /usr/local/bin/youtube-dl
+   # sudo wget https://yt-dl.org/downloads/latest/youtube-dl \
+   # -O /usr/local/bin/youtube-dl
+  sudo chmod a+rx /usr/local/bin/youtube-dl
+fi
+
+exit
