@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 5 June 2019
+**clean-bin**
+* Modified if statement to include test for one file to be removed.
+* Added version information.
+* Incorporated a menu to select the timeframe to copy new or modifiied scripts. The available choices include today, the last 24 hours, and two,  three or four days.
+
+**rmtilde**
+* Modified if statement to include test for one file to be removed.
+* Added version information.
+
 ### 21 May 2019
 **clean-bin**
 * Moved `nbu` variable declarion to main part of the script before the if statement for removing `*~` files.

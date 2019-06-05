@@ -8,8 +8,9 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 3. I find it very useful to for updates when accessing a remote system via SSH. Of course, the script also needs to be on the remote system.
 
 ### clean-bin
-1. Cleans up the ~/bin directory by removing all backup files ending with a tilde and copying any files created or modified within the previous 24 hours to a designated folder which is set in the `$scriptfolder` variable.
-2. If the script is run from anywhere other than the `~/bin` directory, it uses `pushd` to go to `~/bin` for the cleanup and then uses `popd` to return to directory from where it was launched.
+1. Cleans up the ~/bin directory by removing all backup files ending with a tilde and copying files recently created or modified to a designated folder which is set in the `$scriptfolder` variable.
+2. The script incorporates a menu to select the timeframe for the new and modified scripts to be copied to an archival directory. Files from the current day, the previous 24 hours, or the last two, three, or four days.
+3. If the script is run from anywhere other than the `~/bin` directory, it uses `pushd` to go to `~/bin` for the cleanup and then uses `popd` to return to directory from where it was launched.
 
 ### dos2linux
 1. Removes DOS carriage return characters ('\r') from text files created by DOS and Windows text editors so they work better with some Linux programs. The original file is retained and appended with a .bak extension.
