@@ -1,15 +1,15 @@
 #!/bin/bash
 #####################################################################
 # Script Name  : clean-bin
-# Description  : cleas ~/bin of ~ backup files  and copies files
-#              : modfied in last 24 hours to designated folder
-# Dependencies : find, xargs, cp, pushd, popd
+# Description  : cleas ~/bin of ~ backup files and copies files recently
+#              : created or modfied to a designated folder
+# Dependencies : find, cp, pushd, popd, rm
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
 # Comment      :
 #####################################################################
-# Copyright (C) 2019  Richard Romig
+# Copyright (c) 2019  Richard Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -30,31 +30,78 @@
 user=$USER
 curdir=$PWD
 scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
+version="v1.1"
+
+clear
 
 # Change directory to ~/bin
 
 [ "$curdir" != "/home/$user/bin" ] && pushd "/home/$user/bin" > /dev/null
 
-echo "Clean-bin -- Cleaning up /home/$user/bin directory..."
+echo "Clean-bin $version"
+echo -e "Cleaning up /home/$user/bin directory...\n"
 
 # Remove files ending with *~
 
 nbu=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
 
-if [ "$nbu" -eq "0" ]; then
-  echo "No '~' backup files ending with '~' found."
+if [ "$nbu" -eq 0 ]; then
+  echo "No '~' backup files ending with '~' found in  /home/$user/bin."
+elif [ "$nbu" -eq 1 ]; then
+  echo "Removing $nbu '~' backup file from /home/$user/bin."
+  find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 else
-  echo "Cleaning up $nbu '~' backup files from /home/$user/bin..."
-  find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+  echo "Removing $nbu '~' backup files from /home/$user/bin."
+  find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 fi
 
-# Copy files created or modified within the last 24 hours
+# Copy files that have been created or modified
 
-echo "Copying new and updated files to $scriptfolder ..."
-find ./ -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} "$scriptfolder" \;
+echo $'\n'$"Copy files created or modified..."
+options=("Today" "In the last 24 hours" "In the last 2 days" \
+  "In the last 3 days" "In the last 4 days" "Exit the script.")
+PS3="Chose an option: "
+select opt in "${options[@]}"
+do
+  echo "$opt" > /dev/null
+  case $REPLY in
+    1)  echo $'\n'$"Files created or modified today:"
+        find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
+        "$scriptfolder" \;
+        break
+        ;;
+    2)  echo $'\n'$"Files created or modified in the last 24 hours:"
+        find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} \
+        "$scriptfolder" \;
+        break
+        ;;
+    3)  echo $'\n'$"Files created or modified in the last 48 hours:"
+        find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} \
+        "$scriptfolder" \;
+        break
+        ;;
+    4)  echo $'\n'$"Files created or modified in the last 72 hours:"
+        find . -maxdepth 1 -type f -mtime -3 -print -exec cp -pu {} \
+        "$scriptfolder" \;
+        break
+        ;;
+    5)  echo $'\n'$"Files created or modified in the last 72 hours:"
+        find . -maxdepth 1 -type f -mtime -4 -print -exec cp -pu {} \
+        "$scriptfolder" \;
+        break
+        ;;
+    6)  echo "Exiting the script."
+        exit
+        ;;
+    *)  echo "Invalid choice. Try again." ;;
+  esac
+done
+
+echo $'\n'$"New and modified files copied to: $scriptfolder"
 
 # Return to the directory where you started
 
 [ "$curdir" != "/home/$user/bin" ] && popd > /dev/null
 
 exit
+
