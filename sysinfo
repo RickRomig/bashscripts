@@ -33,6 +33,7 @@ myuser=$USER
 myhost=$HOSTNAME
 infofile="/home/$myuser/$myhost.info"
 today=$(date +"%d %B %Y")
+version="v 2.0.1"
 
 # Computer information
 
@@ -45,38 +46,42 @@ sernum=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
 
 physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
 echo "scale=4; {}/1024^2" | bc)
-cpuinfo=$(grep 'model name' /proc/cpuinfo | uniq | cut -c 14-)
-
+cpuinfo=$(/usr/bin/lscpu \
+  | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
 # Network
 
-ethint=$(nmcli dev | grep 'ethernet' | awk '{print $1}')
-wifint=$(nmcli dev | grep 'wifi' | awk '{print $1}')
+ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
+wifint=$(nmcli dev | awk '/wifi/ {print $1}')
 ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
 wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
 
 # Hard drive
 
-hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
-hdserial=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
-hdsize=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
+hdmodel=$(sudo /sbin/hdparm -I /dev/sda | awk '/Model Number/ {print $3" "$4}')
+hdserial=$(sudo /sbin/hdparm -I /dev/sda | awk '/Serial Number/ {print $3}')
+hdsize=$(sudo /sbin/hdparm -I /dev/sda | awk '/GB/ {print $7" "$8" "$9" "$10}')
+
+# Battery
+
+battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` \
+  | awk '/native-path/ {print $2}')
 
 # Write data to file in user's home directory
 
 clear
-echo "SysInfo, Copyright 2019, Richard Romig" > "$infofile"
+echo "SysInfo ($version), Copyright 2019, Richard Romig" > "$infofile"
 {
-  echo -e "File created: $today\n"
-  echo -e "System information for $myhost:\n"
-  echo "Manufacturer: $mfgname"
-  echo "Product name: $prodname"
-  echo "Version: $vername"
-  echo -e "Serial number: $sernum\n"
-  echo -e "OS: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
-  echo "CPU: $cpuinfo"
-  echo "RAM: $physmem GB"
+  echo -e "System information for $myhost as of $today:\n"
+  echo -e "Manufacturer:\t$mfgname"
+  echo -e "Product name:\t$prodname"
+  echo -e "Version:\t$vername"
+  echo -e "Serial number:\t$sernum\n"
+  echo -e "Operating System: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
+  echo -e "CPU:\t$cpuinfo"
+  echo -e "RAM:\t$physmem GB"
   echo "Graphics Adapter: "
   echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
-  echo "Network Adapters:"
+  echo "Network Adapter:"
   if [ -n "$ethernet" ]; then
     echo -e "\tEthernet: $ethint = $ethernet"
     read -r ethadd < "/sys/class/net/$ethint/address"
@@ -88,15 +93,12 @@ echo "SysInfo, Copyright 2019, Richard Romig" > "$infofile"
     echo -e "\tMAC addr: $wifiadd"
   fi
   echo -e "\nHard Disk information:"
-  echo -e "\tModel Number : $hdmodel"
-  echo -e "\tSerial Number: $hdserial"
-  echo -e "\tCapacity: $hdsize"
+  echo -e "\tModel Number:\t$hdmodel"
+  echo -e "\tSerial Number:\t$hdserial"
+  echo -e "\tCapacity:\t$hdsize"
   echo -e "\nPartition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  if [ "$(ls -A /sys/class/power_supply/)" ]; then
-    echo -e "\nPower and battery:"
-    ls -1 /sys/class/power_supply
-  fi
+  [ -n "$battery" ] && echo -e "\nBattery:\t$battery"
 } >> "$infofile"
 
 # Display the file to the screen
