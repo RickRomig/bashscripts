@@ -63,16 +63,16 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 
 ### sysinfo
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
- * System manufacturer (dmidecode)
- * System product name, version, and serial number (dmidecode)
- * Operating System (lsb_release)
- * Amount of physical memory (/proc/meminfo)
- * CPU model ( /proc/cpuinfo)
- * Graphics adapter (lspci)
- * Network adapters (wired and wireless) with device names and MAC addresses (lspci, nmcli, /sys/class/net/)
- * Power/battery information (/sys/class/power_supply/)
- * Hard disk information - model, serial number, and capacity (hdparm)
- * Partition information (lsblk)
+  * System manufacturer (dmidecode)
+  * System product name, version, and serial number (dmidecode)
+  * Operating System (lsb_release)
+  * Amount of physical memory (/proc/meminfo)
+  * CPU model (lscpu)
+  * Graphics adapter (lspci)
+  * Network adapters (wired and wireless) with device names and MAC addresses (lspci, nmcli, /sys/class/net/)
+  * Hard disk information - model, serial number, and capacity (hdparm)
+  * Partition information (lsblk)
+  * Battery information (upower)
 2. The file name is the hostname with an extension of .info and is created in the user's home directory. After the information is written to the file, it is displayed using the cat command.
 3. Root (sudo) privileges are required since it uses `dmidecode` and `hdparm` to extract some of the system data.
 4. The dmidecode command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo M91p desktop PC when running Linux Mint 18.x (Ubuntu 16.04). These error messages can be safely ignored and can be removed from the resulting file with any text editor.
