@@ -48,6 +48,7 @@ physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
 echo "scale=4; {}/1024^2" | bc)
 cpuinfo=$(/usr/bin/lscpu \
   | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
+
 # Network
 
 ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
