@@ -1,4 +1,37 @@
 # Changelog for bashscripts
+### 10 June
+**sysinfo**
+* Changed method for obtaining CPU model name to awk bcause using grep and cut produced exta spaces in the output on some systems.
+```
+# Old code:
+cpuinfo=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
+# New code:
+cpuinfo=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
+```
+* Changed method for obtaining the hard drive model, serial number, and capacity to use awk
+instead of grep and cut.
+```
+# Old code:
+hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
+hdserial=$(sudo /sbin/hdparm -I /dev/sda | grep 'Serial Number' | cut -c 22-)
+hdsize=$(sudo /sbin/hdparm -I /dev/sda | grep 'GB' | cut -c 38-)
+# New code:
+hdmodel=$(sudo /sbin/hdparm -I /dev/sda | awk '/Model Number/ {print $3" "$4}')
+hdserial=$(sudo /sbin/hdparm -I /dev/sda | awk '/Serial Number/ {print $3}')
+hdsize=$(sudo /sbin/hdparm -I /dev/sda | awk '/GB/ {print $7" "$8" "$9" "$10}')
+```
+* Changed method to obtain laptop battery information to use `upower` instead of using ls to list the contents of `/sys/class/power_supply`.
+```
+# Old code:
+if [ "$(ls -A /sys/class/power_supply/)" ]; then
+  echo -e "\nPower and battery:"
+  ls -1 /sys/class/power_supply
+fi
+# New code:
+battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` | awk '/native-path/ {print $2}')
+  [ -n "$battery" ] && echo -e "\nBattery:\t$battery"
+```
+
 ### 5 June 2019
 **clean-bin**
 * Modified if statement to include test for one file to be removed.
