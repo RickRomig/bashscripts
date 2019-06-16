@@ -27,11 +27,10 @@
 
 sudo ls > /dev/null 2>&1
 clear
-echo "Checking for updates..."
+echo -e "\e[1;33mChecking for updates...\e[0m"
 sudo apt update
 echo "..."
-nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) \
-  >/dev/null 2>&1
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1) \
+  > /dev/null 2>&1
 [ "$nupd" -gt "0" ] && apt list --upgradeable
 exit
-

@@ -1,4 +1,7 @@
 # Changelog for bashscripts
+### 16 June
+ * Added color to echo statements, particularly error messages, so they stand out more. The change was made to chkupdates, dos2linux, locale-fix.sh, and ren-ext.
+
 ### 10 June
 **sysinfo**
 * Changed method for obtaining CPU model name to awk bcause using grep and cut produced exta spaces in the output on some systems.

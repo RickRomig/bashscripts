@@ -28,12 +28,13 @@
 myscript=$0
 
 usage () {
-  echo "Usage: $myscript file"
+  echo "Usage: $myscript <file>"
 }
 
 # check number of arguments
+
 if [ -z "$1" ]; then
-  echo "ERROR: No argments passed." >&2
+  echo -e "\e[1;41mError: No argments passed.\e[0m" >&2
   usage
   exit 1
 else
@@ -41,13 +42,16 @@ else
 fi
 
 # check if file exists
+
 if [ ! -f "$myfile" ]; then
-  echo "ERROR: $myfile not found." >&2
+  echo -e "\e[1;41mError: $myfile not found.\e[0m" >&2
   usage
   exit 1
 fi
 
 # convert the file
-sed -i.bak -e 's/\r//g'  $myfile
+
+sed -i.bak -e 's/\r//g' "$myfile"
 
 exit
+

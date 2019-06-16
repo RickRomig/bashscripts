@@ -38,16 +38,18 @@ echo "$myscript - bulk renames file extensions in the current diectory."
 echo -e  "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
+
 if [ -z "$1"  ]; then
-  echo "ERROR: Must provide a file extension to be renamed." <&2
+  echo -e "\e[1;31mError: Must provide a file extension to be renamed.\e[0m" <&2
   usage
   exit 1
 else
   ext=$1
 fi
 
-shopt -s nocasematch
 # Rename file extenssions based on the passed argument
+
+shopt -s nocasematch
 case $ext in
   avi)
     echo "Renaming .$ext files to .avi"
@@ -114,7 +116,7 @@ case $ext in
     rename -v 's/\.WMV$/\.wmv/i' ./*
     ;;
   *)
-    echo "Error: .$ext is NOT a supported file extension."
+    echo -e "\e[1;31mError: .$ext is NOT a supported file extension.\e[0m"
     usage
     exit 1
     ;;

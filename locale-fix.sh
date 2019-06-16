@@ -30,7 +30,11 @@
 #########################################################################
 
 # Remove existing locales & do not store compiled locale data in a single archive
+echo "Purging existing locales."
+echo "Changing default setting to not use a single archive for locale data."
 sudo locale-gen --purge --no-archive
 # Update existing initramfs & take over a custom initramfs with this one
+echo "Updating existing initramfs."
 sudo update-initramfs -u -t
-exit 0
+exit
+
