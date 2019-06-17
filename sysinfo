@@ -33,7 +33,7 @@ myuser=$USER
 myhost=$HOSTNAME
 infofile="/home/$myuser/$myhost.info"
 today=$(date +"%d %B %Y")
-version="v 2.0.1"
+version="v 2.0.2"
 
 # Computer information
 
@@ -44,11 +44,10 @@ sernum=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
 
 # RAM and CPU
 
-physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} \
-echo "scale=4; {}/1024^2" | bc)
+physmem=$(awk '/MemTotal/ {print $2}' /proc/meminfo | \
+  xargs -I {} echo "scale=4; {}/1024^2" | bc)
 cpuinfo=$(/usr/bin/lscpu \
   | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
-
 # Network
 
 ethint=$(nmcli dev | awk '/ethernet/ {print $1}')

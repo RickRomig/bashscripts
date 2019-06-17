@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 17 June
+**sysinfo**
+  * Streamlined the process to obtain the amount of physical memory in the system.
+  ```
+# Old code:
+physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} echo "scale=4; {}/1024^2" | bc)
+# New code:
+physmem=$(awk '/MemTotal/ {print $2}' /proc/meminfo | xargs -I {} echo "scale=4; {}/1024^2" | bc)
+  ```
+
 ### 16 June
  * Added color to echo statements, particularly error messages, so they stand out more. The change was made to chkupdates, dos2linux, locale-fix.sh, and ren-ext.
 
