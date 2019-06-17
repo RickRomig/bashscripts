@@ -2,12 +2,21 @@
 ### 17 June
 **sysinfo**
   * Streamlined the process to obtain the amount of physical memory in the system.
-  ```
+```
 # Old code:
 physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} echo "scale=4; {}/1024^2" | bc)
 # New code:
 physmem=$(awk '/MemTotal/ {print $2}' /proc/meminfo | xargs -I {} echo "scale=4; {}/1024^2" | bc)
-  ```
+```
+
+**chkupdates**
+* Removed redirectation after assigning number of updates to nupd variable because it was redundant.
+```
+# Old code:
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1) < /dev/null 2>&1
+# New code:
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
+```
 
 ### 16 June
  * Added color to echo statements, particularly error messages, so they stand out more. The change was made to chkupdates, dos2linux, locale-fix.sh, and ren-ext.
