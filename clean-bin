@@ -75,17 +75,17 @@ do
         "$scriptfolder" \;
         break
         ;;
-    3)  echo $'\n'$"Files created or modified in the last 48 hours:"
+    3)  echo $'\n'$"Files created or modified in the last 2 days:"
         find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} \
         "$scriptfolder" \;
         break
         ;;
-    4)  echo $'\n'$"Files created or modified in the last 72 hours:"
+    4)  echo $'\n'$"Files created or modified in the last 3 days:"
         find . -maxdepth 1 -type f -mtime -3 -print -exec cp -pu {} \
         "$scriptfolder" \;
         break
         ;;
-    5)  echo $'\n'$"Files created or modified in the last 72 hours:"
+    5)  echo $'\n'$"Files created or modified in the last 4 days:"
         find . -maxdepth 1 -type f -mtime -4 -print -exec cp -pu {} \
         "$scriptfolder" \;
         break
