@@ -2,11 +2,12 @@
 #####################################################################
 # Script Name  : chkupdates
 # Description  : check to see if updates are available
-# Dependencies : apt, grep, cut, sudo
+# Dependencies : apt, cut, grep, select, sudo
 # Arguments    : none
 # Author       : Richard Romig, 08 December 2018
 # Email        : rick.romig@gmail.com
-# Comment      : Lists available updates if there are any
+# Comments     : Lists available updates, if any.
+#              : For Debian/Ubuntu-based Linux distributions
 #####################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -25,11 +26,59 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
+set -e
+
+update() {
+  echo -e "\e[1;33mInstalling updates ...\e[0m"
+  sudo apt dist-upgrade -yy
+}
+
+clean() {
+  echo -e "\e[1;33mCleaning up ...\e[0m"
+  sudo apt autoremove -yy
+  sudo apt autoclean
+}
+
+version="v1.1.0"
+
+# Without the 2>/dev/null, apt will display the following error message to STDERR:
+# WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
+
 sudo ls > /dev/null 2>&1
 clear
+echo -e "\e[1;33mChkupdates $version\e[0m"
 echo -e "\e[1;33mChecking for updates...\e[0m"
 sudo apt update
-echo "..."
-nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
-[ "$nupd" -gt "0" ] && apt list --upgradeable
+
+if [ "$nupd" -gt "0" ]; then
+  apt list --upgradeable
+  PS3="Choice: "
+  options=("Install updates" "Install updates and clean up" \
+           "Exit without updating")
+  select opt in "${options[@]}"
+  do
+    case $opt in
+      "Install updates")
+        update
+        echo -e "\e[1;33mUpdate completed.\e[0m"
+        break
+        ;;
+      "Install updates and clean up")
+        update
+        clean
+        echo -e "\e[1;33mUpdate completed.\e[0m"
+        break
+        ;;
+      "Exit without updating")
+        echo -e "\e[1;33mUpdates not installed.\e[0m"
+        break
+        ;;
+      *)
+        echo -e "\e[1;31mInvalid option!\e[0m Try again." >&2
+        ;;
+    esac
+  done
+fi
 exit
