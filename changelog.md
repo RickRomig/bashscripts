@@ -1,4 +1,12 @@
 # Changelog for bashscripts
+### 19 June
+**chkupdates**
+* Added a menu to chose options that can be taken if there are updates available.
+* Added functions to install updates and to run commands to remove orphan packages and clean the apt cache
+
+**clean-bin**
+* Modified messages in the case actions to match select options.
+
 ### 17 June
 **sysinfo**
   * Streamlined the process to obtain the amount of physical memory in the system.
