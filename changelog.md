@@ -1,4 +1,11 @@
 # Changelog for bashscripts
+### 23 June
+**chkupdates**
+* Moved the assingment of the nupd variable (number of available updates) to after `sudo apt update`so that the number of available updates is properly assigned. 
+
+**sysinfo**
+* Moved variables holding hard drive information to a loop in the main portion of the script to display the information for all storage devices mounted to the computer.
+
 ### 19 June
 **chkupdates**
 * Added a menu to chose options that can be taken if there are updates available.
