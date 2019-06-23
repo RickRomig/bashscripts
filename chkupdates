@@ -41,16 +41,16 @@ clean() {
 
 version="v1.1.0"
 
-# Without the 2>/dev/null, apt will display the following error message to STDERR:
-# WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
-
-nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
-
 sudo ls > /dev/null 2>&1
 clear
 echo -e "\e[1;33mChkupdates $version\e[0m"
 echo -e "\e[1;33mChecking for updates...\e[0m"
 sudo apt update
+
+# Without the 2>/dev/null, apt will display the following error message to STDERR:
+# WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 
 if [ "$nupd" -gt "0" ]; then
   apt list --upgradeable
