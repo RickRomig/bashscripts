@@ -33,7 +33,7 @@ myuser=$USER
 myhost=$HOSTNAME
 infofile="/home/$myuser/$myhost.info"
 today=$(date +"%d %B %Y")
-version="v 2.0.2"
+version="v 2.0.3"
 
 # Computer information
 
@@ -57,9 +57,9 @@ wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
 
 # Hard drive
 
-hdmodel=$(sudo /sbin/hdparm -I /dev/sda | awk '/Model Number/ {print $3" "$4}')
-hdserial=$(sudo /sbin/hdparm -I /dev/sda | awk '/Serial Number/ {print $3}')
-hdsize=$(sudo /sbin/hdparm -I /dev/sda | awk '/GB/ {print $7" "$8" "$9" "$10}')
+# hdmodel=$(sudo /sbin/hdparm -I /dev/sda | awk '/Model Number/ {print $3" "$4}')
+# hdserial=$(sudo /sbin/hdparm -I /dev/sda | awk '/Serial Number/ {print $3}')
+# hdsize=$(sudo /sbin/hdparm -I /dev/sda | awk '/GB/ {print $7" "$8" "$9" "$10}')
 
 # Battery
 
@@ -93,10 +93,19 @@ echo "SysInfo ($version), Copyright 2019, Richard Romig" > "$infofile"
     echo -e "\tMAC addr: $wifiadd"
   fi
   echo -e "\nHard Disk information:"
-  echo -e "\tModel Number:\t$hdmodel"
-  echo -e "\tSerial Number:\t$hdserial"
-  echo -e "\tCapacity:\t$hdsize"
-  echo -e "\nPartition information:"
+  for Disk in /dev/sd[a-z]
+    do
+      hddev=$(sudo /sbin/hdparm -I "${Disk}" | grep -e '/dev/')
+      hdmodel=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Model Number/ {print $3" "$4}')
+      hd0serial=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Serial Number/ {print $3}')
+      hdsize=$(sudo /sbin/hdparm -I "${Disk}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
+
+      echo "$hddev"
+      echo -e "\tModel Number : $hdmodel"
+      echo -e "\tSerial Number: $hdserial"
+      echo -e "\tCapacity: $hdsize\n"
+    done
+  echo "Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
   [ -n "$battery" ] && echo -e "\nBattery:\t$battery"
 } >> "$infofile"
