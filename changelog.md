@@ -1,5 +1,9 @@
 # Changelog for bashscripts
-### 15 July 2018
+### 16 July 2019
+**yt-dl-install**
+* Added `sudo apt purge -yyq youtube-dl` to the code to remove the repository version of youtube-dl because simply removing the package did not keep it from being found by the `dpkg -l` command.
+
+### 15 July 2019
 **yt-dl-install**
 * Changed the method to using `dpkg -l` to see if youtube-dl has been installed from the repository rather than checking for the file in `/usr/bin`.
 ```
