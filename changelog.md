@@ -1,12 +1,25 @@
 # Changelog for bashscripts
-### 23 June
+### 15 July 2018
+**yt-dl-install**
+* Changed the method to using `dpkg -l` to see if youtube-dl has been installed from the repository rather than checking for the file in `/usr/bin`.
+```
+# Old code:
+if [ -f /usr/bin/youtube-dl ]; then
+# New code:
+if dpkg -l | grep -qw youtube-dl
+then
+```
+* Removed option for the user to choose whether or not to update. If youtube-dl is installed, the script will automatically run the update command.
+* Added error checking to the curl download of youtube-dl If the download is successful, the script will display the result and assign the appropriate permissions to the file. If the download fails, an error message with an exit code will be displayed.
+
+### 23 June 2018
 **chkupdates**
-* Moved the assingment of the nupd variable (number of available updates) to after `sudo apt update`so that the number of available updates is properly assigned. 
+* Moved the assingment of the nupd variable (number of available updates) to after `sudo apt update`so that the number of available updates is properly assigned.
 
 **sysinfo**
 * Moved variables holding hard drive information to a loop in the main portion of the script to display the information for all storage devices mounted to the computer.
 
-### 19 June
+### 19 June 2018
 **chkupdates**
 * Added a menu to chose options that can be taken if there are updates available.
 * Added functions to install updates and to run commands to remove orphan packages and clean the apt cache
@@ -14,7 +27,7 @@
 **clean-bin**
 * Modified messages in the case actions to match select options.
 
-### 17 June
+### 17 June 2018
 **sysinfo**
   * Streamlined the process to obtain the amount of physical memory in the system.
 ```
@@ -33,10 +46,10 @@ nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1) < /
 nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 ```
 
-### 16 June
+### 16 June 2018
  * Added color to echo statements, particularly error messages, so they stand out more. The change was made to chkupdates, dos2linux, locale-fix.sh, and ren-ext.
 
-### 10 June
+### 10 June 2018
 **sysinfo**
 * Changed method for obtaining CPU model name to awk bcause using grep and cut produced exta spaces in the output on some systems.
 ```
@@ -128,7 +141,6 @@ echo -e "\t$gateway"
 echo "Default Gateway:"
 /sbin/ip route | awk '/default/ {print "\t"$5"\t"$3}'
 ```
-
 
 ### 20 May 2019
 **clean-bin**

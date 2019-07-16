@@ -83,10 +83,10 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 3. If the script is run against a specific file, it checks to be sure the file exists.
 
 ### yt-dl-install
-1. Installs the newest available version of youtube-dl from the [youtube-dl project](https://ytdl-org.github.io/youtube-dl/index.html), incorporating the instructions given on the youtube-dl download page.
-2. While youtube-dl is included in the Ubuntu repositories, it's often out of date and infrequently updated. The apt package manager usually installs youtube-dl in `/usr/bin/` while the project's download instructions suggests installing it in `/usr/local/bin/`.
-3. The script checks to see if youtube-dl exists in `/usr/bin/` and, if it does, removes the application using `apt remove`. Then it again checks to see if youtube-dl is installed (presumably from from the youtube-dl project). If installed, the script displays the version number and asks if you want to update it. Otherwise youtube-dl is installed from yt-dl.org.
-4. Once youtube-dl is installed, the script can be used to update it. Or you can update with the command `sudo youtube-ds -U`.
+1. Installs the newest available version of youtube-dl from the [youtube-dl project](https://ytdl-org.github.io/youtube-dl/index.html), using the instructions given on the youtube-dl download page.
+2. Although youtube-dl is included in the Debian and Ubuntu repositories, it's often out of date and infrequently updated. The apt package manager usually installs youtube-dl in `/usr/bin/` while the project's download instructions suggests installing it in `/usr/local/bin/`.
+3. If the script finds that youtube-dl has been installed by the package manager, it removes the package using `apt remove`. Then it checks to see if youtube-dl is installed (presumably from the youtube-dl project). If installed, the script displays the version number and attempts to update it. Otherwise, the newest version of youtube-dl is installed from yt-dl.org.
+4. Once youtube-dl is installed, you can update it from a terminal with the command `sudo youtube-dl -U`. Alternatively, the script can be used to update it.
 5. `yt-dl-install -i` or `yt-dl-install --info` displays information about the script.
 
 ### Feedback:
@@ -97,7 +97,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-22 May 2019
+15 July 2019
 
 ### DISCLAIMER
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL I BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS AND SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
