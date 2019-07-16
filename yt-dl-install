@@ -39,7 +39,8 @@ download page.
 experience may vary.
 
 3. The youtube-dl packages contained in the Debian and Ubuntu repositories are
-often older and are not regurlarly updated whereas the version on yt-dl.org is updated quite regurlarly (usually monthly, if not more often).
+often older and are not regurlarly updated whereas the version on yt-dl.org is
+updated quite regurlarly (usually monthly, if not more often).
 
 4. The version installed by the package manager usually places the application
 in '/usr/bin/' and it can't updated unless the version in the repository for
@@ -60,7 +61,7 @@ Richard Romig (GNU/General Public License version 2.0)
 EOF
 }
 
-version="1.0.1"
+version="1.0.2"
 
 # Display information about the script
 
@@ -87,10 +88,11 @@ if dpkg -l | grep -qw youtube-dl
 then
   echo "Removing the older version installed by the package manager..."
   sudo apt remove -yyq youtube-dl
+  sudo apt purge -yyq youtube-dl
 fi
 
 # Check if youtube-dl is installed.
-# Assumes installed from https;//yt-dl.org
+# Assumes installed from https://yt-dl.org
 
 if which youtube-dl > /dev/null
 then
@@ -106,7 +108,7 @@ else
     sudo chmod a+rx /usr/local/bin/youtube-dl
   else
     status="$?"
-    echo "youtube-dl download failed. Exit code: $status" >&2
+    echo -e "\e[1;33myoutube-dl download failed. Exit code: $status\e[0m" >&2
   fi
 fi
 
