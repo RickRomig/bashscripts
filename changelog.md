@@ -1,4 +1,8 @@
 # Changelog for bashscripts
+### 17 July 3019
+**yt-dl-install**
+* Removed `sudo apt remove -yyq youtube-dl` from the code removing the repository version of youtube-dl because `apt purge` removes the package along with any configuratio files that might exist.
+
 ### 16 July 2019
 **yt-dl-install**
 * Added `sudo apt purge -yyq youtube-dl` to the code to remove the repository version of youtube-dl because simply removing the package did not keep it from being found by the `dpkg -l` command.
@@ -13,7 +17,7 @@ if [ -f /usr/bin/youtube-dl ]; then
 if dpkg -l | grep -qw youtube-dl
 then
 ```
-* Removed option for the user to choose whether or not to update. If youtube-dl is installed, the script will automatically run the update command.
+* Removed the option for the user to choose whether or not to update. If youtube-dl is installed, the script will automatically run the update command.
 * Added error checking to the curl download of youtube-dl If the download is successful, the script will display the result and assign the appropriate permissions to the file. If the download fails, an error message with an exit code will be displayed.
 
 ### 23 June 2018
@@ -107,7 +111,7 @@ battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` | awk '/native-pa
 ```
 ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
 wifint=$(nmcli dev | awk '/wifi/ {print $1}')
-```  
+```
   * Changed variales to obtain local IP addresses:
 ```
 # Old code
