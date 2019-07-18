@@ -61,7 +61,7 @@ Richard Romig (GNU/General Public License version 2.0)
 EOF
 }
 
-version="1.0.2"
+version="1.0.3"
 
 # Display information about the script
 
@@ -86,8 +86,7 @@ echo "Licensed under the GNU/General Public License version 2.0"
 
 if dpkg -l | grep -qw youtube-dl
 then
-  echo "Removing the older version installed by the package manager..."
-  sudo apt remove -yyq youtube-dl
+  echo "Removing the older version installed from the repositories..."
   sudo apt purge -yyq youtube-dl
 fi
 
