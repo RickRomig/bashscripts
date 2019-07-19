@@ -1,0 +1,63 @@
+#!/bin/bash
+###############################################################################
+# Script Name  : yt-dl-remove
+# Description  : Remove youtube-dl and configuration files
+# Dependencies : apt
+# Arguments    : none
+# Author       : Richard B. Romig, 17 July 2019
+# Email        : rick.romig@gmail.com
+# Comments     :
+###############################################################################
+
+rmytdl () {
+  user=$USER
+  flag=$(which youtube-dl)
+
+  # Remove version from distribution repositories, if installed
+  if dpkg -l | grep -qw youtube-dl
+  then
+    echo "Removing the version installed from the repositories..."
+    sudo apt purge -yyq youtube-dl
+    echo "Repository version removed."
+  fi
+
+  # Remove yt-dl.org version, if installed
+  if which youtube-dl < /dev/null
+  then
+    echo "Removing version of youtube-dl installed from https://yt-dl.org..."
+    sudo rm  /usr/local/bin/youtube-dl
+    # Remove configuration files, if they exist
+    if [ -f "/home/$user/.config/youtube-dl/conf" ]; then
+      echo "Removing user youtube-dl configuration file..."
+      rm -rf "/home/$user/.config/youtube.dl/"
+    fi
+    if [ -f "/etc/youtube-dl.conf" ]; then
+      echo "Removing global youtube-dl configuration file..."
+      sudo rm "/etc/youtube-dl.conf"
+    fi
+    echo "youtube-dl and configuration files removed."
+  fi
+
+  # Remove update log file if it exists
+  if [ -f /var/log/ytdlup.log ]; then
+    sudo rm /var/log/ytdlup.log
+    echo "youtube-dl update log file removed."
+  fi
+
+  # Return 0 if youtube-dl was instell, 1 if not
+  [ -n "$flag" ] && return 0 || return 1
+}
+version="1.0.1"
+echo -e "\e[1;33mRemove youtube-dl (Version $version)\e[0m"
+echo "This script removes youtube-dl and its configuration files."
+read -rp "Are you sure you want to remove youtube-dl? [yN] " choice
+case $choice in
+  [Yy]*)
+      rmytdl
+      status="$?"
+      [ "$status" -ne 0 ] && echo "youtube-dl not found."
+      ;;
+  *)  echo "Nothing to do. Exiting the script." ;;
+esac
+
+exit
