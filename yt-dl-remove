@@ -44,9 +44,10 @@ rmytdl () {
     echo "youtube-dl update log file removed."
   fi
 
-  # Return 0 if youtube-dl was instell, 1 if not
+  # Return 0 if youtube-dl was installed, 1 if not
   [ -n "$flag" ] && return 0 || return 1
 }
+
 version="1.0.1"
 echo -e "\e[1;33mRemove youtube-dl (Version $version)\e[0m"
 echo "This script removes youtube-dl and its configuration files."
