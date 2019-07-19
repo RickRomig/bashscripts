@@ -52,7 +52,8 @@ manager and install the most current version from yt-dl.org to '/usr/local/bin'.
 6. If a version downloaded from yt-dl.org is installed, it will display the
 version number and attempt to update it to the latest version.
 
-7. During the installation of youtube-dl from yt-dl.org, will provide the option of creating a script that will automatically check for updates
+7. During the installation of youtube-dl from yt-dl.org, will provide the option
+of creating a script that will automatically check for updates
 
 8. Please review the README.md, LICENSE, and WARRANTY in the downloaded ZIP
 archive for more information. They can also be reviewed in my GitHub repository
@@ -113,14 +114,13 @@ then
 else
   # If not installed, install from maintainter's site
   echo "Installing youtube-dl from https://yt-dl.org..."
-  if sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl \
-    -o /usr/local/bin/youtube-dl
+  if sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
   then
     echo "youtube-dl successfully installed at /usr/local/bin"
     # Set permissions on the downloaded file
     sudo chmod a+rx /usr/local/bin/youtube-dl
     # Ask to create and install an automatic update script
-    read -rp "Create an anacron script to automatically updte youtbue-dl? [yN] " opt
+    read -rp "Create an anacron script to automatically update youtube-dl? [yN] " opt
     case $opt in
       [Yy]*)
         if ! tmpdir=$(mktemp -d)
@@ -128,13 +128,13 @@ else
           echo -e"\e[1;31mFailed to create temporary directory!\e[0m"
           exit 1
         fi
-        echo "Creating ytdlup.sh script to be run weekly by anacron."
+        echo "Creating z-ytdlup.sh script to be run weekly by anacron."
         # To run monthly or daily, change location to /etc/cron.monthly or /etc/cron.daily
         {
           printf "#!/bin/bash\n"
           echo "set -e"
           echo 'echo "$(date) $(youtube-dl -U)" >> /var/log/ytdlup.log'
-          printf "lines=\$(wc -l /var/log/ytdlup.log | awk '{ print \$1 }')"
+          echo "lines=\$(wc -l /var/log/ytdlup.log | awk '{ print \$1 }')"
           echo "if (( lines > 25 )); then"
           echo "  tail -n 25 /var/log/ytdlup.log > /var/log/ytdlup.tmp"
           echo "  mv /var/log/ytdlup.tmp /var/log/ytdlup.log"
