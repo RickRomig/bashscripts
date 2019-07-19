@@ -1,11 +1,20 @@
 # Changelog for bashscripts
+### 19 July 2019
+**yt-dl-install**
+* Added code to optionally create a youtube-dl update script and place it `/etc/cron.weekly` to automatically check for updates using anacron.
+* Added code to create a temporary directory for the creation of the update script, z-ytdlup.sh. The update script will be copied to `/etc/cron.weekly`. When `yt-dl-install` exits the trap command will call the cleanup function to remove temporary directory.
+* Added comments to explain pertinent sections of the script.
+
+**yt-dl-remove**
+* Created a script to remove youtube-dl from the system without installing the newest version. It will remove the version from the distribution repositories, the version downloaded from <https://yt-dl.org>, or both. When removing the yt-dl.org version, will also remove configuration files, if they exist, and the log file created by z-ytdlup.sh (created by yt-dl-install).
+
 ### 18 July 2019
 **yt-dl-update**
 * Created a short script to update youtube-dl which can be set up in crontab to be run as a cron job or copied as root into `/etc/cron.weekly` (or cron.monthly) to be run with anacron.
 
 ### 17 July 2019
 **yt-dl-install**
-* Removed `sudo apt remove -yyq youtube-dl` from the code removing the repository version of youtube-dl because `apt purge` removes the package along with any configuratio files that might exist.
+* Removed `sudo apt remove -yyq youtube-dl` from the code removing the repository version of youtube-dl because `apt purge` removes the package along with any configuration files that might exist.
 
 ### 16 July 2019
 **yt-dl-install**
