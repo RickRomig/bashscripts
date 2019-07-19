@@ -89,6 +89,11 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 4. Once youtube-dl is installed, you can update it from a terminal with the command `sudo youtube-dl -U`. Alternatively, the script can be used to update it.
 5. `yt-dl-install -i` or `yt-dl-install --info` displays information about the script.
 
+### yt-dl-update
+1. Once youtube-dl has been installed by yt-dl-install, setting up yt-dl-update as a cron or anacron job can help keep youtube-dl up to date. You can set up a weekly or monthly cron job using crontab. Alternatively, you can, as root (sudo) copy the script to `/etc/cron.weekly` or `/etc/cron.monthly.
+```
+sudo cp /path/to/yt-dl-update /etc/cron.weekly
+```
 ### Feedback:
 Feel free to contact me with comments and suggestions. I can be reached through my blog, Twitter, and email.
 * [GitHub](https://github.com/RickRomig/bashscripts)

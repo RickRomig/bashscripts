@@ -1,5 +1,9 @@
 # Changelog for bashscripts
-### 17 July 3019
+### 18 July 2019
+**yt-dl-update**
+* Created a short script to update youtube-dl which can be set up in crontab to be run as a cron job or copied as root into `/etc/cron.weekly` (or cron.monthly) to be run with anacron.
+
+### 17 July 2019
 **yt-dl-install**
 * Removed `sudo apt remove -yyq youtube-dl` from the code removing the repository version of youtube-dl because `apt purge` removes the package along with any configuratio files that might exist.
 
