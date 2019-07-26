@@ -3,7 +3,7 @@
 I usually write scripts to fix a particular problem or to accomplish a routine task. I felt that these scripts might be of use to others. It should be noted that these scripts were written in Bash for Linux Mint (18.3, 19.1, and LMDE 3) but they should work for most Ubuntu and Debian based distributions.
 
 ### chkupdates
-1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are available, they are listed and a menu is presented with optinos to install updates, install updates and clean up (autoremove orphan packages and clean the apt cache), or exit without updating anything.
+1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are available, they are listed and a menu is presented with optinos to install updates, install updates and clean up, remove orphan packages, or exit without updating anything.
 2. Root (sudo) privileges are necessary for `apt`.
 3. I find it very useful to for updates when accessing a remote system via SSH. Of course, the script also needs to be on the remote system.
 
