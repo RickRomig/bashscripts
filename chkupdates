@@ -29,17 +29,25 @@
 set -e
 
 update() {
-  echo -e "\e[1;33mInstalling updates ...\e[0m"
-  sudo apt dist-upgrade -yy
+  echo -e "\n\e[1;33mInstalling updates ...\e[0m"
+  sudo apt full-upgrade -yy
 }
 
 clean() {
-  echo -e "\e[1;33mCleaning up ...\e[0m"
-  sudo apt autoremove -yy
+  echo -e "\n\e[1;33mCleaning up ...\e[0m"
   sudo apt autoclean
 }
 
-version="v1.1.0"
+remove() {
+  echo -e "\n\e[1;33mRemoving orphaned packages ...\e[0m"
+  sudo apt autoremove -yy
+}
+
+alldone () {
+  echo -e "\n\e[1;33mUpdate complete.\e[0m"
+}
+
+version="v1.1.2"
 
 sudo ls > /dev/null 2>&1
 clear
@@ -54,31 +62,41 @@ nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 
 if [ "$nupd" -gt "0" ]; then
   apt list --upgradeable
+  echo -e "\n\e[1;33mUpdate options:\e[0m"
   PS3="Choice: "
   options=("Install updates" "Install updates and clean up" \
+           "Install updates and remove orphaned packages" \
            "Exit without updating")
   select opt in "${options[@]}"
   do
     case $opt in
       "Install updates")
         update
-        echo -e "\e[1;33mUpdate completed.\e[0m"
+        alldone
         break
         ;;
       "Install updates and clean up")
         update
+        remove
         clean
-        echo -e "\e[1;33mUpdate completed.\e[0m"
+        alldone
+        break
+        ;;
+      "Install updates and remove orphaned packages")
+        update
+        remove
+        alldone
         break
         ;;
       "Exit without updating")
-        echo -e "\e[1;33mUpdates not installed.\e[0m"
+        echo -e "\n\e[1;33mUpdates not installed.\e[0m"
         break
         ;;
       *)
-        echo -e "\e[1;31mInvalid option!\e[0m Try again." >&2
+        echo -e "\e[1;31mInvalid option! Try again.\e[0m" >&2
         ;;
     esac
   done
 fi
+
 exit
