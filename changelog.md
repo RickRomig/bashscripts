@@ -1,4 +1,17 @@
 # Changelog for bashscripts
+### 25 July 2019
+**chkupdates v1.1.2**
+* Changed the update function.
+```
+# Old code:
+sudo apt dist-upgrade
+# New code:
+sudo apt full-upgrade
+```
+* Moved `sudo apt autoremove` from the clean function and incorporated into remove function.
+* Added "Update and remove orphan packages" to the menu.
+* Added alldone function to display update completion message.
+
 ### 19 July 2019
 **yt-dl-install**
 * Added code to optionally create a youtube-dl update script and place it `/etc/cron.weekly` to automatically check for updates using anacron.
