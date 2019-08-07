@@ -27,13 +27,17 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ####################################################################
 
+sudo ls > /dev/null 2>&1
+
+dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
+
 # Base variables
 
 myuser=$USER
 myhost=$HOSTNAME
 infofile="/home/$myuser/$myhost.info"
 today=$(date +"%d %B %Y")
-version="v 2.0.3"
+version="v 2.0.4"
 
 # Computer information
 
