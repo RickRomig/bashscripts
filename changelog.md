@@ -1,4 +1,12 @@
 # Changelog for bashscripts
+### 7 August 2019
+**sysinfo**
+* Added a check to be sure hdparm was installed since it may not be installed by default in many Debian and Ubuntu-bases systems.
+```
+# Added code:
+dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
+```
+
 ### 25 July 2019
 **chkupdates v1.1.2**
 * Changed the update function.
