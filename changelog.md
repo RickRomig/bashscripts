@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 13 August 2019
+**dos2linux**
+* Changed the variable assignment of myscript, the name of script, to separate the name from the path.
+```
+# Old code:
+myscript=$0
+# New code:
+myscript=$(basename "$0")
+```
+
 ### 7 August 2019
 **sysinfo**
 * Added a check to be sure hdparm was installed since it may not be installed by default in many Debian and Ubuntu-bases systems.
