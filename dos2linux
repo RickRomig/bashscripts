@@ -6,7 +6,7 @@
 # Arguments    : file to be converted
 # Author       : Richard Romig, 24 January 2019
 # Email        : rick.romig@gmail.com
-# Comment      : removes DOS '\r' characters
+# Comment      : removes DOS carriage return '\r' characters
 #####################################################################
 
 # Copyright (C) <2019>  Richard Romig
@@ -25,11 +25,11 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-myscript=$0
-
 usage () {
   echo "Usage: $myscript <file>"
 }
+
+myscript=$(basename "$0")
 
 # check number of arguments
 
