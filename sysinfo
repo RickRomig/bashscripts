@@ -2,13 +2,13 @@
 #####################################################################
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
-# Dependencies : dmidecode, awk, grep, hdpram, lsblk
+# Dependencies : awk, dmidecode, grep, hdpram, lsblk, tee
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
-# safely ignored and removed from file with any text editor.
+# safely ignored and removed from the file with any text editor.
 #####################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -68,8 +68,8 @@ battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` \
 # Write data to file in user's home directory
 
 clear
-echo "SysInfo ($version), Copyright 2019, Richard Romig" > "$infofile"
 {
+  echo "SysInfo ($version), Copyright 2019, Richard Romig"
   echo -e "System information for $myhost as of $today:\n"
   echo -e "Manufacturer:\t$mfgname"
   echo -e "Product name:\t$prodname"
@@ -98,19 +98,15 @@ echo "SysInfo ($version), Copyright 2019, Richard Romig" > "$infofile"
     hdmodel=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Model Number/ {print $3" "$4}')
     hdserial=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Serial Number/ {print $3}')
     hdsize=$(sudo /sbin/hdparm -I "${Disk}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
-
     echo "$hddev"
     echo -e "\tModel Number : $hdmodel"
     echo -e "\tSerial Number: $hdserial"
-    echo -e "\tCapacity: $hdsize\n"
+    echo -e "\tCapacity: $hdsize"
   done
-  echo "Partition information:"
+  echo $'\n'$"Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
   [ -n "$battery" ] && echo -e "\nBattery:\t$battery"
-} >> "$infofile"
-
-# Display the file to the screen
-
-cat "$infofile"
+} | tee "$infofile"
 
 exit
+
