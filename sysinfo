@@ -62,7 +62,7 @@ wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
 
 # Battery
 
-battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` \
+battery=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
   | awk '/native-path/ {print $2}')
 
 # Write data to file in user's home directory
