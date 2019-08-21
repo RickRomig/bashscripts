@@ -1,4 +1,11 @@
 # Changelog for bashscripts
+### 20 August 2019
+**chkupdates v1.1.2**
+* Renamed functions to prevent confusion with apt commands.
+
+**sysinfo v2.0.4**
+* Changed redirection to use the `tee` command to display the text while redirecting it to the .info file, thus eliminating the need to use the `cat` command ti display the file after it was written.
+
 ### 13 August 2019
 **dos2linux**
 * Changed the variable assignment of myscript, the name of script, to separate the name from the path.
