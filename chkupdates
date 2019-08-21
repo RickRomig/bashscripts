@@ -28,26 +28,26 @@
 
 set -e
 
-update() {
+install_updates() {
   echo -e "\n\e[1;33mInstalling updates ...\e[0m"
   sudo apt full-upgrade -yy
 }
 
-clean() {
+cleanup() {
   echo -e "\n\e[1;33mCleaning up ...\e[0m"
   sudo apt autoclean
 }
 
-remove() {
+remove_orphans() {
   echo -e "\n\e[1;33mRemoving orphaned packages ...\e[0m"
   sudo apt autoremove -yy
 }
 
-alldone () {
+all_done() {
   echo -e "\n\e[1;33mUpdate complete.\e[0m"
 }
 
-version="v1.1.2"
+version="v1.1.3"
 
 sudo ls > /dev/null 2>&1
 clear
@@ -71,25 +71,25 @@ if [ "$nupd" -gt "0" ]; then
   do
     case $opt in
       "Install updates")
-        update
-        alldone
+        install_updates
+        all_done
         break
         ;;
       "Install updates and clean up")
-        update
-        remove
-        clean
-        alldone
+        install_updates
+        remove_orphans
+        cleanup
+        all_done
         break
         ;;
       "Install updates and remove orphaned packages")
-        update
-        remove
-        alldone
+        install_updates
+        remove_orphans
+        all_done
         break
         ;;
       "Exit without updating")
-        echo -e "\n\e[1;33mUpdates not installed.\e[0m"
+        echo -e "\n\e[1;33mUpdates were not installed.\e[0m"
         break
         ;;
       *)
@@ -100,3 +100,4 @@ if [ "$nupd" -gt "0" ]; then
 fi
 
 exit
+
