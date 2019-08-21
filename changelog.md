@@ -1,4 +1,16 @@
 # Changelog for bashscripts
+### 21 August 2019
+**sysinfo v2.0.5**
+* Changed method of assigning the `bname` variable to prevent word splitting and update it from the legacy syntax.
+```
+# Old code:
+battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` \
+  | awk '/native-path/ {print $2}')
+# New code:
+battery=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
+  | awk '/native-path/ {print $2}')
+```
+
 ### 20 August 2019
 **chkupdates v1.1.2**
 * Renamed functions to prevent confusion with apt commands.
