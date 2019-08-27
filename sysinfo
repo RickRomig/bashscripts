@@ -29,84 +29,85 @@
 
 sudo ls > /dev/null 2>&1
 
+# hdparm needed to get hard drive information
+
 dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
 
 # Base variables
 
-myuser=$USER
-myhost=$HOSTNAME
-infofile="/home/$myuser/$myhost.info"
-today=$(date +"%d %B %Y")
-version="v 2.0.4"
+MYUSER=$USER
+MYHOST=$HOSTNAME
+INFOFILE="/home/$MYUSER/$MYHOST.info"
+TODAY=$(date +"%d %B %Y")
+VERSION="v 2.0.5"
 
 # Computer information
 
-mfgname=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
-prodname=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
-vername=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
-sernum=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
+PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
+VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
+SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
 
-# RAM and CPU
+# CPU and RAM
 
-physmem=$(awk '/MemTotal/ {print $2}' /proc/meminfo | \
-  xargs -I {} echo "scale=4; {}/1024^2" | bc)
-cpuinfo=$(/usr/bin/lscpu \
+CPUINFO=$(/usr/bin/lscpu \
   | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
+PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo | \
+  xargs -I {} echo "scale=4; {}/1024^2" | bc)
 
 # Network
 
-ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
-wifint=$(nmcli dev | awk '/wifi/ {print $1}')
-ethernet=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
-wireless=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
+ETHINT=$(nmcli dev | awk '/ethernet/ {print $1}')
+WIFIINT=$(nmcli dev | awk '/wifi/ {print $1}')
+ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
+WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
 
 # Battery
 
-battery=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
+BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
   | awk '/native-path/ {print $2}')
 
 # Write data to file in user's home directory
 
 clear
 {
-  echo "SysInfo ($version), Copyright 2019, Richard Romig"
-  echo -e "System information for $myhost as of $today:\n"
-  echo -e "Manufacturer:\t$mfgname"
-  echo -e "Product name:\t$prodname"
-  echo -e "Version:\t$vername"
-  echo -e "Serial number:\t$sernum\n"
+  echo "SysInfo ($VERSION), Copyright 2019, Richard Romig"
+  echo -e "System information for $MYHOST as of $TODAY:\n"
+  echo -e "Manufacturer:\t$MFGNAME"
+  echo -e "Product name:\t$PRODNAME"
+  echo -e "Version:\t$VERNAME"
+  echo -e "Serial number:\t$SERNUM\n"
   echo -e "Operating System: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
-  echo -e "CPU:\t$cpuinfo"
-  echo -e "RAM:\t$physmem GB"
+  echo -e "CPU:\t$CPUINFO"
+  echo -e "RAM:\t$PHYSMEM GB"
   echo "Graphics Adapter: "
   echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
   echo "Network Adapter:"
-  if [ -n "$ethernet" ]; then
-    echo -e "\tEthernet: $ethint = $ethernet"
-    read -r ethadd < "/sys/class/net/$ethint/address"
-    echo -e "\tMAC addr: $ethadd"
+  if [ -n "$ETHERNETDEV" ]; then
+    echo -e "\tEthernet: $ETHINT = $ETHERNETDEV"
+    read -r ETHADDR < "/sys/class/net/$ETHINT/address"
+    echo -e "\tMAC addr: $ETHADDR"
   fi
-  if [ -n "$wireless" ]; then
-    echo -e "\tWireless: $wifint = $wireless"
-    read -r wifiadd < "/sys/class/net/$wifint/address"
-    echo -e "\tMAC addr: $wifiadd"
+  if [ -n "$WIRELESSDEV" ]; then
+    echo -e "\tWireless: $WIFIINT = $WIRELESSDEV"
+    read -r WIFIADDR < "/sys/class/net/$WIFIINT/address"
+    echo -e "\tMAC addr: $WIFIADDR"
   fi
   echo -e "\nHard Disk information:"
-  for Disk in /dev/sd[a-z]
+  for DISK in /dev/sd[a-z]
   do
-    hddev=$(sudo /sbin/hdparm -I "${Disk}" | grep -e '/dev/')
-    hdmodel=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Model Number/ {print $3" "$4}')
-    hdserial=$(sudo /sbin/hdparm -I "${Disk}" | awk '/Serial Number/ {print $3}')
-    hdsize=$(sudo /sbin/hdparm -I "${Disk}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
-    echo "$hddev"
-    echo -e "\tModel Number : $hdmodel"
-    echo -e "\tSerial Number: $hdserial"
-    echo -e "\tCapacity: $hdsize"
+    HDDEV=$(sudo /sbin/hdparm -I "${DISK}" | grep -e '/dev/')
+    HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')
+    HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
+    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
+    echo "$HDDEV"
+    echo -e "\tModel Number : $HDMODEL"
+    echo -e "\tSerial Number: $HDSERIAL"
+    echo -e "\tCapacity: $HDSIZE"
   done
   echo $'\n'$"Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  [ -n "$battery" ] && echo -e "\nBattery:\t$battery"
-} | tee "$infofile"
+  [ -n "$BATTERY" ] && echo -e "\nBattery:\t$BATTERY"
+} | tee "$INFOFILE"
 
 exit
-
