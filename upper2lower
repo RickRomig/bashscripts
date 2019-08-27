@@ -25,12 +25,12 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
-myscript=$(basename "$0")
-myfile=$1
+MYSCRIPT=$(basename "$0")
+MYFILE=$1
 
 usage () {
-  echo "Usage: $myscript [filename]"
-  echo "WARNING! If no filename is passed, $myscript will change ALL \
+  echo "Usage: $MYSCRIPT [filename]"
+  echo "WARNING! If no filename is passed, $MYSCRIPT will change ALL \
 filenames in the current directory to lowercase."
 }
 
@@ -40,8 +40,8 @@ echo "Copyright 2018, Richard Romig"
 # if no filename passed then get confirmation from user
 if  [ -z "$1"  ]; then
   usage
-  read -rn1 -p "Are you sure you want to do this? [y/N] " yn
-  case $yn in
+  read -rn1 -p "Are you sure you want to do this? [y/N] " YN
+  case $YN in
     [Yy]* )
       rename -v 'y/A-Z/a-z/' ./*
       ;;
@@ -50,13 +50,12 @@ if  [ -z "$1"  ]; then
       exit
       ;;
   esac
-elif [ -e "$myfile" ]; then
-  rename -v 'y/A-Z/a-z/' "$myfile"
+elif [ -e "$MYFILE" ]; then
+  rename -v 'y/A-Z/a-z/' "$MYFILE"
 else
-  echo "ERROR: $myfile does not exist. Try again." >&2
+  echo -e "\e[41mERROR: $MYFILE does not exist. Try again.\e[0m" >&2
   usage
   exit 1
 fi
 
 exit
-
