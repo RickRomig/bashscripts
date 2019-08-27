@@ -5,11 +5,11 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 ### chkupdates
 1. Updates the list of available packages then displays the number of updated packages that are available. If any updates are available, they are listed and a menu is presented with optinos to install updates, install updates and clean up, remove orphan packages, or exit without updating anything.
 2. Root (sudo) privileges are necessary for `apt`.
-3. I find it very useful to for updates when accessing a remote system via SSH. Of course, the script also needs to be on the remote system.
+3. I find it very useful to check for updates when accessing a remote system via SSH. Of course, the script also needs to be on the remote system.
 
 ### clean-bin
 1. Cleans up the ~/bin directory by removing all backup files ending with a tilde and copying files recently created or modified to a designated folder which is set in the `$scriptfolder` variable.
-2. The script incorporates a menu to select the timeframe for the new and modified scripts to be copied to an archival directory. Files from the current day, the previous 24 hours, or the last two, three, or four days.
+2. The script incorporates a menu to select the timeframe for the new and modified scripts to be copied to an archival directory. Files from the current day, the previous 24 hours, or the last two days.
 3. If the script is run from anywhere other than the `~/bin` directory, it uses `pushd` to go to `~/bin` for the cleanup and then uses `popd` to return to directory from where it was launched.
 
 ### dos2linux
@@ -21,7 +21,7 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 2. Information displayed:
  * Public IP address
  * Local (private) IP address with CIDR notation (i.e., 192.168.1.100/24) for both wired and wireless interfaces, if available.
- * Default gateway
+ * Default gateway for all active interfaces.
  * DNS servers if system has a static IP, otherwise displays the DHCP server (default gateway) address.
 
 ### locale-fix.sh
@@ -58,7 +58,7 @@ I usually write scripts to fix a particular problem or to accomplish a routine t
 1. Uses rename to replace spaces in filenames with underscores. When run, the script renames every filename containing spaces in the current directory.
 
 ### rmtilde
-1. Removes backup files with a trailing tilde (~) in the current directory.
+1. Removes backup files with a trailing tilde (~) in the current directory to include hidden (dot) files.
 2. I wrote this script as a safeguard to prevent accidentally deleting all the files in a directory while attempting to type `rm \*~`. Sometimes fingers slip.
 
 ### sysinfo
@@ -109,7 +109,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
-19 July 2019
+27 August 2019
 
 ### DISCLAIMER
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL I BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS AND SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
