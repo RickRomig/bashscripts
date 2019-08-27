@@ -1,4 +1,22 @@
 # Changelog for bashscripts
+### 27 August 20019
+**chekupdates v1.1.4**
+* Changed variable names to all capital letters.
+
+**clean-bin v1.2**
+* Changed variable names to all capital letters.
+* Added BINDIR variable to repesent ~/bin directory.
+* In the menu, removed the options to copy modified files created in the last 3 and 4 days because I rarely go that long without cleaning out backups and copying modified files and it makes for a nicer looking display.
+
+**ren-ext**
+* Changed variable names to all capital letters.
+
+**sysinfo v2.0.6**
+* Changed variable names to all capital letters.
+
+**upper2lower**
+* Changed variable names to all capital letters.
+
 ### 21 August 2019
 **sysinfo v2.0.5**
 * Changed method of assigning the `bname` variable to prevent word splitting and update it from the legacy syntax.
