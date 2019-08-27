@@ -27,81 +27,76 @@
 
 # Variables
 
-user=$USER
-curdir=$PWD
-scriptfolder="/home/$user/Documents/mosfanet/Scripts/bash/my-scripts/"
-version="v1.1"
+MYUSER=$USER
+CURDIR=$PWD
+BINDIR="/home/$MYUSER/bin"
+SCRIPTDIR="/home/$MYUSER/Documents/mosfanet/Scripts/bash/my-scripts/"
+VERSION="v1.2"
 
 clear
 
 # Change directory to ~/bin
 
-[ "$curdir" != "/home/$user/bin" ] && pushd "/home/$user/bin" > /dev/null
+[ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
 
-echo "Clean-bin $version"
-echo -e "Cleaning up /home/$user/bin directory...\n"
+echo "Clean-bin $VERSION"
+echo -e "Cleaning up $BINDIR directory...\n"
 
 # Remove files ending with *~
 
-nbu=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
+NBU=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
 
 if [ "$nbu" -eq 0 ]; then
-  echo "No '~' backup files ending with '~' found in  /home/$user/bin."
-elif [ "$nbu" -eq 1 ]; then
-  echo "Removing $nbu '~' backup file from /home/$user/bin."
+  echo "No '~' backup files ending with '~' found in $BINDIR."
+elif [ "$NBU" -eq 1 ]; then
+  echo "Removing $NBU '~' backup file from /$BINDIR."
   find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 else
-  echo "Removing $nbu '~' backup files from /home/$user/bin."
+  echo "Removing $NBU '~' backup files from $BINDIR."
   find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 fi
 
 # Copy files that have been created or modified
 
-echo $'\n'$"Copy files created or modified..."
-options=("Today" "In the last 24 hours" "In the last 2 days" \
-  "In the last 3 days" "In the last 4 days" "Exit the script.")
+echo $'\n'$"Backup files created or modified:"
+OPTIONS=("Today" "In the last 24 hours" "In the last 2 days" "Exit the script")
 PS3="Chose an option: "
-select opt in "${options[@]}"
+select OPT in "${OPTIONS[@]}"
 do
-  echo "$opt" > /dev/null
-  case $REPLY in
-    1)  echo $'\n'$"Files created or modified today:"
-        find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
-        "$scriptfolder" \;
-        break
-        ;;
-    2)  echo $'\n'$"Files created or modified in the last 24 hours:"
-        find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} \
-        "$scriptfolder" \;
-        break
-        ;;
-    3)  echo $'\n'$"Files created or modified in the last 2 days:"
-        find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} \
-        "$scriptfolder" \;
-        break
-        ;;
-    4)  echo $'\n'$"Files created or modified in the last 3 days:"
-        find . -maxdepth 1 -type f -mtime -3 -print -exec cp -pu {} \
-        "$scriptfolder" \;
-        break
-        ;;
-    5)  echo $'\n'$"Files created or modified in the last 4 days:"
-        find . -maxdepth 1 -type f -mtime -4 -print -exec cp -pu {} \
-        "$scriptfolder" \;
-        break
-        ;;
-    6)  echo "Exiting the script."
-        exit
-        ;;
-    *)  echo "Invalid choice. Try again." ;;
+  case $OPT in
+    "Today")
+      echo $'\n'$"Files created or modified today:"
+      find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
+        "$SCRIPTDIR" \;
+      echo "copied to $SCRIPTDIR"
+      break
+      ;;
+    "In the last 24 hours")
+      echo $'\n'$"Files created or modified in the last 24 hours:"
+      find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} \
+        "$SCRIPTDIR" \;
+      echo "copied to $v"
+      break
+      ;;
+    "In the last 2 days")
+      echo $'\n'$"Files created or modified in the last 2 days:"
+      find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} \
+        "$SCRIPTDIR" \;
+      echo "copied to $SCRIPTDIR"
+      break
+      ;;
+    "Exit the script")
+      echo "Exiting the script."
+      break
+      ;;
+    *)
+      echo "Invalid choice. Try again."
+      ;;
   esac
 done
 
-echo $'\n'$"New and modified files copied to: $scriptfolder"
-
 # Return to the directory where you started
 
-[ "$curdir" != "/home/$user/bin" ] && popd > /dev/null
+[ "$CURDIR" != "$BINDIR" ] && popd > /dev/null 2>&1
 
 exit
-
