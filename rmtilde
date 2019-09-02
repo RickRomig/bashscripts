@@ -25,19 +25,21 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
 
-version="1.1.2"
+SCRIPT=$(basename "$0")
+VERSION="1.1.3"
+UPDATED="01 Sep 2019"
 
-echo "rmtilde $version -- removes '~' backup files."
+echo "$SCRIPT v$VERSION -- removes '~' backup files."
+echo -e "Last updated: $UPDATED\n"
+NBU=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
 
-nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
-
-if [ "$nbu" -eq 0 ]; then
+if [ "$NBU" -eq 0 ]; then
   echo "No files ending with '~' found."
-elif [ "$nbu" -eq 1 ]; then
-  echo "Removing $nbu '~' backup file in the current directory."
+elif [ "$NBU" -eq 1 ]; then
+  echo "Removing $NBU '~' backup file in the current directory."
   find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 else
-  echo "Removing $nbu '~' backup files in the current directory."
+  echo "Removing $NBU '~' backup files in the current directory."
   find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 fi
 
