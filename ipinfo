@@ -27,38 +27,43 @@
 
 ## Variables ##
 
+SCRIPT=$(basename "$0")
+VERSION="1.0.2"
+UPDATED="01 Sep 2019"
+
 # Network interfaces
 
-ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
-wifint=$(nmcli dev | awk '/wifi/ {print $1}')
+ETHINT=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+WIFIINT=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
 
 # IP addresses
 
-publicip=$(wget -qO- http://ipv4.icanhazip.com)
-localip1=$(ip -o -f inet addr show | awk -v name="$ethint" '$0~name {print $4}')
-localip2=$(ip -o -f inet addr show | awk -v name="$wifint" '$0~name {print $4}')
+PUBLICIP=$(/usr/bin/wget -qO- http://ipv4.icanhazip.com)
+ETHIP=$(/sbin/ip -o -4 addr show | awk -v name="$ETHINT" '$0~name { print $4 }')
+WIFIIP=$(/sbin/ip -o -4 addr show | awk -v name="$WIFIINT" '$0~name { print $4 }')
 
 # Display IP Information
 
-echo -e "\nIP Information"
+echo $'\n'$"IP Information"
 echo "=============="
 echo "Public IP:"
-echo -e "\t$publicip"
+echo -e "\t$PUBLICIP"
 echo "Local IP:"
-if [ -n "$ethint" ] && [ -n "$localip1" ]; then
-  echo -e "\tEthernet: $localip1"
-elif [ -n "$ethint" ]; then
+if [ -n "$ETHINT" ] && [ -n "$ETHIP" ]; then
+  echo -e "\tEthernet: $ETHIP"
+elif [ -n "$ETHINT" ]; then
   echo -e "\tEthernet: Not connected"
 fi
-if [ -n "$wifint" ] && [ -n "$localip2" ]; then
-  echo -e "\tWireless: $localip2"
-elif [ -n "$wifint" ]; then
+if [ -n "$WIFIINT" ] && [ -n "$WIFIIP" ]; then
+  echo -e "\tWireless: $WIFIIP"
+elif [ -n "$WIFIINT" ]; then
   echo -e "\tWireless: Not connected"
 fi
 echo "Default Gateway:"
-/sbin/ip route | awk '/default/ {print "\t"$5"\t"$3}'
+/sbin/ip route | awk '/default/ { print "\t"$5":\t"$3 }'
 echo "DNS Servers:"
-/usr/bin/nmcli dev show | awk '/IP4.DNS/ {printf "\t%s\n",$2}'
+/usr/bin/nmcli dev show | awk '/IP4.DNS/ { printf "\t%s\n",$2 }'
+echo $'\n'$"$SCRIPT v$VERSION (Updated: $UPDATED)"
 
 exit
 
