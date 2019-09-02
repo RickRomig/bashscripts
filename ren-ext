@@ -26,15 +26,18 @@
 #####################################################################
 
 usage () {
-  echo "Usage: $MYSCRIPT extension"
-  echo "Example: $MYSCRIPT JPG"
-  echo "Supported extensions: AVI, BAK, FLV, GIF, htm, HTM, HTML, jpeg, \
-    JPG, MP3, MP4, MPG, mpeg, PDF, PNG, TXT, WMV"
+  echo "Usage: $SCRIPT extension"
+  echo "Example: $SCRIPT JPG"
+  echo "Supported extensions: AVI, BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, MP3, MP4"
+  echo "MPG, mpeg, PDF, PNG, TXT, WMV"
 }
 
-MYSCRIPT=$(basename "$0")
+SCRIPT=$(basename "$0")
+VERSION="2.0.0"
+UPDATED="01 Sep 2019"
 
-echo "$MYSCRIPT - bulk renames file extensions in the current diectory."
+echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo "Bulk renames file extensions in the current diectory."
 echo -e  "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
