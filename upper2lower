@@ -25,16 +25,18 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 #####################################################################
-MYSCRIPT=$(basename "$0")
-MYFILE=$1
-
 usage () {
   echo "Usage: $MYSCRIPT [filename]"
-  echo "WARNING! If no filename is passed, $MYSCRIPT will change ALL \
-filenames in the current directory to lowercase."
+  echo -e "\e[1;31mWARNING!\3[0m] If no filename is passed, $MYSCRIPT will change ALL filenames in the current directory to lowercase."
 }
 
-echo "Upper2Lower - Changes uppercase in files names to lower case."
+MYSCRIPT=$(basename "$0")
+MYFILE=$1
+VERSION="2.0.1"
+UPDATED="01 Sep 2019"
+
+echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo "Changes uppercase letters in files names to lowercase."
 echo "Copyright 2018, Richard Romig"
 
 # if no filename passed then get confirmation from user
