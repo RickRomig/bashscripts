@@ -1,5 +1,23 @@
 # Changelog for bashscripts
-### 27 August 20019
+### 2 September 2019
+**dos2linux v1.01**
+* Added variables for version and update information.
+* Added echo statements to show what the script is doing.
+
+**ipinfo v1.02**
+* Added variables for version and update information.
+
+**ren-ext v2.0.0**
+* Added variables for version and update information.
+* In the usage function, revised the echo statement displaying supported extensions to display properly.
+
+**renspace v1.01.**
+* Added variables for version and update information.
+
+**rmtilde v1.1.3**
+* Added variables for version and update information.
+
+### 27 August 2019
 **chekupdates v1.1.4**
 * Changed variable names to all capital letters.
 
