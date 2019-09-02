@@ -28,10 +28,10 @@
 
 show_info () {
   cat << _EOF_
-yt-dl-install $version
+$SCRIPTl $VERSION
 
-1, yt-dl-install installs the most current version of youtude-dl from the
-youtube-dl github site at https://ytdl-org.github.io/youtube-dl/index.html.
+1, $SCRIPTl installs the most current version of youtude-dl from the
+youtube-dl GitHub site at https://ytdl-org.github.io/youtube-dl/index.html.
 Portions of this script are based upon the download instructions on the project's
 download page.
 
@@ -46,14 +46,16 @@ updated quite regurlarly (usually monthly, if not more often).
 in '/usr/bin/' and it can't updated unless the version in the repository for
 your distribution is updated.
 
-5. The script will remove the version installed to 'usr/bin' by the package
-manager and install the most current version from yt-dl.org to '/usr/local/bin'.
+5. The script will first remove the version installed to 'usr/bin' by the package
+manager (if installed) and install the most current version from yt-dl.org to
+'/usr/local/bin'.
 
-6. If a version downloaded from yt-dl.org is installed, it will display the
-version number and attempt to update it to the latest version.
+6. If a version downloaded from yt-dl.org is already installed, it will display
+the version number and attempt to update it to the latest version.
 
-7. During the installation of youtube-dl from yt-dl.org, will provide the option
-of creating a script that will automatically check for updates
+7. During the installation of youtube-dl from yt-dl.org, the script will install
+a script in /etc/cron.daily that will use anacron to automatically check for
+updates
 
 8. Please review the README.md, LICENSE, and WARRANTY in the downloaded ZIP
 archive for more information. They can also be reviewed in my GitHub repository
@@ -64,15 +66,14 @@ Richard Romig (GNU/General Public License version 2.0)
 _EOF_
 }
 
-# Called by trap to remove the temporary directory upon exit from the script
-
-cleanup () {
-  [ -d "$tmpdir" ] && rm -rf "$tmpdir"
+exists() {
+  command -v "$1" >/dev/null 2>&1
 }
 
-trap cleanup EXIT
+# Called by trap to remove the temporary directory upon exit from the script
 
-version="1.0.3"
+VERSION="1.1.0"
+UPDATED="02 Sep 2019"
 
 # Display information about the script
 
@@ -91,7 +92,8 @@ dpkg -l | grep -qw curl || sudo apt install -yyq curl
 
 # Header
 
-echo -e "\e[1;33myoutube-dl installer and updater, version $version\e[0m"
+echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo "youtube-dl installer and updater"
 echo "Copyright (c) 2019, Richard Romig"
 echo "Licensed under the GNU/General Public License version 2.0"
 
@@ -105,56 +107,34 @@ fi
 
 # Check if youtube-dl is installed from https://yt-dl.org
 
-if which youtube-dl > /dev/null
+if exists youtube-dl
 then
-  # If installed, attempt to update
+  # Check version and update
   echo "youtube-dl version: $(youtube-dl --version)"
-  echo "Updating youtube-dl to the newest version..."
+  echo $'\n'$"Updating youtube-dl to the newest version..."
   sudo youtube-dl -U
 else
-  # If not installed, install from maintainter's site
+  # Download youtube-dl to /usr/local/bin/
   echo "Installing youtube-dl from https://yt-dl.org..."
-  if sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+  if sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl \
+    -o /usr/local/bin/youtube-dl
   then
-    echo "youtube-dl successfully installed at /usr/local/bin"
     # Set permissions on the downloaded file
     sudo chmod a+rx /usr/local/bin/youtube-dl
-    # Ask to create and install an automatic update script
-    read -rp "Create an anacron script to automatically update youtube-dl? [yN] " opt
-    case $opt in
-      [Yy]*)
-        if ! tmpdir=$(mktemp -d)
-        then
-          echo -e"\e[1;31mFailed to create temporary directory!\e[0m" >&2
-          exit 1
-        fi
-        echo "Creating z-ytdlup.sh script to be run weekly by anacron."
-        # To run monthly or daily, change location to /etc/cron.monthly or /etc/cron.daily
-        {
-          printf "#!/bin/bash\n"
-          echo "set -e"
-          echo 'echo "$(date) $(youtube-dl -U)" >> /var/log/ytdlup.log'
-          echo "lines=\$(wc -l /var/log/ytdlup.log | awk '{ print \$1 }')"
-          echo "if (( lines > 25 )); then"
-          echo "  tail -n 25 /var/log/ytdlup.log > /var/log/ytdlup.tmp"
-          echo "  mv /var/log/ytdlup.tmp /var/log/ytdlup.log"
-          echo "fi"
-          echo "exit"
-        } > "$tmpdir/z-ytdlup.sh"
-        chmod 755 "$tmpdir/z-ytdlup.sh"
-        sudo cp "$tmpdir/z-ytdlup.sh" /etc/cron.weekly/
-        echo "z-ytdlup.sh created in /etc/cron.weekly"
-        echo "Log file will be stored in /var/log/ytdlup.log"
-        ;;
-      *)
-        echo "Creation of youtube-dl update script declined."
-        ;;
-    esac
+    echo "youtube-dl version $(youtube-dl --version) installed to /usr/local/bin"
+    # Copy automatic updater for anacron update
+    if [ -x "/home/$MYUSER/bin/z-ytdlupdate" ]; then
+      echo "Copying z-ytdlupdate to /etc/cron.daily/"
+      echo "Log file locaton: /var/log/ytdlup.log"
+      sudo cp "/home/$MYUSER/bin/z-ytdlupdate" /etc/cron.daily/
+    else
+      echo "~/bin/z-ytdlupdate not present. Manually update with:"
+      echo -e "\e[1;33msudo youtube-dl -U\e[0m"
+    fi
   else
-    status="$?"
-    echo -e "\e[1;33myoutube-dl download failed. Exit code: $status\e[0m" >&2
+    STATUS="$?"
+    echo -e "\e[1;31myoutube-dl download failed. Exit code: $STATUS\e[0m" >&2
   fi
 fi
 
 exit
-
