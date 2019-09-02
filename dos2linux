@@ -26,10 +26,12 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 usage () {
-  echo "Usage: $myscript <file>"
+  echo "Usage: $SCRIPT <file>"
 }
 
-myscript=$(basename "$0")
+SCRIPT=$(basename "$0")
+VERSION="1.0.1"
+UPDATED="01 Sep 2019"
 
 # check number of arguments
 
@@ -38,20 +40,25 @@ if [ -z "$1" ]; then
   usage
   exit 1
 else
-  myfile=$1
+  FILE=$1
 fi
 
 # check if file exists
 
-if [ ! -f "$myfile" ]; then
-  echo -e "\e[1;41mError: $myfile not found.\e[0m" >&2
+if [ ! -f "$FILE" ]; then
+  echo -e "\e[1;41mError: $FILE not found.\e[0m" >&2
   usage
   exit 1
 fi
 
+echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo "Converts DOS text files to Linux format by removing carriage return characters."
+
 # convert the file
 
-sed -i.bak -e 's/\r//g' "$myfile"
+echo "Removing the carriage return characters from $FILE while creating a backup"
+echo "of the orginal file."
+sed -i.bak -e 's/\r//g' "$FILE"
 
 exit
 
