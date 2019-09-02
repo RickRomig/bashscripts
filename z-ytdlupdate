@@ -1,0 +1,40 @@
+#!/bin/bash
+###############################################################################
+# Script Name  : z-ytdlupdate
+# Description  : Updates youtube-dl automatically usng anacron
+# Dependencies : anacron
+# Arguments    : None
+# Author       : Richard B. Romig, 18 July 2019
+# Email        : rick.romig@gmail.com
+# Comments     : /etc/cron.daily /etc/cron.weekly /etc/cron.monthly
+# Last updated : 1 Sep 2019
+###############################################################################
+# GPL v2
+# Copyright (C) 2019, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+################################################################################
+
+set -e
+
+echo "$(date) $(youtube-dl -U)" >> /var/log/ytdlup.log
+
+LINES=$(wc -l /var/log/ytdlup.log | awk '{ print $1 }')
+if (( LINES > 30 )); then
+  tail -n 30  /var/log/ytdlup.log > /var/log/ytdlup.tmp
+  mv /var/log/ytdlup.tmp /var/log/ytdlup.log
+fi
+
+exit
