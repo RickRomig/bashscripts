@@ -17,6 +17,9 @@
 **rmtilde v1.1.3**
 * Added variables for version and update information.
 
+**upper2lower v 2.0.1**
+* Added variables for version and update information.
+
 ### 27 August 2019
 **chekupdates v1.1.4**
 * Changed variable names to all capital letters.
