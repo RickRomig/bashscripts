@@ -116,6 +116,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * Email: <rick.romig@gmail.com> or <rb_romig@twc.com>
 
 Richard Romig
+
 02 September 2019
 
 ### DISCLAIMER

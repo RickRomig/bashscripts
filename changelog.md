@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 5 September 2019
+**chkupdates v1.1.5**
+* Changed line displayed when exiting if there are availabel updates.
+```
+# Old code:
+echo -e "\n\e[1;33mUpdates were not installed.\e[0m"
+# New code:
+echo -e "\n\e[1;33mUpdates available but not installed.\e[0m"
+```
+
 ### 2 September 2019
 **dos2linux v1.01**
 * Added variables for version and update information.
