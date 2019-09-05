@@ -1,5 +1,5 @@
 #!/bin/bash
-#####################################################################
+###############################################################################
 # Script Name  : chkupdates
 # Description  : check to see if updates are available
 # Dependencies : apt, cut, grep, select, sudo
@@ -8,7 +8,8 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-#####################################################################
+# Last updated : 05 Sep 2019
+###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
 #
@@ -24,7 +25,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-#####################################################################
+###############################################################################
 
 set -e
 
@@ -47,7 +48,7 @@ all_done() {
   echo -e "\n\e[1;33mUpdate complete.\e[0m"
 }
 
-VERSION="v1.1.4"
+VERSION="v1.1.5"
 
 sudo ls > /dev/null 2>&1
 clear
@@ -55,7 +56,7 @@ echo -e "\e[1;33mChkupdates $VERSION\e[0m"
 echo -e "\e[1;33mChecking for updates...\e[0m"
 sudo apt update
 
-# Without the 2>/dev/null, apt will display the following error message to STDERR:
+# Without the 2>/dev/null, apt will display the following error message:
 # WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
 
 NUPD=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
@@ -89,7 +90,7 @@ if [ "$NUPD" -gt "0" ]; then
         break
         ;;
       "Exit without updating")
-        echo -e "\n\e[1;33mUpdates were not installed.\e[0m"
+        echo -e "\n\e[1;33mUpdates available but not installed.\e[0m"
         break
         ;;
       *)
