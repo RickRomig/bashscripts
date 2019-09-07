@@ -1,5 +1,5 @@
 #!/bin/bash
-#####################################################################
+###############################################################################
 # Script Name  : ren-ext
 # Description  : Renames file extensions in the current directory
 # Dependencies : rename, shopt
@@ -7,7 +7,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : rile extensions are case insensitive
-#####################################################################
+###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
 #
@@ -23,18 +23,19 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-#####################################################################
+###############################################################################
 
 usage () {
   echo "Usage: $SCRIPT extension"
   echo "Example: $SCRIPT JPG"
   echo "Supported extensions: AVI, BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, MP3, MP4"
   echo "MPG, mpeg, PDF, PNG, TXT, WMV"
+  exit 1
 }
 
 SCRIPT=$(basename "$0")
-VERSION="2.0.0"
-UPDATED="01 Sep 2019"
+VERSION="2.0.1"
+UPDATED="06 Sep 2019"
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
 echo "Bulk renames file extensions in the current diectory."
@@ -45,7 +46,6 @@ echo -e  "Copyright 2018, Richard Romig\n"
 if [ -z "$1"  ]; then
   echo -e "\e[1;31mError: Must provide a file extension to be renamed.\e[0m" <&2
   usage
-  exit 1
 else
   EXT=$1
 fi
@@ -121,7 +121,6 @@ case $EXT in
   *)
     echo -e "\e[1;31mError: .$EXT is NOT a supported file extension.\e[0m"
     usage
-    exit 1
     ;;
 esac
 
