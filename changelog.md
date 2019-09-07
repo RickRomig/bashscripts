@@ -1,4 +1,18 @@
 # Changelog for bashscripts
+### 7 September 2019
+**clean-bin v1.2.1**
+* Changed directory variables.
+* Changed conditional statements from single brackets to double-parenthesis.
+
+**ren-ext v 2.0.1**
+* Added `exit 1` to the usage function and removing it from the conditional statements in which `usage` appears.
+
+**upper2lower v2.0.2**
+* Fixed variable names, correcting those that were missed in previous updates.
+
+**yt-dl-install v1.1.1**
+* Cleaned up comments and variable names.
+
 ### 5 September 2019
 **chkupdates v1.1.5**
 * Changed line displayed when exiting if there are availabel updates.
