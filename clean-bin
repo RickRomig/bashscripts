@@ -1,5 +1,5 @@
 #!/bin/bash
-#####################################################################
+###############################################################################
 # Script Name  : clean-bin
 # Description  : cleas ~/bin of ~ backup files and copies files recently
 #              : created or modfied to a designated folder
@@ -7,8 +7,8 @@
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
-# Comment      :
-#####################################################################
+# Comments     :
+###############################################################################
 # Copyright (c) 2019  Richard Romig
 # Email: rick.romig@gmail.com
 #
@@ -24,14 +24,16 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+###############################################################################
 
 # Variables
 
-MYUSER=$USER
+HOMEDIR=$HOME
 CURDIR=$PWD
-BINDIR="/home/$MYUSER/bin"
-SCRIPTDIR="/home/$MYUSER/Documents/mosfanet/Scripts/bash/my-scripts/"
-VERSION="v1.2"
+BINDIR="$HOMEDIR/bin"
+SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
+VERSION="v1.2.1"
+UPDATED="06 Sep 2019"
 
 clear
 
@@ -39,16 +41,16 @@ clear
 
 [ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
 
-echo "Clean-bin $VERSION"
+echo "Clean-bin v$VERSION (Updated $UPDATED)"
 echo -e "Cleaning up $BINDIR directory...\n"
 
 # Remove files ending with *~
 
 NBU=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
 
-if [ "$nbu" -eq 0 ]; then
+if (( NBU == 0 )); then
   echo "No '~' backup files ending with '~' found in $BINDIR."
-elif [ "$NBU" -eq 1 ]; then
+elif (( NBU == 1 )); then
   echo "Removing $NBU '~' backup file from /$BINDIR."
   find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
 else
@@ -75,7 +77,7 @@ do
       echo $'\n'$"Files created or modified in the last 24 hours:"
       find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} \
         "$SCRIPTDIR" \;
-      echo "copied to $v"
+      echo "copied to $SCRIPTDIR"
       break
       ;;
     "In the last 2 days")
@@ -100,3 +102,4 @@ done
 [ "$CURDIR" != "$BINDIR" ] && popd > /dev/null 2>&1
 
 exit
+
