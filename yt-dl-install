@@ -70,10 +70,9 @@ exists() {
   command -v "$1" >/dev/null 2>&1
 }
 
-# Called by trap to remove the temporary directory upon exit from the script
-
-VERSION="1.1.0"
-UPDATED="02 Sep 2019"
+MYBINDIR=$HOME"/bin"
+VERSION="1.1.1"
+UPDATED="06 Sep 2019"
 
 # Display information about the script
 
@@ -123,10 +122,10 @@ else
     sudo chmod a+rx /usr/local/bin/youtube-dl
     echo "youtube-dl version $(youtube-dl --version) installed to /usr/local/bin"
     # Copy automatic updater for anacron update
-    if [ -x "/home/$MYUSER/bin/z-ytdlupdate" ]; then
+    if [ -x "$MYBINDIR/z-ytdlupdate" ]; then
       echo "Copying z-ytdlupdate to /etc/cron.daily/"
       echo "Log file locaton: /var/log/ytdlup.log"
-      sudo cp "/home/$MYUSER/bin/z-ytdlupdate" /etc/cron.daily/
+      sudo cp "$MYBINDIR/z-ytdlupdate" /etc/cron.daily/
     else
       echo "~/bin/z-ytdlupdate not present. Manually update with:"
       echo -e "\e[1;33msudo youtube-dl -U\e[0m"
@@ -138,3 +137,4 @@ else
 fi
 
 exit
+
