@@ -27,10 +27,11 @@
 
 usage () {
   echo "Usage: $SCRIPT <file>"
+  exit 1
 }
 
 SCRIPT=$(basename "$0")
-VERSION="1.0.1"
+VERSION="1.0.2"
 UPDATED="01 Sep 2019"
 
 # check number of arguments
@@ -38,17 +39,12 @@ UPDATED="01 Sep 2019"
 if [ -z "$1" ]; then
   echo -e "\e[1;41mError: No argments passed.\e[0m" >&2
   usage
-  exit 1
 else
   FILE=$1
-fi
-
-# check if file exists
-
-if [ ! -f "$FILE" ]; then
-  echo -e "\e[1;41mError: $FILE not found.\e[0m" >&2
-  usage
-  exit 1
+  if [ ! -f "$FILE" ]; then
+    echo -e "\e[1;41mError: $FILE not found.\e[0m" >&2
+    usage
+  fi
 fi
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
@@ -61,4 +57,3 @@ echo "of the orginal file."
 sed -i.bak -e 's/\r//g' "$FILE"
 
 exit
-
