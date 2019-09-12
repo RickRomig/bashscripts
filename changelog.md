@@ -1,11 +1,15 @@
 # Changelog for bashscripts
+### 12 September 2019
+**dos2linux v 1.0.2**
+* Nested conditional statements that check command line arguments.
+
 ### 7 September 2019
 **clean-bin v1.2.1**
 * Changed directory variables.
 * Changed conditional statements from single brackets to double-parenthesis.
 
 **ren-ext v 2.0.1**
-* Added `exit 1` to the usage function and removing it from the conditional statements in which `usage` appears.
+* Added `exit 1` to the usage function and removed it from the conditional statements in which `usage` appears.
 
 **upper2lower v2.0.2**
 * Fixed variable names, correcting those that were missed in previous updates.
