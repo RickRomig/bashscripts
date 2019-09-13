@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 13 September 2019
+** clean-bin v1.2.3**
+* Placed the find command that removes '~' in a function.
+* Added the capability to remove `~` backup files one directory below `~/bin`.
+* Added code to copy files in `~/bin/functions`, a directory of commonly used functions and code snippets.
+
+**ipinfo v 1.0.4**
+* Modified the lines that display the local IP address to include the associated network device.
+* In the conditional statements for displaying local IP addresses, added a line to display "No device found" if the network device isn't present.
+
 ### 12 September 2019
 **dos2linux v 1.0.2**
 * Nested conditional statements that check command line arguments.
