@@ -3,7 +3,7 @@
 # Script Name  : clean-bin
 # Description  : cleas ~/bin of ~ backup files and copies files recently
 #              : created or modfied to a designated folder
-# Dependencies : find, cp, pushd, popd, rm
+# Dependencies : find, cp, pushd, popd, rm, wc
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
@@ -28,12 +28,23 @@
 
 # Variables
 
-HOMEDIR=$HOME
-CURDIR=$PWD
-BINDIR="$HOMEDIR/bin"
-SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
-VERSION="v1.2.1"
-UPDATED="06 Sep 2019"
+readonly VERSION="v1.2.3"
+readonly UPDATED="13 Sep 2019"
+
+# Directory variables
+
+readonly HOMEDIR=$HOME
+readonly CURDIR=$PWD
+readonly BINDIR="$HOMEDIR/bin"
+readonly SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
+readonly FUNCDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/functions/"
+
+# Functions
+
+remove_tilde()
+{
+  find . -maxdepth 2 -type f -iname \*~ -print -exec rm {} \;
+}
 
 clear
 
@@ -42,20 +53,20 @@ clear
 [ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
 
 echo "Clean-bin v$VERSION (Updated $UPDATED)"
-echo -e "Cleaning up $BINDIR directory...\n"
+echo "Cleaning up $BINDIR directory..."
 
 # Remove files ending with *~
 
-NBU=$(find ./ -maxdepth 1 -type f -name \*~  | wc -l)
+NBU=$(find ./ -maxdepth 2 -type f -name \*~  | wc -l)
 
 if (( NBU == 0 )); then
-  echo "No '~' backup files ending with '~' found in $BINDIR."
+  echo $'\n'$"No backup files ending with '~' found in $BINDIR."
 elif (( NBU == 1 )); then
-  echo "Removing $NBU '~' backup file from /$BINDIR."
-  find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+  echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
+  remove_tilde
 else
-  echo "Removing $NBU '~' backup files from $BINDIR."
-  find . -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+  echo $'\n'$"Removing $NBU '~' backup files in $BINDIR."
+  remove_tilde
 fi
 
 # Copy files that have been created or modified
@@ -67,24 +78,44 @@ select OPT in "${OPTIONS[@]}"
 do
   case $OPT in
     "Today")
-      echo $'\n'$"Files created or modified today:"
+      echo $'\n'$"Scripts created or modified today:"
       find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
         "$SCRIPTDIR" \;
       echo "copied to $SCRIPTDIR"
+      if [ -d "./functions" ]; then
+        pushd ./functions > /dev/null 2>&1
+        echo "Functions created or modified today:"
+        find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
+          $FUNCDIR \;
+        echo "copied to $FUNCDIR"
+        popd > /dev/null 2>&1
+      fi
       break
       ;;
     "In the last 24 hours")
-      echo $'\n'$"Files created or modified in the last 24 hours:"
-      find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} \
-        "$SCRIPTDIR" \;
+      echo $'\n'$"Scripts created or modified in the last 24 hours:"
+      find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} "$SCRIPTDIR" \;
       echo "copied to $SCRIPTDIR"
+      if [ -d "./functions" ]; then
+        pushd ./functions > /dev/null 2>&1
+        echo "Functions created or modified in the last 24 hours:"
+        find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} $FUNCDIR \;
+        echo "copied to $FUNCDIR"
+        popd > /dev/null 2>&1
+      fi
       break
       ;;
     "In the last 2 days")
-      echo $'\n'$"Files created or modified in the last 2 days:"
-      find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} \
-        "$SCRIPTDIR" \;
+      echo $'\n'$"Scripts created or modified in the last 2 days:"
+      find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} "$SCRIPTDIR" \;
       echo "copied to $SCRIPTDIR"
+      if [ -d "./functions" ]; then
+        pushd ./functions > /dev/null 2>&1
+        echo "Functions created or modified in the last 2 days:"
+        find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} $FUNCDIR \;
+        echo "copied to $FUNCDIR"
+        popd > /dev/null 2>&1
+      fi
       break
       ;;
     "Exit the script")
