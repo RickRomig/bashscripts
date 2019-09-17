@@ -29,7 +29,7 @@
 
 # Variables
 
-readonly VERSION="v2.0.0"
+readonly VERSION="v2.0.1"
 readonly UPDATED="17 Sep 2019"
 
 # Directory variables
@@ -53,11 +53,11 @@ clear
 [ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
 
 echo "Clean-bin v$VERSION (Updated $UPDATED)"
-echo "Cleaning up $BINDIR directory..."
+echo "Cleaning up $BINDIR ..."
 
-# Remove files ending with *~
+# Remove backup files ending with *~
 
-NBU=$(find ./ -maxdepth 2 -type f -name \*~  | wc -l)
+NBU=$(find ./ -type f -name \*~  | wc -l)
 
 if (( NBU == 0 )); then
   echo $'\n'$"No backup files ending with '~' found in $BINDIR."
@@ -71,9 +71,9 @@ fi
 
 # Synchronize ~/bin with ~/Documents/mosfanet/Scripts/bash/my-scripts
 
-echo "Synchoizing ~/bin directory with the scripts backup directory."
+echo -e "\nSynchronizing ~/bin directory with the scripts backup directory.\n"
 rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
-echo "~bin cleaned up and Synchronized."
+echo $'\n'$"~bin cleaned up and synchronized."
 
 # Return to the directory where you started
 
