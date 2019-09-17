@@ -1,6 +1,13 @@
 # Changelog for bashscripts
+### 17 September 2019
+**clean-bin v2.0.0**
+* Removed the menu that selected the date range of files to backed up and replaced it with an `rsync` command to synchronize the contents of the ~/bin directory with the designated script archive directory.
+```
+rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
+```
+
 ### 13 September 2019
-** clean-bin v1.2.3**
+**clean-bin v1.2.3**
 * Placed the find command that removes '~' in a function.
 * Added the capability to remove `~` backup files one directory below `~/bin`.
 * Added code to copy files in `~/bin/functions`, a directory of commonly used functions and code snippets.

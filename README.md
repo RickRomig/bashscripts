@@ -9,7 +9,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 ### clean-bin
 1. Cleans up the ~/bin directory by removing all backup files ending with a tilde and copying files recently created or modified to a designated folder which is set in the `$SCRIPTDIR` variable.
-2. The script incorporates a menu to select the timeframe for the new and modified scripts to be copied to an archival directory. Files from the current day, the previous 24 hours, or the last two days.
+2. The script uses the `rsync` command to synchronize the ~/bin directory with the designated script archive. The `function` sub-directory is included while the `Testing` sub-directory is excluded. The `rsync` command can be modified to suit your needs.
 3. If the script is run from anywhere other than the `~/bin` directory, it uses `pushd` to go to `~/bin` for the cleanup and then uses `popd` to return to directory from where it was launched.
 
 ### dos2linux
