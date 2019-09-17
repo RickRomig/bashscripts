@@ -1,13 +1,14 @@
 #!/bin/bash
 ###############################################################################
 # Script Name  : clean-bin
-# Description  : cleas ~/bin of ~ backup files and copies files recently
-#              : created or modfied to a designated folder
-# Dependencies : find, cp, pushd, popd, rm, wc
+# Description  : cleans ~/bin of *~ backup files and synchorizes files with a
+#              : designated archive folder
+# Dependencies : find, cp, pushd, popd, rm, rsync, wc
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
 # Comments     :
+# TODO (rick)  :
 ###############################################################################
 # Copyright (c) 2019  Richard Romig
 # Email: rick.romig@gmail.com
@@ -28,8 +29,8 @@
 
 # Variables
 
-readonly VERSION="v1.2.3"
-readonly UPDATED="13 Sep 2019"
+readonly VERSION="v2.0.0"
+readonly UPDATED="17 Sep 2019"
 
 # Directory variables
 
@@ -37,7 +38,6 @@ readonly HOMEDIR=$HOME
 readonly CURDIR=$PWD
 readonly BINDIR="$HOMEDIR/bin"
 readonly SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
-readonly FUNCDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/functions/"
 
 # Functions
 
@@ -69,68 +69,14 @@ else
   remove_tilde
 fi
 
-# Copy files that have been created or modified
+# Synchronize ~/bin with ~/Documents/mosfanet/Scripts/bash/my-scripts
 
-echo $'\n'$"Backup files created or modified:"
-OPTIONS=("Today" "In the last 24 hours" "In the last 2 days" "Exit the script")
-PS3="Chose an option: "
-select OPT in "${OPTIONS[@]}"
-do
-  case $OPT in
-    "Today")
-      echo $'\n'$"Scripts created or modified today:"
-      find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
-        "$SCRIPTDIR" \;
-      echo "copied to $SCRIPTDIR"
-      if [ -d "./functions" ]; then
-        pushd ./functions > /dev/null 2>&1
-        echo "Functions created or modified today:"
-        find . -maxdepth 1 -type f -daystart -mtime -1 -print -exec cp -pu {} \
-          $FUNCDIR \;
-        echo "copied to $FUNCDIR"
-        popd > /dev/null 2>&1
-      fi
-      break
-      ;;
-    "In the last 24 hours")
-      echo $'\n'$"Scripts created or modified in the last 24 hours:"
-      find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} "$SCRIPTDIR" \;
-      echo "copied to $SCRIPTDIR"
-      if [ -d "./functions" ]; then
-        pushd ./functions > /dev/null 2>&1
-        echo "Functions created or modified in the last 24 hours:"
-        find . -maxdepth 1 -type f -mtime -1 -print -exec cp -pu {} $FUNCDIR \;
-        echo "copied to $FUNCDIR"
-        popd > /dev/null 2>&1
-      fi
-      break
-      ;;
-    "In the last 2 days")
-      echo $'\n'$"Scripts created or modified in the last 2 days:"
-      find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} "$SCRIPTDIR" \;
-      echo "copied to $SCRIPTDIR"
-      if [ -d "./functions" ]; then
-        pushd ./functions > /dev/null 2>&1
-        echo "Functions created or modified in the last 2 days:"
-        find . -maxdepth 1 -type f -mtime -2 -print -exec cp -pu {} $FUNCDIR \;
-        echo "copied to $FUNCDIR"
-        popd > /dev/null 2>&1
-      fi
-      break
-      ;;
-    "Exit the script")
-      echo "Exiting the script."
-      break
-      ;;
-    *)
-      echo "Invalid choice. Try again."
-      ;;
-  esac
-done
+echo "Synchoizing ~/bin directory with the scripts backup directory."
+rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
+echo "~bin cleaned up and Synchronized."
 
 # Return to the directory where you started
 
 [ "$CURDIR" != "$BINDIR" ] && popd > /dev/null 2>&1
 
 exit
-
