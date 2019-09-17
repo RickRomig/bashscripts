@@ -43,7 +43,7 @@ readonly SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
 
 remove_tilde()
 {
-  find . -maxdepth 2 -type f -iname \*~ -print -exec rm {} \;
+  find . -type f -iname \*~ -print -exec rm {} \;
 }
 
 clear
