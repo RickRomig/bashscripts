@@ -7,7 +7,7 @@
 # Author       : Richard B. Romig, 17 July 2019
 # Email        : rick.romig@gmail.com
 # Comments     :
-# Last updated : 2 Sep 2019
+# Last updated : 20 Sep 2019
 ###############################################################################
 # GPL v2
 # Copyright (C) 2019, Richard B. Romig
@@ -27,9 +27,16 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ################################################################################
 
-show_info () {
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="1.2.0"
+readonly UPDATED="20 Sep 2019"
+
+readonly HOMEDIR=$HOME
+
+show_info()
+{
    cat << _EOF_
-$SCRIPTl  completely removes Youtube-dl, both the version installed from your
+$SCRIPT completely removes Youtube-dl, both the version installed from your
 distribution repositories and the version downloaded from https:yt-dl.org. In
 the latter case, the script will also remove the ~/.config/youtube-dl/conf and
 and /etc/youtube-dl.conf configuration files. Additionally, the z-ytdlupdate
@@ -38,33 +45,37 @@ and its log file from /var/log.
 _EOF_
 }
 
-exists() {
+exists()
+{
   command -v "$1" >/dev/null 2>&1
 }
 
-rm_repo () {
+rm_repo()
+{
   # Remove version from distribution repositories, if installed
   if dpkg -l | grep -qw youtube-dl
   then
-    echo "Removing the version installed from the repositories..."
+    echo "Removing youtube-dl $(youtube-dl --version) installed from the repositories..."
     sudo apt purge -yyq youtube-dl
    else
     echo "Repository version of youtube-dl not installed."
   fi
 }
 
-rm_ytdl () {
+rm_ytdl()
+{
   # Remove yt-dl.org version, if installed
   if exists youtube-dl
   then
-    echo "Removing version of youtube-dl installed from https://yt-dl.org..."
+    echo "Removing youtube-dl $(youtube-dl --version) installed from https://yt-dl.org..."
     sudo rm  /usr/local/bin/youtube-dl
   else
     echo "ytdl.org version of youtube-dl not installed."
   fi
 }
 
-rm_cfg () {
+rm_cfg()
+{
   # Remove configuration files, if they exist
   if [ -f "$HOMEDIR/.config/youtube-dl/conf" ]; then
     echo "Removing user youtube-dl configuration file..."
@@ -78,15 +89,16 @@ rm_cfg () {
   echo "youtube-dl configuration files removed."
 }
 
-rm_updater () {
-  # Remove update script if it exists
+rm_updater()
+{
+  # Remove the update script if it exists
   if [ -x /etc/cron.daily/z-ytdlupdate ]; then
     sudo rm -f /etc/cron.daily/z-ytdlupdate
     echo "youtube-dl update script removed."
   elif [ -x /etc/cron.weekly/z-ytdlupdate ]; then
     sudo rm -f /etc/cron.weekly/z-ytdlupdate
     echo "youtube-dl update script removed."
-elif  [ -x /etc/cron.monthly/z-ytdlupdate ]; then
+  elif  [ -x /etc/cron.monthly/z-ytdlupdate ]; then
     sudo rm -f /etc/cron.monthly/z-ytdlupdate
     echo "youtube-dl update script removed."
   else
@@ -94,7 +106,8 @@ elif  [ -x /etc/cron.monthly/z-ytdlupdate ]; then
   fi
 }
 
-rm_logs () {
+rm_logs()
+{
   # Remove update log file if it exists
   if [ -f /var/log/ytdlup.log ]; then
     sudo rm /var/log/ytdlup.log
@@ -104,14 +117,9 @@ rm_logs () {
   fi
 }
 
-HOMEDIR=$HOME
-SCRIPT=$(basename "$0")
-VERSION="1.1.0"
-UPDATED="02 Sep 2019"
-
 # Display information about the script
 
-if [ "$1" == "-i" ] || [ "$1" == "--info" ]; then
+if [ "$1" = "-i" ] || [ "$1" = "--info" ]; then
   show_info
   exit
 fi
@@ -121,15 +129,6 @@ echo "This script removes youtube-dl and its configuration files."
 echo "It removes both the version installed through the distribution's"
 echo "repositories and the version downloaded from https://ytdl.org"
 
-if dpkg -l | grep -qw youtube-dl
-then
-  echo $'\n'$"youtube-dl version $(youtube-dl --version) installed."
- fi
-
-if exists youtube-dl
-then
-  echo $'\n'$"youtube-dl version $(youtube-dl --version) installed."
-fi
 read -rp "Are you sure you want to completely remove youtube-dl? [yN] " CHOICE
 case $CHOICE in
   [Yy]*)
@@ -143,3 +142,4 @@ case $CHOICE in
 esac
 
 exit
+

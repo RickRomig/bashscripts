@@ -26,11 +26,18 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ################################################################################
 
-show_info () {
-  cat << _EOF_
-$SCRIPTl $VERSION
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="1.2.0"
+readonly UPDATED="20 Sep 2019"
 
-1, $SCRIPTl installs the most current version of youtude-dl from the
+BINDIR=$HOME"/bin"
+
+show_info()
+{
+  cat << _EOF_
+$SCRIPT $VERSION
+
+1, $SCRIPT installs the most current version of youtude-dl from the
 youtube-dl GitHub site at https://ytdl-org.github.io/youtube-dl/index.html.
 Portions of this script are based upon the download instructions on the project's
 download page.
@@ -66,13 +73,10 @@ Richard Romig (GNU/General Public License version 2.0)
 _EOF_
 }
 
-exists() {
+exists()
+{
   command -v "$1" >/dev/null 2>&1
 }
-
-MYBINDIR=$HOME"/bin"
-VERSION="1.1.1"
-UPDATED="06 Sep 2019"
 
 # Display information about the script
 
@@ -122,10 +126,10 @@ else
     sudo chmod a+rx /usr/local/bin/youtube-dl
     echo "youtube-dl version $(youtube-dl --version) installed to /usr/local/bin"
     # Copy automatic updater for anacron update
-    if [ -x "$MYBINDIR/z-ytdlupdate" ]; then
+    if [ -x "$BINDIR/z-ytdlupdate" ]; then
       echo "Copying z-ytdlupdate to /etc/cron.daily/"
       echo "Log file locaton: /var/log/ytdlup.log"
-      sudo cp "$MYBINDIR/z-ytdlupdate" /etc/cron.daily/
+      sudo cp "$BINDIR/z-ytdlupdate" /etc/cron.daily/
     else
       echo "~/bin/z-ytdlupdate not present. Manually update with:"
       echo -e "\e[1;33msudo youtube-dl -U\e[0m"
