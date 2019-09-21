@@ -1,4 +1,13 @@
 # Changelog for bashscripts
+### 20 September 2019
+**yt-dl-install v1.2.0**
+* Moved variable declarations to the top of the script (below header and license).
+* Fixed minor spelling errors.
+
+**yt-dl-remove v1.2.0**
+* Moved variable declarations to the top of the script (below header and license).
+* Fixed minor spelling errors.
+
 ### 17 September 2019
 **clean-bin v2.0.0**
 * Removed the menu that selected the date range of files to backed up and replaced it with an `rsync` command to synchronize the contents of the ~/bin directory with the designated script archive directory.
