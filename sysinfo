@@ -1,5 +1,5 @@
 #!/bin/bash
-#####################################################################
+###############################################################################
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
 # Dependencies : awk, dmidecode, grep, hdpram, lsblk, tee
@@ -9,7 +9,9 @@
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-#####################################################################
+# Last Updated : 22 SEP 2019
+# TODO (Rick)  :
+###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
 #
@@ -25,21 +27,21 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-####################################################################
+###############################################################################
 
 sudo ls > /dev/null 2>&1
 
-# hdparm needed to get hard drive information
+# hdparm needed to extract hard drive information
 
 dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
 
 # Base variables
 
-MYUSER=$USER
+HOMEDIR=$HOME
 MYHOST=$HOSTNAME
-INFOFILE="/home/$MYUSER/$MYHOST.info"
+INFOFILE="$HOMEDIR/$MYHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.0.5"
+VERSION="v 2.0.7"
 
 # Computer information
 
@@ -47,20 +49,21 @@ MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
 PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
 VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
 SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
 
-# CPU and RAM
+# CPU, RAM and video
 
-CPUINFO=$(/usr/bin/lscpu \
-  | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
-PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo | \
-  xargs -I {} echo "scale=4; {}/1024^2" | bc)
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
+PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo \
+  | xargs -I {} echo "scale=4; {}/1024^2" | bc)
+VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 
 # Network
 
 ETHINT=$(nmcli dev | awk '/ethernet/ {print $1}')
 WIFIINT=$(nmcli dev | awk '/wifi/ {print $1}')
-ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
-WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
+ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
+WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
 
 # Battery
 
@@ -77,27 +80,27 @@ clear
   echo -e "Product name:\t$PRODNAME"
   echo -e "Version:\t$VERNAME"
   echo -e "Serial number:\t$SERNUM\n"
-  echo -e "Operating System: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
+  echo -e "Operating System: $OSNAME\n"
   echo -e "CPU:\t$CPUINFO"
   echo -e "RAM:\t$PHYSMEM GB"
-  echo "Graphics Adapter: "
-  echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
-  echo "Network Adapter:"
+  echo "Graphics:"
+  echo -e "\t$VIDEO"
+  echo "Network:"
   if [ -n "$ETHERNETDEV" ]; then
     echo -e "\tEthernet: $ETHINT = $ETHERNETDEV"
-    read -r ETHADDR < "/sys/class/net/$ETHINT/address"
-    echo -e "\tMAC addr: $ETHADDR"
+    read -r ETHMAC < "/sys/class/net/$ETHINT/address"
+    echo -e "\tMAC address: $ETHMAC"
   fi
   if [ -n "$WIRELESSDEV" ]; then
     echo -e "\tWireless: $WIFIINT = $WIRELESSDEV"
-    read -r WIFIADDR < "/sys/class/net/$WIFIINT/address"
-    echo -e "\tMAC addr: $WIFIADDR"
+    read -r WIFIMAC < "/sys/class/net/$WIFIINT/address"
+    echo -e "\tMAC address: $WIFIMAC"
   fi
   echo -e "\nHard Disk information:"
   for DISK in /dev/sd[a-z]
   do
     HDDEV=$(sudo /sbin/hdparm -I "${DISK}" | grep -e '/dev/')
-    HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')
+    HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | grep 'Model Number' | cut -c 22-)
     HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
     HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
     echo "$HDDEV"
