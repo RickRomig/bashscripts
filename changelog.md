@@ -1,4 +1,48 @@
 # Changelog for bashscripts
+### 22 September 2019
+**sysinfo v2.0.7**
+* Updated variable assignment for operating system:
+```
+# Old code:
+echo -e "Operating System: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
+# New code:
+OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
+echo -e "Operating System: $OSNAME\n"
+```
+* Updated variable assignment for CPU model:
+```
+# Old code:
+CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
+# New code:  
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
+```
+* Updated variable assignment for graphics adapter:
+```
+# Old code:  
+echo "Graphics Adapter:"
+echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
+# New code:  
+VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
+echo "Graphics:"
+echo -e "\t$VIDEO"
+```
+* Updated variable assignments for network devices:
+```
+# Old code:
+ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
+WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -c 29-)
+# New code:
+ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
+WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
+```
+* Updated variable assignment for hard drive model number:
+```
+# Old code:  
+HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')  
+# New code:  
+HDMODEL=$(sudo hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)  
+```
+
 ### 20 September 2019
 **yt-dl-install v1.2.0**
 * Moved variable declarations to the top of the script (below header and license).
