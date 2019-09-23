@@ -26,15 +26,16 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
-usage () {
+usage()
+{
   echo "Usage: $SCRIPT [filename]"
   echo -e "\e[1;31mWARNING!\3[0m] If no filename is passed, $SCRIPT will change ALL filenames in the current directory to lowercase."
 }
 
 SCRIPT=$(basename "$0")
 FILE=$1
-VERSION="2.0.2"
-UPDATED="01 Sep 2019"
+VERSION="2.0.3"
+UPDATED="22 Sep 2019"
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
 echo "Changes uppercase letters in files names to lowercase."
@@ -56,10 +57,9 @@ if  [ -z "$FILE"  ]; then
 elif [ -e "$MYFILE" ]; then
   rename -v 'y/A-Z/a-z/' "$FILE"
 else
-  echo -e "\e[41mERROR: $FILE does not exist. Try again.\e[0m" >&2
+  echo -e "\e[1;31mERROR: $FILE does not exist. Try again.\e[0m" >&2
   usage
   exit 1
 fi
 
 exit
-
