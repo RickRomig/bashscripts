@@ -1,4 +1,11 @@
 # Changelog for bashscripts
+### 23 September 2019
+**upper2lower v2.0.3**
+* Changed color of the error mages from a red block background to red foreground characters.
+
+**rmtilde v1.1.3**
+* moved the find command that removes tilde files to a `remove_tilde` function.
+
 ### 22 September 2019
 **sysinfo v2.0.7**
 * Updated variable assignment for operating system:
