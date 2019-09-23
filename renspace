@@ -1,5 +1,5 @@
 #!/bin/bash
-#####################################################################
+###############################################################################
 #Script Name  :renspace
 #Description  :replaces spaces with underscores in filenames in
 #              the current directory
@@ -8,7 +8,7 @@
 #Author       :Richard Romig
 #Email        :rick.romig@gmail.com
 #Comment      :
-#####################################################################
+###############################################################################
 # renspace -
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -25,7 +25,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-#####################################################################
+###############################################################################
 
 VERSION="1.0.1"
 UPDATED="01 Sep 2019"
@@ -36,8 +36,7 @@ echo -e "Last updated: $UPDATED\n"
 
 # check for filenames containing spaces
 
-if find . -maxdepth 1 -type f | grep " " >/dev/null
-then
+if find . -maxdepth 1 -type f | grep " " >/dev/null; then
   rename -v 's/ /_/g' ./*
 else
   echo "No filenames containing spaces found."
