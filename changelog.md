@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 24 September2019
+**sysinfo v2.0.8**
+* Reverted back to the previous method of extracting CPU moden name. Using `cut` gave inconsistent results. On some systems `cut -c 22-` would have two extra spaces.
+```
+# Old code:
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
+# New code:  
+CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
+```
+
 ### 23 September 2019
 **upper2lower v2.0.3**
 * Changed color of the error mages from a red block background to red foreground characters.
