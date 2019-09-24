@@ -73,7 +73,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
   * Hard disk information - model, serial number, and capacity (hdparm)
   * Partition information (lsblk)
   * Battery information (upower)
-2. The file name is the hostname with an extension of .info and is created in the user's home directory. After the information is written to the file, it is displayed using the cat command.
+2. The file name is the hostname with an extension of .info and is created in the user's home directory as the information is displayed to the screen.
 3. Root (sudo) privileges are required since it uses `dmidecode` and `hdparm` to extract some of the system data.
 4. The `dmidecode` command may return errors on some systems which will be written to the file despite having STDERR redirected to /dev/null. I've only seen this on my Lenovo M91p desktop PC when running Linux Mint 18.x (Ubuntu 16.04). These error messages can be safely ignored and can be removed from the resulting file with any text editor.
 
@@ -117,7 +117,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-02 September 2019
+24 September 2019
 
 ### DISCLAIMER
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL I BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS AND SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
