@@ -66,7 +66,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
   * System manufacturer (dmidecode)
   * System product name, version, and serial number (dmidecode)
   * Operating System (lsb_release)
-  * Amount of physical memory (/proc/meminfo)
+  * Amount of physical memory (free -h)
   * CPU model (lscpu)
   * Graphics adapter (lspci)
   * Network adapters (wired and wireless) with device names and MAC addresses (lspci, nmcli, /sys/class/net/)
@@ -117,7 +117,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-24 September 2019
+2 October 2019
 
 ### DISCLAIMER
 THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL I BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS AND SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

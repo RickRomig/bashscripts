@@ -1,7 +1,31 @@
 # Changelog for bashscripts
-### 24 September2019
+### 2 October 2019
+**sysinfo v2.1.0**
+* Revised method to extact the CPU model name. Solves the problems of preceding spaces and cutting off longer CPU model names.
+```
+# Old code:
+CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" "$6" " $7" "$8}')
+# New code:
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
+```
+* Revised method to extract total system memory, displaying memory in a more generic manner.
+```
+# Old code:
+PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo | xargs -I {} echo "scale=4; {}/1024^2" | bc)
+# New code:
+PHYSMEM=$(free -h | awk '/^Mem:/ {print $2}')
+```
+* Reivised method of extracting hard drive capacity from hdparm command . Displays capacity in GB and eliminates the parenthesis around the number.
+```
+# Old code:
+HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
+# New code:
+HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $9" "$10}' | sed 's/[)(]//g')
+```
+
+### 24 September 2019
 **sysinfo v2.0.8**
-* Reverted back to the previous method of extracting CPU moden name. Using `cut` gave inconsistent results. On some systems `cut -c 22-` would have two extra spaces.
+* Reverted back to the previous method of extracting CPU moden name. Using `cut` gave inconsistent results. On some systems `cut -c 22-` would display two extra spaces.
 ```
 # Old code:
 CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
