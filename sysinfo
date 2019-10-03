@@ -2,14 +2,15 @@
 ###############################################################################
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
-# Dependencies : awk, dmidecode, grep, hdpram, lsblk, tee
+# Dependencies : apt, awk, cut, date, dmidecode, dpkg, free, grep, hdpram,
+#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 23 SEP 2019
+# Last Updated : 02 Oct 2019
 # TODO (Rick)  :
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
@@ -41,7 +42,7 @@ HOMEDIR=$HOME
 MYHOST=$HOSTNAME
 INFOFILE="$HOMEDIR/$MYHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.0.8"
+VERSION="v 2.1.0"
 
 # Computer information
 
@@ -53,10 +54,8 @@ OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
 
 # CPU, RAM and video
 
-CPUINFO=$(/usr/bin/lscpu \
- | awk '/Model name/ {print $3" "$4" "$5" "$6" " $7" "$8}')
-PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo \
-  | xargs -I {} echo "scale=4; {}/1024^2" | bc)
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
+PHYSMEM="$(free -h | awk '/^Mem:/ {print $2}')"
 VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 
 # Network
@@ -83,7 +82,7 @@ clear
   echo -e "Serial number:\t$SERNUM\n"
   echo -e "Operating System: $OSNAME\n"
   echo -e "CPU:\t$CPUINFO"
-  echo -e "RAM:\t$PHYSMEM GB"
+  echo -e "RAM:\t$PHYSMEM"
   echo "Graphics:"
   echo -e "\t$VIDEO"
   echo "Network:"
@@ -103,7 +102,8 @@ clear
     HDDEV=$(sudo /sbin/hdparm -I "${DISK}" | grep -e '/dev/')
     HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | grep 'Model Number' | cut -c 22-)
     HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
-    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
+    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $9" "$10}' \
+      | sed 's/[)(]//g')
     echo "$HDDEV"
     echo -e "\tModel Number : $HDMODEL"
     echo -e "\tSerial Number: $HDSERIAL"
@@ -111,7 +111,7 @@ clear
   done
   echo $'\n'$"Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  [ -n "$BATTERY" ] && echo -e "\nBattery:\t$BATTERY"
+  [ -n "$BATTERY" ] && echo -e "\nBattery:  $BATTERY"
 } | tee "$INFOFILE"
 
 exit
