@@ -2,15 +2,15 @@
 ###############################################################################
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
-# Dependencies : apt, awk, cut, date, dmidecode, dpkg, free, grep, hdpram,
-#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee
+# Dependencies : apt, awk, cut, date, dmidecode, df, dpkg, free, grep, hdpram,
+#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 02 Oct 2019
+# Last Updated : 04 Oct 2019
 # TODO (Rick)  :
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
@@ -42,7 +42,7 @@ HOMEDIR=$HOME
 MYHOST=$HOSTNAME
 INFOFILE="$HOMEDIR/$MYHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.0"
+VERSION="v 2.1.1"
 
 # Computer information
 
@@ -50,18 +50,25 @@ MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
 PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
 VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
 SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+
+# Operating system
+
 OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
+ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" \
+  | awk '{print $5,$4,$7}')
 
 # CPU, RAM and video
 
-CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
-PHYSMEM="$(free -h | awk '/^Mem:/ {print $2}')"
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' \
+  | sed "s/([^)]*)//g")
+PHYSMEM="$(/usr/bin/free -h | awk '/^Mem:/ {print $2}')"
 VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 
 # Network
 
-ETHINT=$(nmcli dev | awk '/ethernet/ {print $1}')
-WIFIINT=$(nmcli dev | awk '/wifi/ {print $1}')
+ETHINT=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+WIFIINT=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
 ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
 WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
 
@@ -75,28 +82,33 @@ BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
 clear
 {
   echo "SysInfo ($VERSION), Copyright 2019, Richard Romig"
-  echo -e "System information for $MYHOST as of $TODAY:\n"
-  echo -e "Manufacturer:\t$MFGNAME"
-  echo -e "Product name:\t$PRODNAME"
-  echo -e "Version:\t$VERNAME"
-  echo -e "Serial number:\t$SERNUM\n"
-  echo -e "Operating System: $OSNAME\n"
-  echo -e "CPU:\t$CPUINFO"
-  echo -e "RAM:\t$PHYSMEM"
-  echo "Graphics:"
-  echo -e "\t$VIDEO"
-  echo "Network:"
+  echo $'\n'$"System information for $MYHOST as of $TODAY"
+  echo "Manufacturer:  $MFGNAME"
+  echo "Product name:  $PRODNAME"
+  echo "Version:       $VERNAME"
+  echo "Serial number: $SERNUM"
+  echo $'\n'$"Operating System:   $OSNAME"
+  echo "Filesystem created: $INSTALLED"
+  echo $'\n'$"Hardware:"
+  echo "  CPU:  $CPUINFO"
+  echo "  RAM:  $PHYSMEM"
+  echo "  Graphics:"
+  echo "    $VIDEO"
   if [ -n "$ETHERNETDEV" ]; then
-    echo -e "\tEthernet: $ETHINT = $ETHERNETDEV"
+    echo "  Ethernet:"
+    echo "    Device name: $ETHINT"
+    echo "    $ETHERNETDEV"
     read -r ETHMAC < "/sys/class/net/$ETHINT/address"
-    echo -e "\tMAC address: $ETHMAC"
+    echo "    MAC address: $ETHMAC"
   fi
   if [ -n "$WIRELESSDEV" ]; then
-    echo -e "\tWireless: $WIFIINT = $WIRELESSDEV"
+    echo "  Wireless:"
+    echo "    Device name: $WIFIINT"
+    echo "    $WIRELESSDEV"
     read -r WIFIMAC < "/sys/class/net/$WIFIINT/address"
-    echo -e "\tMAC address: $WIFIMAC"
+    echo "    MAC address: $WIFIMAC"
   fi
-  echo -e "\nHard Disk information:"
+  echo $'\n'$"Hard Disk information:"
   for DISK in /dev/sd[a-z]
   do
     HDDEV=$(sudo /sbin/hdparm -I "${DISK}" | grep -e '/dev/')
@@ -105,13 +117,13 @@ clear
     HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $9" "$10}' \
       | sed 's/[)(]//g')
     echo "$HDDEV"
-    echo -e "\tModel Number : $HDMODEL"
-    echo -e "\tSerial Number: $HDSERIAL"
-    echo -e "\tCapacity: $HDSIZE"
+    echo "  Model Number : $HDMODEL"
+    echo "  Serial Number: $HDSERIAL"
+    echo "  Capacity: $HDSIZE"
   done
   echo $'\n'$"Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  [ -n "$BATTERY" ] && echo -e "\nBattery:  $BATTERY"
+  [ -n "$BATTERY" ] && echo $'\n'$"Battery:  $BATTERY"
 } | tee "$INFOFILE"
 
 exit
