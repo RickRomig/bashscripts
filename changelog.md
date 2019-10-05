@@ -1,4 +1,21 @@
 # Changelog for bashscripts
+### 4 October 2919
+**sysinfo v2.1.1**
+* Added code to display the filesystem install date by using `df` to extract the the device containting the root partition and then `tune2fs` to get the creation date.
+```
+# New code:
+ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" | awk '{print $5,$4,$7}')
+```
+* In the code to extract the CPU model name, added a pipe to `sed` to remove the parenthesis and their content.
+```
+# Old code:
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
+# New code:
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1') | sed "s/([^)]*)//g")
+```
+* Changed formatting of the displayed output, replacing tabs with spaces and arranging data in a more readable layout.
+
 ### 2 October 2019
 **sysinfo v2.1.0**
 * Revised method to extact the CPU model name. Solves the problems of preceding spaces and cutting off longer CPU model names.
