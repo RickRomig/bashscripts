@@ -1,13 +1,13 @@
 #!/bin/bash
 ###############################################################################
-#Script Name  :upper2lower#
-#Description  :Renames uppercase filenames to lowercase
-#Dependencies :rename
-#Args         :filename to be renamed
-#Author       :Richard Romig
-#Email        :rick.romig@gmail.com
-#Comment      :If no filename is passed, renames all files in folder
-#             :to all lowercase
+# Script Name  : upper2lower
+# Description  : Renames uppercase filenames to lowercase
+# Dependencies : rename
+# Args         : filename to be renamed
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      : If no filename is passed, renames all files in folder
+#              : to all lowercase
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -29,13 +29,13 @@
 usage()
 {
   echo "Usage: $SCRIPT [filename]"
-  echo -e "\e[1;31mWARNING!\3[0m] If no filename is passed, $SCRIPT will change ALL filenames in the current directory to lowercase."
+  echo -e "\e[1;31mWARNING!\e[0m If no filename is passed, $SCRIPT will change ALL filenames in the current directory to lowercase."
 }
 
 SCRIPT=$(basename "$0")
-FILE=$1
-VERSION="2.0.3"
-UPDATED="22 Sep 2019"
+FILE="$1"
+VERSION="2.0.4"
+UPDATED="08 Oct 2019"
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
 echo "Changes uppercase letters in files names to lowercase."
@@ -46,15 +46,12 @@ if  [ -z "$FILE"  ]; then
   usage
   read -rn1 -p "Are you sure you want to do this? [y/N] " YN
   case $YN in
-    [Yy]* )
-      rename -v 'y/A-Z/a-z/' ./*
-      ;;
-    * )
-      usage
-      exit
-      ;;
+    [Yy]*)
+      rename -v 'y/A-Z/a-z/' ./* ;;
+    *)
+      echo "Exiting the script. No files renamed." ;;
   esac
-elif [ -e "$MYFILE" ]; then
+elif [ -e "$FILE" ]; then
   rename -v 'y/A-Z/a-z/' "$FILE"
 else
   echo -e "\e[1;31mERROR: $FILE does not exist. Try again.\e[0m" >&2
