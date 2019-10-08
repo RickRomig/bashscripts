@@ -1,4 +1,25 @@
 # Changelog for bashscripts
+### 8 October 2019
+**upper2lower v2.0.4**
+* Corrected a variable name that caused the script to fail the file exists check when running the script against a single file.
+```
+# Old code:
+Celif [ -e "$MYFILE" ]; then
+# New code:
+elif [ -e "$FILE" ]; then
+```
+* Removed the call to the usage function the default choice of the case statement when `Y` is not chosen to confirm renaming all files in the directory. The usage message has already been displayed so repeating it is redundant. Replaced it with a statement that the script was exiting. Also removed the `exit` command since the script will exit anyway once it leaves the case statement.
+```
+# Old code:
+ * )
+  usage
+  exit
+  ;;
+# New code:
+ *)
+  echo "Exiting the script. No files renamed." ;;
+```
+
 ### 4 October 2919
 **sysinfo v2.1.1**
 * Added code to display the filesystem install date by using `df` to extract the the device containting the root partition and then `tune2fs` to get the creation date.
@@ -7,7 +28,7 @@
 ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
 INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" | awk '{print $5,$4,$7}')
 ```
-* In the code to extract the CPU model name, added a pipe to `sed` to remove the parenthesis and their content.
+* In the code to extract the CPU model name, added a pipe to `sed` to remove the parenthesis and their contents.
 ```
 # Old code:
 CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
