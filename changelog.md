@@ -1,4 +1,7 @@
 # Changelog for bashscripts
+### 9 October 2019
+* Removed the youtube-dl utilities after establishing a new repository for them.
+
 ### 8 October 2019
 **upper2lower v2.0.4**
 * Corrected a variable name that caused the script to fail the file exists check when running the script against a single file.
@@ -67,7 +70,7 @@ HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $9" "$10}' | sed 's/[
 ```
 # Old code:
 CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
-# New code:  
+# New code:
 CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
 ```
 
@@ -92,15 +95,15 @@ echo -e "Operating System: $OSNAME\n"
 ```
 # Old code:
 CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
-# New code:  
+# New code:
 CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
 ```
 * Updated variable assignment for graphics adapter:
 ```
-# Old code:  
+# Old code:
 echo "Graphics Adapter:"
 echo -e "\t$(/usr/bin/lspci | grep 'VGA' | cut -c 36-)"
-# New code:  
+# New code:
 VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 echo "Graphics:"
 echo -e "\t$VIDEO"
@@ -116,20 +119,11 @@ WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
 ```
 * Updated variable assignment for hard drive model number:
 ```
-# Old code:  
-HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')  
-# New code:  
-HDMODEL=$(sudo hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)  
+# Old code:
+HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')
+# New code:
+HDMODEL=$(sudo hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
 ```
-
-### 20 September 2019
-**yt-dl-install v1.2.0**
-* Moved variable declarations to the top of the script (below header and license).
-* Fixed minor spelling errors.
-
-**yt-dl-remove v1.2.0**
-* Moved variable declarations to the top of the script (below header and license).
-* Fixed minor spelling errors.
 
 ### 17 September 2019
 **clean-bin v2.0.0**
@@ -162,9 +156,6 @@ rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
 
 **upper2lower v2.0.2**
 * Fixed variable names, correcting those that were missed in previous updates.
-
-**yt-dl-install v1.1.1**
-* Cleaned up comments and variable names.
 
 ### 5 September 2019
 **chkupdates v1.1.5**
@@ -264,40 +255,6 @@ sudo apt full-upgrade
 * Moved `sudo apt autoremove` from the clean function and incorporated into remove function.
 * Added "Update and remove orphan packages" to the menu.
 * Added alldone function to display update completion message.
-
-### 19 July 2019
-**yt-dl-install**
-* Added code to optionally create a youtube-dl update script and place it `/etc/cron.weekly` to automatically check for updates using anacron.
-* Added code to create a temporary directory for the creation of the update script, z-ytdlup.sh. The update script will be copied to `/etc/cron.weekly`. When `yt-dl-install` exits the trap command will call the cleanup function to remove temporary directory.
-* Added comments to explain pertinent sections of the script.
-
-**yt-dl-remove**
-* Created a script to remove youtube-dl from the system without installing the newest version. It will remove the version from the distribution repositories, the version downloaded from <https://yt-dl.org>, or both. When removing the yt-dl.org version, will also remove configuration files, if they exist, and the log file created by z-ytdlup.sh (created by yt-dl-install).
-
-### 18 July 2019
-**yt-dl-update**
-* Created a short script to update youtube-dl which can be set up in crontab to be run as a cron job or copied as root into `/etc/cron.weekly` (or cron.monthly) to be run with anacron.
-
-### 17 July 2019
-**yt-dl-install**
-* Removed `sudo apt remove -yyq youtube-dl` from the code removing the repository version of youtube-dl because `apt purge` removes the package along with any configuration files that might exist.
-
-### 16 July 2019
-**yt-dl-install**
-* Added `sudo apt purge -yyq youtube-dl` to the code to remove the repository version of youtube-dl because simply removing the package did not keep it from being found by the `dpkg -l` command.
-
-### 15 July 2019
-**yt-dl-install**
-* Changed the method to using `dpkg -l` to see if youtube-dl has been installed from the repository rather than checking for the file in `/usr/bin`.
-```
-# Old code:
-if [ -f /usr/bin/youtube-dl ]; then
-# New code:
-if dpkg -l | grep -qw youtube-dl
-then
-```
-* Removed the option for the user to choose whether or not to update. If youtube-dl is installed, the script will automatically run the update command.
-* Added error checking to the curl download of youtube-dl If the download is successful, the script will display the result and assign the appropriate permissions to the file. If the download fails, an error message with an exit code will be displayed.
 
 ### 23 June 2018
 **chkupdates**
