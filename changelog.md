@@ -1,4 +1,8 @@
 # Changelog for bashscripts
+### 20 October 2019
+**clean-bin v2.0.3**
+* Replaced `$xHOMEDIR` variable with `$HOME`
+
 ### 9 October 2019
 * Removed the youtube-dl utilities after establishing a new repository for them.
 
