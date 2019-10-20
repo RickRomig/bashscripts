@@ -29,15 +29,14 @@
 
 # Variables
 
-readonly VERSION="v2.0.1"
-readonly UPDATED="17 Sep 2019"
+readonly VERSION="2.0.3"
+readonly UPDATED="18 Oct 2019"
 
 # Directory variables
 
-readonly HOMEDIR=$HOME
 readonly CURDIR=$PWD
-readonly BINDIR="$HOMEDIR/bin"
-readonly SCRIPTDIR="$HOMEDIR/Documents/mosfanet/Scripts/bash/my-scripts/"
+readonly BINDIR=$HOME"/bin"
+readonly SCRIPTDIR=$HOME"/Documents/mosfanet/Scripts/bash/my-scripts/"
 
 # Functions
 
@@ -60,7 +59,7 @@ echo "Cleaning up $BINDIR ..."
 NBU=$(find ./ -type f -name \*~  | wc -l)
 
 if (( NBU == 0 )); then
-  echo $'\n'$"No backup files ending with '~' found in $BINDIR."
+  echo $'\n'$"$NBU backup files ending with '~' found in $BINDIR."
 elif (( NBU == 1 )); then
   echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
   remove_tilde
@@ -72,8 +71,7 @@ fi
 # Synchronize ~/bin with ~/Documents/mosfanet/Scripts/bash/my-scripts
 
 echo -e "\nSynchronizing ~/bin directory with the scripts backup directory.\n"
-rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
-echo $'\n'$"~bin cleaned up and synchronized."
+rsync -aprv --delete --exclude 'Testing' . "$SCRIPTDIR/"
 
 # Return to the directory where you started
 
