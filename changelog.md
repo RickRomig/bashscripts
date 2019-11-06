@@ -1,7 +1,21 @@
 # Changelog for bashscripts
+### 06 November 2019
+**sysinfo 2.1.2**
+* Changed how the `ETHMAC` and `WIFIMAC` variales are assigned.
+```
+# Old code:
+read -r ETHMAC < "/sys/class/net/$ETHINT/address"
+...
+read -r WIFIMAC < "/sys/class/net/$WIFIINT/address"
+# New code:
+ETHMAC=$(cat "/sys/class/net/$ETHINT/address")
+...
+WIFIMAC=$( cat "/sys/class/net/$WIFIINT/address")
+```
+
 ### 20 October 2019
 **clean-bin v2.0.3**
-* Replaced `$xHOMEDIR` variable with `$HOME`
+* Replaced `$HOMEDIR` variable with the `$HOME` environmental variable.
 
 ### 9 October 2019
 * Removed the youtube-dl utilities after establishing a new repository for them.
