@@ -10,7 +10,7 @@
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 04 Oct 2019
+# Last Updated : 06 Nov 2019
 # TODO (Rick)  :
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
@@ -42,7 +42,7 @@ HOMEDIR=$HOME
 MYHOST=$HOSTNAME
 INFOFILE="$HOMEDIR/$MYHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.1"
+VERSION="v 2.1.2"
 
 # Computer information
 
@@ -98,14 +98,14 @@ clear
     echo "  Ethernet:"
     echo "    Device name: $ETHINT"
     echo "    $ETHERNETDEV"
-    read -r ETHMAC < "/sys/class/net/$ETHINT/address"
+    ETHMAC=$(cat "/sys/class/net/$ETHINT/address")
     echo "    MAC address: $ETHMAC"
   fi
   if [ -n "$WIRELESSDEV" ]; then
     echo "  Wireless:"
     echo "    Device name: $WIFIINT"
     echo "    $WIRELESSDEV"
-    read -r WIFIMAC < "/sys/class/net/$WIFIINT/address"
+    WIFIMAC=$( cat "/sys/class/net/$WIFIINT/address")
     echo "    MAC address: $WIFIMAC"
   fi
   echo $'\n'$"Hard Disk information:"
@@ -123,7 +123,7 @@ clear
   done
   echo $'\n'$"Partition information:"
   /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  [ -n "$BATTERY" ] && echo $'\n'$"Battery:  $BATTERY"
+  [ -n "$BATTERY" ] && echo $'\n'$"Battery: $BATTERY"
 } | tee "$INFOFILE"
 
 exit
