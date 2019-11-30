@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-# Last updated : 05 Sep 2019
+# Last updated : 28 Nov 2019
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -29,39 +29,57 @@
 
 set -e
 
-install_updates() {
+install_updates()
+{
   echo -e "\n\e[1;33mInstalling updates ...\e[0m"
   sudo apt full-upgrade -yy
 }
 
-cleanup() {
-  echo -e "\n\e[1;33mCleaning up ...\e[0m"
+clean_cache()
+{
+  echo -e "\n\e[1;33mCleaning up apt cache ...\e[0m"
   sudo apt autoclean
 }
 
-remove_orphans() {
+remove_orphans()
+{
   echo -e "\n\e[1;33mRemoving orphaned packages ...\e[0m"
   sudo apt autoremove -yy
 }
 
-all_done() {
+all_done()
+{
   echo -e "\n\e[1;33mUpdate complete.\e[0m"
+  echo "Update completed in $(format_time $SECONDS)"
 }
 
-VERSION="v1.1.5"
+format_time()
+{
+  ET="$1"
+  ((h=ET/3600))
+  ((m=(ET%3600)/60))
+  ((s=ET%60))
+  printf "%02d:%02d:%02d\n" $h $m $s
+}
+
+VERSION="v1.1.9"
+LHOST=$HOSTNAME
 
 sudo ls > /dev/null 2>&1
+
+SECONDS=0
+
 clear
 echo -e "\e[1;33mChkupdates $VERSION\e[0m"
-echo -e "\e[1;33mChecking for updates...\e[0m"
+echo -e "\e[1;33mChecking for updates.on $LHOST...\e[0m"
 sudo apt update
 
-# Without the 2>/dev/null, apt will display the following error message:
-# WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+# Without the `2>/dev/null`, apt will display the following error message:
+# `WARNING: apt does not have a stable CLI interface. Use with caution in scripts.`
 
 NUPD=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 
-if [ "$NUPD" -gt "0" ]; then
+if (( NUPD > 0 )); then
   apt list --upgradeable
   echo -e "\n\e[1;33mUpdate options:\e[0m"
   PS3="Choice: "
@@ -79,7 +97,7 @@ if [ "$NUPD" -gt "0" ]; then
       "Install updates and clean up")
         install_updates
         remove_orphans
-        cleanup
+        clean_cache
         all_done
         break
         ;;
@@ -91,6 +109,7 @@ if [ "$NUPD" -gt "0" ]; then
         ;;
       "Exit without updating")
         echo -e "\n\e[1;33mUpdates available but not installed.\e[0m"
+        echo "Script completed in $(format_time $SECONDS)"
         break
         ;;
       *)

@@ -1,4 +1,9 @@
 # Changelog for bashscripts
+### 30 November 2019
+**chkupdates 1.1.9**
+* Local hostname displayed in script header
+* Displays the elasped time the script ran.
+
 ### 06 November 2019
 **sysinfo 2.1.2**
 * Changed how the `ETHMAC` and `WIFIMAC` variales are assigned.
