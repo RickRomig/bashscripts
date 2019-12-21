@@ -1,4 +1,16 @@
 # Changelog for bashscripts
+### 21 December 2019
+**sysinfo 2.1.3**
+* Modified the INSTALLED variable used to determine the date the file system was created by using piping the output from `tune2fs -l` to awk instead of piping it to grep then piping hat result to awk.
+```
+# Old code:
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" \
+  | awk '{print $5,$4,$7}')
+# New code:
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" \
+ | awk '/Filesystem created/ {print $5,$4,$7}')
+```
+
 ### 30 November 2019
 **chkupdates 1.1.9**
 * Local hostname displayed in script header
