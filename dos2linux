@@ -25,26 +25,26 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-usage () {
+usage()
+{
   echo "Usage: $SCRIPT <file>"
   exit 1
 }
 
 SCRIPT=$(basename "$0")
-VERSION="1.0.2"
-UPDATED="01 Sep 2019"
+VERSION="1.0.4"
+UPDATED="3 Jan 2020"
 
 # check number of arguments
 
 if [ -z "$1" ]; then
-  echo -e "\e[1;41mError: No argments passed.\e[0m" >&2
+  echo -e "\e[1;41mError:\e[0m No argments passed." >&2
+  usage
+elif [ ! -f "$1" ]; then
+  echo -e "\e[1;41mError:\e[0m $1 not found." >&2
   usage
 else
   FILE=$1
-  if [ ! -f "$FILE" ]; then
-    echo -e "\e[1;41mError: $FILE not found.\e[0m" >&2
-    usage
-  fi
 fi
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
