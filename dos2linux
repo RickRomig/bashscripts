@@ -35,10 +35,10 @@ SCRIPT=$(basename "$0")
 VERSION="1.0.4"
 UPDATED="3 Jan 2020"
 
-# check number of arguments
+# check arguments
 
 if [ -z "$1" ]; then
-  echo -e "\e[1;41mError:\e[0m No argments passed." >&2
+  echo -e "\e[1;41mError:\e[0m No arguments passed." >&2
   usage
 elif [ ! -f "$1" ]; then
   echo -e "\e[1;41mError:\e[0m $1 not found." >&2
