@@ -1,4 +1,32 @@
 # Changelog for bashscripts
+### 3 January 2020
+**dos2linux 1.0.4**
+* Updated error messages
+* Refined the routine to check arguments to use `if-elif-else` structure instead of nested `if` statements.
+```
+# Old code:
+if [ -z "$1" ]; then
+  echo -e "\e[1;41mError: No argments passed.\e[0m" >&2
+  usage
+else
+  FILE=$1
+  if [ ! -f "$FILE" ]; then
+    echo -e "\e[1;41mError: $FILE not found.\e[0m" >&2
+    usage
+  fi
+fi
+# New code:
+if [ -z "$1" ]; then
+  echo -e "\e[1;41mError:\e[0m No argments passed." >&2
+  usage
+elif [ ! -f "$1" ]; then
+  echo -e "\e[1;41mError:\e[0m $1 not found." >&2
+  usage
+else
+  FILE=$1
+fi
+```
+
 ### 21 December 2019
 **sysinfo 2.1.3**
 * Modified the INSTALLED variable used to determine the date the file system was created by using piping the output from `tune2fs -l` to awk instead of piping it to grep then piping hat result to awk.
