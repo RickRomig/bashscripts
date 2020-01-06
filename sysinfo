@@ -3,14 +3,14 @@
 # Script Name  : sysinfo
 # Description  : Gathers system information to a file in home directory
 # Dependencies : apt, awk, cut, date, dmidecode, df, dpkg, free, grep, hdpram,
-#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs
+#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs uname
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 21 Dec 2019
+# Last Updated : 06 Jan 2020
 # TODO (Rick)  :
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
@@ -34,18 +34,18 @@ sudo ls > /dev/null 2>&1
 
 # hdparm needed to extract hard drive information
 
-dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
+dpkg -l | grep -qw hdparm || sudo apt install hdparm -yyq
 
 # Base variables
 
 HOMEDIR=$HOME
-MYHOST=$HOSTNAME
 INFOFILE="$HOMEDIR/$MYHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.3"
+VERSION="v 2.1.4"
 
 # Computer information
 
+LHOST=$(/bin/uname -n)
 MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
 PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
 VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
@@ -53,7 +53,8 @@ SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
 
 # Operating system
 
-OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
+OSNAME=$(/bin/uname -o)
+DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
 ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
 INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" \
  | awk '/Filesystem created/ {print $5,$4,$7}')
@@ -82,12 +83,13 @@ BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
 clear
 {
   echo "SysInfo ($VERSION), Copyright 2019, Richard Romig"
-  echo $'\n'$"System information for $MYHOST as of $TODAY"
+  echo $'\n'$"System information for $LHOST as of $TODAY"
   echo "Manufacturer:  $MFGNAME"
   echo "Product name:  $PRODNAME"
   echo "Version:       $VERNAME"
   echo "Serial number: $SERNUM"
   echo $'\n'$"Operating System:   $OSNAME"
+  echo "Distributinon:      $DISTRO"
   echo "Filesystem created: $INSTALLED"
   echo $'\n'$"Hardware:"
   echo "  CPU:  $CPUINFO"
