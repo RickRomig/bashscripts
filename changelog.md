@@ -1,4 +1,22 @@
 # Changelog for bashscripts
+### 6 January 2020
+**sysinfo 2.1.4**
+* Changed OSNAME variable to extract the name of the operating system rather than the distribution. Added variable to extract the distribution release.
+```
+# Old code:
+OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
+# New code:
+OSNAME=$(/bin/uname -o)
+DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
+```
+* Renamed MYHOST variable to LHOST.
+```
+# Old code:
+MYHOST=$HOSTNAME
+# New code:
+LHOST=$(/bin/uname -n)
+```
+
 ### 3 January 2020
 **dos2linux 1.0.4**
 * Updated error messages
@@ -29,7 +47,7 @@ fi
 
 ### 21 December 2019
 **sysinfo 2.1.3**
-* Modified the INSTALLED variable used to determine the date the file system was created by using piping the output from `tune2fs -l` to awk instead of piping it to grep then piping hat result to awk.
+* Modified the INSTALLED variable used to determine the date the file system was created by using piping the output from `tune2fs -l` to awk instead of piping it to grep then piping that result to awk.
 ```
 # Old code:
 INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" \
@@ -70,7 +88,7 @@ WIFIMAC=$( cat "/sys/class/net/$WIFIINT/address")
 * Corrected a variable name that caused the script to fail the file exists check when running the script against a single file.
 ```
 # Old code:
-Celif [ -e "$MYFILE" ]; then
+elif [ -e "$MYFILE" ]; then
 # New code:
 elif [ -e "$FILE" ]; then
 ```
