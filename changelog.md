@@ -1,4 +1,14 @@
 # Changelog for bashscripts
+### 7 January 2020
+**sysinfo 2.1.5**
+* Fixed the INFOFILE variable which prevented writing to the file.
+```
+# Old code:
+INFOFILE="$HOMEDIR/$MYHOST.info"
+# New code:
+INFOFILE="$HOMEDIR/$LHOST.info"
+```
+
 ### 6 January 2020
 **sysinfo 2.1.4**
 * Changed OSNAME variable to extract the name of the operating system rather than the distribution. Added variable to extract the distribution release.
