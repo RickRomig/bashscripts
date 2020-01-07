@@ -39,13 +39,13 @@ dpkg -l | grep -qw hdparm || sudo apt install hdparm -yyq
 # Base variables
 
 HOMEDIR=$HOME
-INFOFILE="$HOMEDIR/$MYHOST.info"
+LHOST=$(/bin/uname -n)
+INFOFILE="$HOMEDIR/$LHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.4"
+VERSION="v 2.1.5"
 
 # Computer information
 
-LHOST=$(/bin/uname -n)
 MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
 PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
 VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
@@ -89,7 +89,7 @@ clear
   echo "Version:       $VERNAME"
   echo "Serial number: $SERNUM"
   echo $'\n'$"Operating System:   $OSNAME"
-  echo "Distributinon:      $DISTRO"
+  echo "Distribution:       $DISTRO"
   echo "Filesystem created: $INSTALLED"
   echo $'\n'$"Hardware:"
   echo "  CPU:  $CPUINFO"
