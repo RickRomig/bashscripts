@@ -61,7 +61,7 @@ NBU=$(find ./ -type f -name \*~  | wc -l)
 if (( NBU == 1 )); then
   echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
   remove_tilde
-elif (( NBU > 1 ))
+elif (( NBU > 1 )); then
   echo $'\n'$"Removing $NBU '~' backup files in $BINDIR."
   remove_tilde
 fi
