@@ -1,4 +1,30 @@
 # Changelog for bashscripts
+### 23 January 2020
+**clean-bin 2.0.4**
+* If there are no '~' backup files to be removed, this fact is no longer displayed.
+```
+# Old code:
+NBU=$(find ./ -type f -name \*~  | wc -l)
+if (( NBU == 0 )); then
+    echo $'\n'$"$NBU backup files ending with '~' found in $BINDIR."
+elif (( NBU == 1 )); then
+    echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
+    remove_tilde
+else
+    echo $'\n'$"Removing $NBU '~' backup files in $BINDIR."
+    remove_tilde
+fi
+# New code:
+NBU=$(find ./ -type f -name \*~  | wc -l)
+if (( NBU == 1 )); then
+    echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
+    remove_tilde
+elif (( NBU > 1 ))
+    echo $'\n'$"Removing $NBU '~' backup files in $BINDIR."
+    remove_tilde
+fi
+```
+
 ### 22 January 2020
 **chkupdates 1.2.1**
 * Added echo statement to display the elapsed time of the script when no updates are available.
