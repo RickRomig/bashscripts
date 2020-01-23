@@ -1,4 +1,8 @@
 # Changelog for bashscripts
+### 22 January 2020
+**chkupdates 1.2.1**
+* Added echo statement to display the elapsed time of the script when no updates are available.
+
 ### 7 January 2020
 **sysinfo 2.1.5**
 * Fixed the INFOFILE variable which prevented writing to the file.
