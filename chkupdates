@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-# Last updated : 28 Nov 2019
+# Last updated : 29 Dec 2019
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -62,7 +62,7 @@ format_time()
   printf "%02d:%02d:%02d\n" $h $m $s
 }
 
-VERSION="v1.1.9"
+VERSION="v1.2.1"
 LHOST=$HOSTNAME
 
 sudo ls > /dev/null 2>&1
@@ -71,7 +71,7 @@ SECONDS=0
 
 clear
 echo -e "\e[1;33mChkupdates $VERSION\e[0m"
-echo -e "\e[1;33mChecking for updates.on $LHOST...\e[0m"
+echo -e "\e[1;33mChecking for updates on $LHOST...\e[0m"
 sudo apt update
 
 # Without the `2>/dev/null`, apt will display the following error message:
@@ -84,8 +84,7 @@ if (( NUPD > 0 )); then
   echo -e "\n\e[1;33mUpdate options:\e[0m"
   PS3="Choice: "
   OPTIONS=("Install updates" "Install updates and clean up" \
-           "Install updates and remove orphaned packages" \
-           "Exit without updating")
+   "Install updates and remove orphaned packages" "Exit without updating")
   select OPT in "${OPTIONS[@]}"
   do
     case $OPT in
@@ -117,6 +116,8 @@ if (( NUPD > 0 )); then
         ;;
     esac
   done
+else
+  echo "Script completed in $(format_time $SECONDS)"
 fi
 
 exit
