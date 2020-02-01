@@ -1,4 +1,9 @@
 # Changelog for bashscripts
+### 31 January 2020
+**ren-ext 2.0.2**
+* Incorporated `?` wildcard to combine case matches for htm|html, jpeg|jpg, and mpeg|mpg.
+* In usasge() added that input file extensions are case insensitive and change file extensions will be lowercase.
+
 ### 23 January 2020
 **clean-bin 2.0.4**
 * If there are no '~' backup files to be removed, this fact is no longer displayed.
