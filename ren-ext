@@ -6,7 +6,7 @@
 # Arguments    : File extenstion to be changed
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : rile extensions are case insensitive
+# Comment      : File extensions are case insensitive
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -25,29 +25,32 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
-usage () {
+usage()
+{
   echo "Usage: $SCRIPT extension"
   echo "Example: $SCRIPT JPG"
-  echo "Supported extensions: AVI, BAK, FLV, GIF, htm, HTM, HTML, jpeg, JPG, MP3, MP4"
-  echo "MPG, mpeg, PDF, PNG, TXT, WMV"
+  echo "Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3,"
+  echo " MP4, MPG, MPEG, PDF, PNG, TXT, WMV"
+  echo "Input file extensions are case insensitive. Any combination of upper and"
+  echo "lower case are acceptable. Changed file extensions will be lowercase."
   exit 1
 }
 
 SCRIPT=$(basename "$0")
-VERSION="2.0.1"
-UPDATED="06 Sep 2019"
+VERSION="2.0.2"
+UPDATED="31 Jan 2020"
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
 echo "Bulk renames file extensions in the current diectory."
-echo -e  "Copyright 2018, Richard Romig\n"
+echo -e "Copyright 2018, Richard Romig\n"
 
 # Check for arguments
 
 if [ -z "$1"  ]; then
-  echo -e "\e[1;31mError: Must provide a file extension to be renamed.\e[0m" <&2
+  echo -e "\e[1;31mERROR:\e[0m Must provide a file extension to be renamed." <&2
   usage
 else
-  EXT=$1
+  EXT="$1"
 fi
 
 # Rename file extenssions based on the passed argument
@@ -70,21 +73,13 @@ case $EXT in
     echo "Renaming .$EXT files to .gif"
     rename -v 's/\.GIF$/\.gif/i' ./*
     ;;
-  htm)
+  htm|html)
     echo "Renaming .$EXT files to .html"
-    rename -v 's/\.htm$/\.html/i' ./*
+    rename -v 's/\.html?$/\.html/i' ./*
     ;;
-  html)
-    echo "Renaming .$EXT files to .html"
-    rename -v 's/\.HTML$/\.html/i' ./*
-    ;;
-  jpeg)
+  jpeg|jpg)
     echo "Renaming .$EXT files to .jpg"
-    rename -v 's/\.jpeg$/\.jpg/i' ./*
-    ;;
-  jpg)
-    echo "Renaming .$EXT files to .jpg"
-    rename -v 's/\.JPG$/\.jpg/i' ./*
+    rename -v 's/\.jpe?g$/\.jpg/i' ./*
     ;;
   mp3)
     echo "Renaming .$EXT files to .mp3"
@@ -94,13 +89,9 @@ case $EXT in
     echo "Renaming .$EXT files to .mp4"
     rename -v 's/\.MP4$/\.mp4/i' ./*
     ;;
-  mpg)
+  mpg|mpeg)
     echo "Renaming .$EXT files to .mpg"
-    rename -v 's/\.MPG$/\.mpg/i' ./*
-    ;;
-  mpeg)
-    echo "Renaming .$EXT files to .mpg"
-    rename -v 's/\.MPEG$/\.mpg/i' ./*
+    rename -v 's/\.MPE?G$/\.mpg/i' ./*
     ;;
   pdf)
     echo "Renaming .$EXT files to .pdf"
@@ -119,7 +110,7 @@ case $EXT in
     rename -v 's/\.WMV$/\.wmv/i' ./*
     ;;
   *)
-    echo -e "\e[1;31mError: .$EXT is NOT a supported file extension.\e[0m"
+    echo -e "\e[1;31mERROR:\e[0m .$EXT is NOT a supported file extension."
     usage
     ;;
 esac
