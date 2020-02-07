@@ -1,8 +1,12 @@
 # Changelog for bashscripts
+### 6 February 2020
+**chkupdates 1.2.2**
+* Added count of packages updated or available but not updated when the script exits.
+
 ### 31 January 2020
 **ren-ext 2.0.2**
 * Incorporated `?` wildcard to combine case matches for htm|html, jpeg|jpg, and mpeg|mpg.
-* In usasge() added that input file extensions are case insensitive and change file extensions will be lowercase.
+* In usage() added a statement that input file extensions are case insensitive and changed file extensions will be lowercase.
 
 ### 23 January 2020
 **clean-bin 2.0.4**
