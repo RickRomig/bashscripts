@@ -55,7 +55,7 @@ if  [ -z "$FILE"  ]; then
 elif [ -f "$FILE" ]; then
   rename -v 'y/A-Z/a-z/' "$FILE"
 else
-  echo -e "\e[1;31mERROR: $FILE does not exist. Try again.\e[0m" >&2
+  echo -e "\e[1;31mERROR:\e[0m $FILE does not exist. Try again." >&2
   usage
   exit 1
 fi
