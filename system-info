@@ -1,0 +1,131 @@
+#!/bin/bash
+###############################################################################
+# Script Name  : system-info
+# Description  : Gathers system information to a file in home directory
+# Dependencies : apt, awk, cut, date, dmidecode, df, dpkg, free, grep, hdpram,
+#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs uname
+# Args         : None
+# Author       : Richard Romig
+# Email        : rick.romig@gmail.com
+# Comment      : Requires root/sudo privileges
+# dmidecode may produce error messages in some systems. They can be
+# safely ignored and removed from the file with any text editor.
+# Last Updated : 28 Feb 2020
+# TODO (Rick)  :
+###############################################################################
+# Copyright (C) 2018  Richard Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+###############################################################################
+
+sudo ls > /dev/null 2>&1
+
+# hdparm needed to extract hard drive information
+
+dpkg -l | grep -qw hdparm || sudo apt install hdparm -yyq
+
+# Base variables
+
+HOMEDIR=$HOME
+LHOST=$(/bin/uname -n)
+INFOFILE="$HOMEDIR/$LHOST.info"
+TODAY=$(date +"%d %B %Y")
+VERSION="v 2.1.6"
+
+# Computer information
+
+MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
+PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
+VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
+SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+
+# Operating system
+
+OSNAME=$(/bin/uname -o)
+DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
+ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" \
+ | awk '/Filesystem created/ {print $5,$4,$7}')
+
+# CPU, RAM and video
+
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' \
+  | sed "s/([^)]*)//g")
+PHYSMEM="$(/usr/bin/free -h | awk '/^Mem:/ {print $2}')"
+VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
+
+# Network
+
+ETHINT=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
+WIFIINT=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
+ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
+WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
+
+# Battery
+
+BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
+  | awk '/native-path/ {print $2}')
+
+# Write data to file in user's home directory
+
+clear
+{
+  echo "System-Info ($VERSION), Copyright 2019, Richard Romig"
+  echo $'\n'$"System information for $LHOST as of $TODAY"
+  echo "Manufacturer:  $MFGNAME"
+  echo "Product name:  $PRODNAME"
+  echo "Version:       $VERNAME"
+  echo "Serial number: $SERNUM"
+  echo $'\n'$"Operating System:   $OSNAME"
+  echo "Distribution:       $DISTRO"
+  echo "Filesystem created: $INSTALLED"
+  echo $'\n'$"Hardware:"
+  echo "  CPU:  $CPUINFO"
+  echo "  RAM:  $PHYSMEM"
+  echo "  Graphics:"
+  echo "    $VIDEO"
+  if [ -n "$ETHERNETDEV" ]; then
+    echo "  Ethernet:"
+    echo "    Device name: $ETHINT"
+    echo "    $ETHERNETDEV"
+    ETHMAC=$(/bin/cat "/sys/class/net/$ETHINT/address")
+    echo "    MAC address: $ETHMAC"
+  fi
+  if [ -n "$WIRELESSDEV" ]; then
+    echo "  Wireless:"
+    echo "    Device name: $WIFIINT"
+    echo "    $WIRELESSDEV"
+    WIFIMAC=$(/bin/cat "/sys/class/net/$WIFIINT/address")
+    echo "    MAC address: $WIFIMAC"
+  fi
+  echo $'\n'$"Hard Disk information:"
+  for DISK in /dev/sd[a-z]
+  do
+    HDDEV=$(sudo /sbin/hdparm -I "${DISK}" 2>/dev/null | grep -e '/dev/')
+    HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | grep 'Model Number' | cut -c 22-)
+    HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
+    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}"| awk '/GB/ {print $9" "$10}' \
+      | sed 's/[)(]//g')
+    echo "$HDDEV"
+    echo "  Model Number : $HDMODEL"
+    echo "  Serial Number: $HDSERIAL"
+    echo "  Capacity: $HDSIZE"
+  done
+  echo $'\n'$"Partition information:"
+  /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+  [ -n "$BATTERY" ] && echo $'\n'$"Battery: $BATTERY"
+} | tee "$INFOFILE"
+
+exit
