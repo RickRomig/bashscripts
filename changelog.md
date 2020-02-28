@@ -1,5 +1,29 @@
 # Changelog for bashscripts
 
+### 28 February 2020
+
+**check-updates 1.2.3**
+
+* Renamed the script from chkupdates to check-updates
+
+**ip-info 1.0.6**
+
+* Renamed the script from ipinfo to ip-info.
+
+* Removed the variable for the bridged network device since it wasn't needed.
+
+**ren-space 1.0.2**
+
+* Renamed the script from renspace to ren-space.
+
+**system-info 2.1.6**
+
+* Renamed the script from sysinfo to system-info.
+
+**rm-tilde 2.1.4**
+
+* Renamed the script from rmtilde to rm-tilde.
+
 ### 24 February 2020
 
 **upper2lower 2.0.5**
@@ -82,6 +106,7 @@
   OSNAME=$(/bin/uname -o)
   DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
   ```
+
 * Renamed MYHOST variable to LHOST.
   
   ```
@@ -96,6 +121,7 @@
 **dos2linux 1.0.4**
 
 * Updated error messages
+
 * Refined the routine to check arguments to use `if-elif-else` structure instead of nested `if` statements.
   
   ```
@@ -183,6 +209,7 @@
   # New code:
   elif [ -e "$FILE" ]; then
   ```
+
 * Removed the call to the usage function the default choice of the case statement when `Y` is not chosen to confirm renaming all files in the directory. The usage message has already been displayed so repeating it is redundant. Replaced it with a statement that the script was exiting. Also removed the `exit` command since the script will exit anyway once it leaves the case statement.
   
   ```
@@ -207,6 +234,7 @@
   ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
   INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" | awk '{print $5,$4,$7}')
   ```
+
 * In the code to extract the CPU model name, added a pipe to `sed` to remove the parenthesis and their contents.
   
   ```
@@ -215,6 +243,7 @@
   # New code:
   CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1') | sed "s/([^)]*)//g")
   ```
+
 * Changed formatting of the displayed output, replacing tabs with spaces and arranging data in a more readable layout.
 
 ### 2 October 2019
@@ -229,6 +258,7 @@
   # New code:
   CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
   ```
+
 * Revised method to extract total system memory, displaying memory in a more generic manner.
   
   ```
@@ -237,6 +267,7 @@
   # New code:
   PHYSMEM=$(free -h | awk '/^Mem:/ {print $2}')
   ```
+
 * Reivised method of extracting hard drive capacity from hdparm command . Displays capacity in GB and eliminates the parenthesis around the number.
   
   ```
@@ -282,6 +313,7 @@
   OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
   echo -e "Operating System: $OSNAME\n"
   ```
+
 * Updated variable assignment for CPU model:
   
   ```
@@ -290,6 +322,7 @@
   # New code:
   CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
   ```
+
 * Updated variable assignment for graphics adapter:
   
   ```
@@ -301,6 +334,7 @@
   echo "Graphics:"
   echo -e "\t$VIDEO"
   ```
+
 * Updated variable assignments for network devices:
   
   ```
@@ -311,6 +345,7 @@
   ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
   WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
   ```
+
 * Updated variable assignment for hard drive model number:
   
   ```
@@ -490,8 +525,11 @@
   # New code:
   sudo apt full-upgrade
   ```
+
 * Moved `sudo apt autoremove` from the clean function and incorporated into remove function.
+
 * Added "Update and remove orphan packages" to the menu.
+
 * Added alldone function to display update completion message.
 
 ### 23 June 2018
@@ -555,6 +593,7 @@
   # New code:
   cpuinfo=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
   ```
+
 * Changed method for obtaining the hard drive model, serial number, and capacity to use awk
   instead of grep and cut.
   
@@ -568,6 +607,7 @@
   hdserial=$(sudo /sbin/hdparm -I /dev/sda | awk '/Serial Number/ {print $3}')
   hdsize=$(sudo /sbin/hdparm -I /dev/sda | awk '/GB/ {print $7" "$8" "$9" "$10}')
   ```
+
 * Changed method to obtain laptop battery information to use `upower` instead of using ls to list the contents of `/sys/class/power_supply`.
   
   ```
@@ -603,13 +643,16 @@
 **ipinfo**
 
 * Renamed ipinfo.sh to ipinfo.
+
 * Modified script to show local IP addresses for both wired and wireless interfaces, if installed.
+  
   * Added variables for network interfaces:
     
     ```
     ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
     wifint=$(nmcli dev | awk '/wifi/ {print $1}')
     ```
+  
   * Changed variales to obtain local IP addresses:
     
     ```
@@ -619,6 +662,7 @@
     localip1=$(ip -o -f inet addr show | awk -v name="$ethint" '$0~name {print $4}')
     localip2=$(ip -o -f inet addr show | awk -v name="$wifint" '$0~name {print $4}')
     ```
+  
   * Changed code to display local IP information:
     
     ```
@@ -638,6 +682,7 @@
       echo -e "\tWireless: Not connected"
     fi
     ```
+
 * Modified code to display the default gateway for each active network interface. Eliminated the `gateway` variable and entered the code directly into the section that displays the IP information.
   
   ```
@@ -688,6 +733,7 @@
 **chkupdates**
 
 * Double-quoted variable references to prevent globbing and word splitting.
+
 * Added a line to check for sudo privileges before clearing the screen and running the rest of the script.
   
   ```
@@ -760,7 +806,9 @@
   # New code:
   cpuinfo=$(grep 'model name' /proc/cpuinfo | uniq | cut -c 14-)
   ```
+
 * Placed commands redirecting and appending the sysinfo file between brackets to reduce the number of writes to the file.
+
 * Added blank lines to the variable declarations to make the script more readable.
 
 **upper2lower**
@@ -840,6 +888,7 @@
 **chkupdates**
 
 * Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
+
 * Replaced the if statement to run `apt list --upgradeable` if updates are available.
   
   ```
@@ -856,6 +905,7 @@
 **chkupdates**
 
 * replaced instances of `apt-get` with `apt`. Backward compatibility with Ubuntu 16.04 and Linux Mint 17.x is no longer necessary due to end of life.
+
 * Added `2>/dev/null` to `apt upgrade` command to prevent error: **WARNING: apt does not have a stable CLI interface. Use with caution in scripts.**  Apparently, `apt` displays this error when its ouput is piped to another command.
   
   ```
@@ -880,6 +930,7 @@
   esac
   shopt -u nocasematch
   ```
+
 * Made the rename commands case-insensitive by adding the `i` option and replacing `*.EXT` with `*`.
   
   ```
@@ -888,6 +939,7 @@
   # New Code:
   rename -v 's/\.BAK$/\.bak/i' *
   ```
+
 * Since supported extensions are now case-insensitive, removed the ls command and the following if statement to check if files with the given extension exist. If no files are renamed, no files are listed.
   
   ```
@@ -898,6 +950,7 @@
     usage
   fi
   ```
+
 * Added support for AVI, FLV, MPG, mpeg, and WMV extensions.
 
 #### 8 March 2019

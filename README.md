@@ -2,7 +2,7 @@
 
 I write scripts to fix a particular problem or to accomplish a routine task and I felt that these scripts might be of use to others. It should be noted that these scripts were written in Bash for Linux Mint (18.3, 19.x, and LMDE 3) but they should work for most Ubuntu and Debian based distributions. I've run these scripts with no problems on Debian 10, Lubuntu 18.04, and MX Linux 18.
 
-### chkupdates
+### check-updates
 
 1. Updates the list of available packages then displays the number of packages that are available to be upgraded. If any updates are available, they are listed and a menu is presented with options to install updates, to install updates and clean up, to remove orphan packages, or to defer the updates and exit.
 2. Root (sudo) privileges are necessary for `apt`.
@@ -19,7 +19,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 1. Removes DOS carriage return characters (`\r`) from text files created by DOS and Windows text editors so they work better with some Linux programs. The original file is retained and appended with a .bak extension.
 2. The script takes the file to be processed as an argument and checks to see if it exists. A usage message is displayed if the file doesn't exist or no argument is passed.
 
-### ipinfo
+### ip-info
 
 1. Displays a system's basic IP information in an easy to read format.
 2. Information displayed:
@@ -61,16 +61,16 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 | TXT            | txt        |
 | WMV            | wmv        |
 
-### renspace
+### ren-space
 
 1. Uses `rename` to replace spaces in filenames with underscores. When run, the script renames every filename containing spaces in the current directory.
 
-### rmtilde
+### rm-tilde
 
 1. Removes backup files with a trailing tilde (~) in the current directory to include hidden (dot) files.
 2. I wrote this script as a safeguard to prevent accidentally deleting all the files in a directory while attempting to type `rm \*~`. Sometimes fingers slip.
 
-### sysinfo
+### system-info
 
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
    * System manufacturer (dmidecode)
@@ -107,7 +107,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-24 February 2020
+28 February 2020
 
 ### DISCLAIMER
 
