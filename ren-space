@@ -28,8 +28,8 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
-VERSION="1.0.2"
-UPDATED="28 Feb 2020"
+VERSION="1.0.3"
+UPDATED="23 Mar 2020"
 
 echo "Renspace v$VERSION  - renames filenames containing spaces."
 echo "Copyright 2018, Richard Romig"
@@ -37,10 +37,6 @@ echo -e "Last updated: $UPDATED\n"
 
 # check for filenames containing spaces
 
-if find . -maxdepth 1 -type f | grep " " >/dev/null; then
-  rename -v 's/ /_/g' ./*
-else
-  echo "No filenames containing spaces found."
-fi
+find . -maxdepth 1 -type f | grep " " >/dev/null && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
 
 exit
