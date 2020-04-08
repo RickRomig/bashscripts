@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-# Last updated : 27 Feb 2020
+# Last updated : 08 Apr 2020
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -63,7 +63,7 @@ format_time()
   printf "%02d:%02d:%02d\n" $h $m $s
 }
 
-VERSION="v1.2.3"
+VERSION="v1.2.4"
 LHOST=$HOSTNAME
 
 sudo ls > /dev/null 2>&1
@@ -85,7 +85,7 @@ if (( NUPD > 0 )); then
   echo -e "\n\e[1;33mUpdate options:\e[0m"
   PS3="Choice: "
   OPTIONS=("Install updates" "Install updates and clean up" \
-   "Install updates and remove orphaned packages" "Exit without updating")
+   "Install updates and remove orphaned packages" "Defer updates")
   select OPT in "${OPTIONS[@]}"
   do
     case $OPT in
@@ -107,7 +107,7 @@ if (( NUPD > 0 )); then
         all_done
         break
         ;;
-      "Exit without updating")
+      "Defer updates")
         echo -e "\n\e[1;33m$NUPD updates were deferred.\e[0m"
         echo "Script completed in $(format_time $SECONDS)"
         break
