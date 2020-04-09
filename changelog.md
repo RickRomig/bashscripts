@@ -6,6 +6,14 @@
 
 - In the Upate option menu, replaced "Exit without updating" with "Defer updates" since this option, when selected, actually states it is doing.
 
+**rename-host**
+
+- Added tor repository. Script to change a system's hostname in both `/etc/hostname` and in `/etc/hosts`.
+
+**set-resume-var**
+
+- Added to repository. Script to set the `RESUME` evironmental variable after you've recieve a Set RESUME error during an upgrade.
+
 ## 24 March 2020
 
 **ren-space 2.0.3**
