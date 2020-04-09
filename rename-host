@@ -1,0 +1,112 @@
+#!/bin/bash
+#############################################################################
+# Script Name  : ren-hostname
+# Description  : Changes the system hostname
+# Dependencies : awk, nmcli, sed
+# Arguments    : new hostname
+# Author       : Richard B. Romig, 06 Nov 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Changes in both /etc/hostname and /etc/hosts
+#############################################################################
+# Copyright (C) 2020, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+SCRIPT=$(basename "$0")
+VERSION="1.0.0"
+UPDATED="08 April 2020"
+
+die()
+{
+  local MSG="$1"	    # message
+  local EC=${2-1}	    # default exit status 1
+
+  echo -e "\e[1;31mERROR:\e[0m $MSG" >&2
+  exit "$EC"
+}
+
+leave()
+{
+  local MSG="$1"
+
+  if [ -z "$MSG" ]; then
+    echo "Existing the script."
+  else
+    echo "$MSG"
+  fi
+  exit
+}
+
+usage()
+{
+  echo -e "\e[1;31mUsage:\e[0m $SCRIPT <new-hostname>" >&2
+  exit 1
+}
+
+echo "$SCRIPT v$VERSION"
+echo "(Updated: $UPDATED)"
+echo "Changes the system's hostname."
+
+if [ -z "$1" ]; then
+  echo -e "\e[1;31mError:\3[0m No hostname passed." >&2
+  usage
+else
+  NEWHOST="$1"
+  OLDHOST=$HOSTNAME
+  [ "$NEWHOST" == "$OLDHOST" ] && die "Hostnames are the same, no changes made."
+fi
+
+# Change hostname in /etc/hostname
+
+echo $'\n'$"Changing the hostname from $OLDHOST to $NEWHOST ..."
+
+cp -p /etc/hostname /etc/hostname.old > /dev/null 2>&1
+if sudo /usr/bin/nmcli general hostname "$NEWHOST"; then
+  echo "Hostame changed to $NEWHOST"
+else
+  sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
+  die "Operation failed. Hostname not changed."
+fi
+
+# Change hostname in /etc/hosts
+
+echo $'\n'$"Changing hostname in /etc/hosts ..."
+
+cp -p /etc/hosts /etc/hosts.old > /dev/null 2>&1
+OLDHOST=$(awk '/127.0.1.1/ { print $2 }' /etc/hosts)
+if [ "$OLDHOST" != "$NEWHOST" ]; then
+  sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hosts
+else
+  rm /etc/hosts.old > /dev/null 2>&1
+  echo "Hostname in /etc/hosts changed by nmcli"
+fi
+
+# Compare hostnames in /etc/hostname and /etc/hosts
+
+HOST1=$(cat /etc/hostname)
+HOST2=$(awk '/127.0.1.1/ { print $2 }' /etc/hosts)
+echo "Host name in /etc/hostname = $HOST1"
+echo "Host name in /etc/hosts = $HOST2"
+
+if [ "$HOST1" == "$NEWHOST" ] && [ "$HOST2" == "$NEWHOST" ]; then
+  rm /etc/hosts.old > /dev/null 2>&1
+  rm /etc/hostname.old > /dev/null 2>&1
+  leave "Hostname successfully changed."
+else
+  # Revert back to the orginal hostname
+  sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
+  sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
+  die "Operation failed."
+fi
