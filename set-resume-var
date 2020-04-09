@@ -1,0 +1,71 @@
+#!/bin/bash
+#############################################################################
+# Script Name  : set-resume-var
+# Description  : Set the RESUME variable after update-initramfs error
+# Dependencies : awk, update-initramfs
+# Arguments    : None
+# Author       : Richard B. Romig, 12 Nov 2019
+# Email        : rick.romig@gmail.com
+# Comments     : Extacts swap partition UUID from /sbin/blkid
+#############################################################################
+
+# Copyright (C) 2020, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+SCRIPT=$(basename "$0")
+VERSION="1.0.0"
+UPDATED="8 April 2020"
+
+anykey()
+{
+  read -rsn1 -p "Press any key to continue"; echo
+}
+
+sudo ls > /dev/null 2>&1
+
+echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo "Set RESUME environment variable after an update-initramfs error message."
+echo "The error message wil be similar to:"
+echo "I: The initramfs will attempt to resume from /dev/sda2"
+echo "I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)"
+echo "I: Set the RESUME variable to override this."
+
+# Extract swap partition UUID from blkid
+
+echo $'\n'$"Extracting the swap partition UUID using /sbin/blkid ..."
+SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $2}' | sed 's/"//g')
+if [ "$SWAP_UUID" = "LABEL=swap" ]; then
+  SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $3}' | sed 's/"//g')
+fi
+
+# Set RESUME environment variable
+
+echo $'\n'$"Setting the RESUME environment variable..."
+echo "RESUME=$SWAP_UUID" | sudo tee /etc/initramfs-tools/conf.d/resume
+echo "Confirmation (resume):"
+/bin/cat /etc/initramfs-tools/conf.d/resume
+
+# Update initramfs and reboot the system
+
+echo $'\n'$"Updating initramfs ..."
+sudo update-initramfs -u -k all
+echo "Close all open programs and files then reboot the system."
+anykey
+echo "The system will reboot in 1 minute."
+echo "Ensure all open programs and files are closed."
+sudo shutdown -r +1
+
+exit
