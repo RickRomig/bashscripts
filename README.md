@@ -38,6 +38,18 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 2. On Linux Mint systems (and probably other Ubuntu-based distributions) locale information is often stored in a single archive and can't be read by update-initramfs. The fix is to purge the existing locales and to store them in individual directories instead of in an archive then run `update-initramfs` with the -u and -t flags.
 
+### rename-host
+
+1. A script to rename the system's hostname, changing in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each file is the same.
+
+2. Syntax: 
+   
+   ```bash
+   $ rename-host <new-hostname>
+   ```
+
+3. The script checks to see if the input host name is the same as the current hostname. After the hostname is changed in both files, it check to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
+
 ### ren-ext
 
 1. Uses the `rename` command to rename certain file extensions in a directory to conform to a preferred naming convention. The extension to be renamed is passed as a command line argument.
@@ -69,6 +81,22 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 1. Removes backup files with a trailing tilde (~) in the current directory to include hidden (dot) files.
 2. I wrote this script as a safeguard to prevent accidentally deleting all the files in a directory while attempting to type `rm \*~`. Sometimes fingers slip.
+
+### set-resume-var
+
+1. Sets the RESUME environmental variable to the UUID of the swap partition.
+
+2. Sometimes during an update, `update-initramfs` will product an error similar to the following:
+   
+   ```bash
+   I: The initramfs will attempt to resume from /dev/sda2
+   I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
+   I: Set the RESUME variable to override this.
+   ```
+
+3. The script extracts the swap partition UUID from the output of `blkid` and writes it to `/etc/initramfs-tools/conf.d/resume`. Then it will display the `resume` file before updating initramfs.
+
+4. Once initramfs has been updated, the script will warn to close all files because the system reboot in one minute.  If you'd rather the system didn't reboot, you can remove the lines relating to rebooting. Or you can change the time of the `shutdown` command.
 
 ### system-info
 
