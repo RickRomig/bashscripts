@@ -6,7 +6,8 @@
 # Arguments    : None
 # Author       : Richard Romig, 19 February 2019
 # Email        : rick.romig@gmail.com
-# Comment      :
+# Comment      : iwconfig may not show signal level for some wireless cards,
+#              : noteably, Broadcom cards. See man iwconfig.
 # TODO (rick)  :
 ###############################################################################
 
@@ -29,13 +30,14 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="1.1.0"
+readonly VERSION="1.1.1"
 readonly UPDATED="16 Apr 2020"
 
 # Network interfaces
 
 ETHINT=$(/usr/bin/nmcli dev | awk '/ethernet/ { print $1 }')
 WIFIINT=$(/usr/bin/nmcli dev | awk '/wifi/ { print $1 }')
+[ -n "$WIFIINT" ] && W_SIG=$(/sbin/iwconfig $WIFIINT | awk -F'=' '/Signal/ {print $3}')
 
 # IP addresses
 
@@ -63,7 +65,7 @@ fi
 if [ -n "$WIFIINT" ] && [ -n "$WIFIIP" ]; then
   echo -e "\tWireless: $WIFIIP"
   echo -e "\tSSID:     $(/sbin/iwgetid -r)"
-  echo -e "\tSignal:   $(/sbin/iwconfig $WIFIINT | awk -F'=' '/Signal/ {print $3}')"
+  [ -n "$W_SIG" ] && echo -e "\tSignal:   $W_SIG"
 elif [ -n "$WIFIINT" ]; then
   echo -e "\tWireless: Not connected"
 else
