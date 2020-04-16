@@ -25,8 +25,9 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 2. Information displayed:
    * Public IP address
    * Local (private) IP address with CIDR notation (i.e., 192.168.1.100/24) for both wired and wireless interfaces, if available and active.
+   * SSID and signal level for wireless connection, if available and active.
    * Default gateway for all active interfaces.
-   * DNS servers if system has a static IP, otherwise displays the default gateway address.
+   * DNS servers if set, otherwise displays the default gateway address.
 
 ### locale-fix.sh
 
