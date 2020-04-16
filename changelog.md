@@ -1,5 +1,11 @@
 # Changelog for bashscripts
 
+### 16 April 2020
+
+**ip-info 1.1.0**
+
+- Added SSID and signal level when displaying wireless IP information.
+
 ### 8 April 2020
 
 **check-updates 1.2.4**
