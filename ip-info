@@ -2,7 +2,7 @@
 #####################################################################
 # Script Name  : ip-info
 # Description  : Displays IP information
-# Dependencies : awk, ip, nmcli, wget
+# Dependencies : awk, ip, iwconfig, iwgetid, nmcli, wget
 # Arguments    : None
 # Author       : Richard Romig, 19 February 2019
 # Email        : rick.romig@gmail.com
@@ -62,8 +62,8 @@ else
 fi
 if [ -n "$WIFIINT" ] && [ -n "$WIFIIP" ]; then
   echo -e "\tWireless: $WIFIIP"
-  echo -e "\tSSID: $(iwgetid -r)"
-  echo -e "\t$(iwconfig $WIFIINT | awk '/Quality/ {print $3" "$4" "$5}')"
+  echo -e "\tSSID:     $(/sbin/iwgetid -r)"
+  echo -e "\tSignal:   $(/sbin/iwconfig $WIFIINT | awk -F'=' '/Signal/ {print $3}')"
 elif [ -n "$WIFIINT" ]; then
   echo -e "\tWireless: Not connected"
 else
