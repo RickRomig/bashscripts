@@ -5,6 +5,7 @@
 **ip-info 1.1.0**
 
 - Added SSID and signal level when displaying wireless IP information.
+- Created a variable for signial level  and added a test so the 'Signal' line is only printed if is the variable is not empty.
 
 ### 8 April 2020
 

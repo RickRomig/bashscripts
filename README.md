@@ -25,7 +25,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 2. Information displayed:
    * Public IP address
    * Local (private) IP address with CIDR notation (i.e., 192.168.1.100/24) for both wired and wireless interfaces, if available and active.
-   * SSID and signal level for wireless connection, if available and active.
+   * SSID and signal level for wireless connection, if available and active. **Note:** Signal level may not display for all wireless cards, such as Broadcom.
    * Default gateway for all active interfaces.
    * DNS servers if set, otherwise displays the default gateway address.
 
