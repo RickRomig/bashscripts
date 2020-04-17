@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+#### 17 April 2020
+
+**ip-info 1.1.2**
+
+- Modified variable assigments for wired and wireless interfaces and IP addresses. Local IP addresses are extracted only when the interface exists. Likewise, the wireless signal level is obtained only if the wireless interface has an IP address.
+
+- The public IP address is displayed only if present, otherwise a message is displayed saying that no Internet address was found.
+
+- Streamlined how the IP addresses are displayed. How the the information is displayed in the terminal and its format are unchanged.
+
 ### 16 April 2020
 
 **ip-info 1.1.0**
