@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+### 18 April 2020
+
+**ip-info 2.0.0**
+
+- Moved logical sections of the script into individual function which are called by a main function.
+
+- Moved variables into the functions in which they are used.
+
+- Added color to the displayed labels to help them stand out.
+
 #### 17 April 2020
 
 **ip-info 1.1.2**
