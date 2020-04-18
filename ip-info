@@ -27,61 +27,82 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-## Variables ##
+## Functions ##
 
-readonly SCRIPT=$(basename "$0")
-readonly VERSION="1.1.2"
-readonly UPDATED="17 Apr 2020"
+main()
+{
+  SCRIPT=$(basename "$0")
+  VERSION="2.0.0"
+  UPDATED="17 Apr 2020"
 
-# Network interfaces
+  echo -e "\n\e[93mIP Information\e[0m"
+  echo -e "\e[93m==============\e[0m\n"
+  echo -e "\e[32mPublic IP:\e[0m"
+  show_public
+  echo -e "\e[32mLocal IP:\e[0m"
+  show_wired
+  show_wireless
+  show_gateway_dns
+  echo $'\n'$"$SCRIPT v$VERSION (Updated: $UPDATED)"
+}
 
-ETH_INT=$(/usr/bin/nmcli dev | awk '/ethernet/ { print $1 }')
-WIFI_INT=$(/usr/bin/nmcli dev | awk '/wifi/ { print $1 }')
+show_public()
+{
+  PUBLIC_IP=$(/usr/bin/wget -qO- http://ipv4.icanhazip.com)
 
-# IP addresses
+  if [ -n "$PUBLIC_IP" ]; then
+    echo -e "\t$PUBLIC_IP"
+  else
+    echo -e "\tNo Internet address found."
+  fi
+}
 
-PUBLIC_IP=$(/usr/bin/wget -qO- http://ipv4.icanhazip.com)
-[ -n "$ETH_INT" ] && ETH_IP=$(/sbin/ip -o -4 addr show \
- | awk -v name="$ETH_INT" '$0~name { print $4" ("$2")" }')
-[ -n "$WIFI_INT" ] && WIFI_IP=$(/sbin/ip -o -4 addr show \
- | awk -v name="$WIFI_INT" '$0~name { print $4" ("$2")" }')
-[ -n "$WIFI_IP" ] && WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" \
- | awk -F'=' '/Signal/ { print $3 }')
+show_wired()
+{
+  ETH_INT=$(/usr/bin/nmcli dev | awk '/ethernet/ { print $1 }')
+  [ -n "$ETH_INT" ] && ETH_IP=$(/sbin/ip -o -4 addr show \
+   | awk -v name="$ETH_INT" '$0~name { print $4" ("$2")" }')
 
-# Display IP Information
+  echo -en "\t\e[92mEthernet:\e[0m "
+  if [ -n "$ETH_INT" ] && [ -n "$ETH_IP" ]; then
+    echo "$ETH_IP"
+  elif [ -n "$ETH_INT" ]; then
+    echo "Not connected"
+  else
+    echo "No device found."
+  fi
+}
 
-echo $'\n'$"$SCRIPT v$VERSION"
-echo "(Updated: $UPDATED)"
-echo $'\n'$"IP Information"
-echo "=============="
-echo "Public IP:"
-if [ -n "$PUBLIC_IP" ]; then
-  echo -e "\t$PUBLIC_IP"
-else
-  echo -e "\tNo Internet address found."
-fi
-echo "Local IP:"
-echo -en "\tEthernet: "
-if [ -n "$ETH_INT" ] && [ -n "$ETH_IP" ]; then
-  echo "$ETH_IP"
-elif [ -n "$ETH_INT" ]; then
-  echo "Not connected"
-else
-  echo "No device found."
-fi
-echo -en "\tWireless: "
-if [ -n "$WIFI_INT" ] && [ -n "$WIFI_IP" ]; then
-  echo "$WIFI_IP"
-  echo -e "\t  SSID:   $(/sbin/iwgetid -r)"
-  [ -n "$WIFI_SIG" ] && echo -e "\t  Signal: $WIFI_SIG"
-elif [ -n "$WIFI_INT" ]; then
-  echo "Not connected"
-else
-  echo "No device found."
-fi
-echo "Default Gateway:"
-/sbin/ip route | awk '/default/ { print "\t"$5": "$3 }'
-echo "DNS Servers:"
-/usr/bin/nmcli dev show | awk '/IP4.DNS/ { printf "\t%s\n",$2 }'
+show_wireless()
+{
+  WIFI_INT=$(/usr/bin/nmcli dev | awk '/wifi/ { print $1 }')
+  [ -n "$WIFI_INT" ] && WIFI_IP=$(/sbin/ip -o -4 addr show \
+   | awk -v name="$WIFI_INT" '$0~name { print $4" ("$2")" }')
+  [ -n "$WIFI_IP" ] && WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" \
+   | awk -F'=' '/Signal/ { print $3 }')
+
+  echo -en "\t\e[92mWireless:\e[0m "
+  if [ -n "$WIFI_INT" ] && [ -n "$WIFI_IP" ]; then
+    echo "$WIFI_IP"
+    echo -e "\t  \e[92mSSID:\e[0m   $(/sbin/iwgetid -r)"
+    [ -n "$WIFI_SIG" ] && echo -e "\t  \e[92mSignal:\e[0m $WIFI_SIG"
+  elif [ -n "$WIFI_INT" ]; then
+    echo "Not connected"
+  else
+    echo "No device found."
+  fi
+}
+
+show_gateway_dns()
+{
+  echo -e "\e[32mDefault Gateway:\e[0m"
+  /sbin/ip route | awk '/default/ { print "\t"$5": "$3 }'
+  echo -e "\e[32mDNS Servers:\e[0m"
+  /usr/bin/nmcli dev show | awk '/IP4.DNS/ { printf "\t%s\n",$2 }'
+}
+
+## Execution ##
+
+main "$0"
 
 exit
