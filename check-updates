@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-# Last updated : 08 Apr 2020
+# Last updated : 18 Apr 2020
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -50,8 +50,19 @@ remove_orphans()
 all_done()
 {
   echo -e "\n\e[1;33mUpdate complete.\e[0m"
-  echo "$NUPD updates were installed."
+  echo -en "\n\e[1;33m$NUPD "
+  [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
+  echo -e " installed.\e[0m"
   echo "Update completed in $(format_time $SECONDS)"
+}
+
+defer_updates()
+{
+  echo -e "\n\e[1;33mNo updates installed.\e[0m"
+  echo -en "\n\e[1;33m$NUPD "
+  [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
+  echo -e " deferred.\e[0m"
+  echo "Script completed in $(format_time $SECONDS)"
 }
 
 format_time()
@@ -63,15 +74,17 @@ format_time()
   printf "%02d:%02d:%02d\n" $h $m $s
 }
 
-VERSION="v1.2.4"
-LHOST=$HOSTNAME
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="v1.2.5"
+readonly UPDATED="18 Apr 2020"
+readonly LHOST=$HOSTNAME
 
 sudo ls > /dev/null 2>&1
 
 SECONDS=0
 
 clear
-echo -e "\e[1;33mChkupdates $VERSION\e[0m"
+echo -e "\e[1;33m$SCRIPT $VERSION ($UPDATED)\e[0m"
 echo -e "\e[1;33mChecking for updates on $LHOST...\e[0m"
 sudo apt update
 
@@ -90,31 +103,15 @@ if (( NUPD > 0 )); then
   do
     case $OPT in
       "Install updates")
-        install_updates
-        all_done
-        break
-        ;;
+        install_updates; all_done; break ;;
       "Install updates and clean up")
-        install_updates
-        remove_orphans
-        clean_cache
-        all_done
-        break
-        ;;
+        install_updates; remove_orphans; clean_cache; all_done; break ;;
       "Install updates and remove orphaned packages")
-        install_updates
-        remove_orphans
-        all_done
-        break
-        ;;
+        install_updates; remove_orphans; all_done; break ;;
       "Defer updates")
-        echo -e "\n\e[1;33m$NUPD updates were deferred.\e[0m"
-        echo "Script completed in $(format_time $SECONDS)"
-        break
-        ;;
+        defer_updates; break ;;
       *)
-        echo -e "\e[1;31mInvalid option! Try again.\e[0m" >&2
-        ;;
+        echo -e "\e[1;31mInvalid option! Try again.\e[0m" >&2 ;;
     esac
   done
 else
