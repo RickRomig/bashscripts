@@ -3,7 +3,7 @@
 # Script Name  : clean-bin
 # Description  : cleans ~/bin of *~ backup files and synchorizes files with a
 #              : designated archive folder
-# Dependencies : find, cp, pushd, popd, rm, rsync, wc
+# Dependencies : find, pushd, popd, rm, rsync, wc
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
@@ -29,8 +29,9 @@
 
 # Variables
 
-readonly VERSION="2.0.4"
-readonly UPDATED="23 Jan 2020"
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="2.0.5"
+readonly UPDATED="18 Apr 2020"
 
 # Directory variables
 
@@ -38,36 +39,30 @@ readonly CURDIR=$PWD
 readonly BINDIR=$HOME"/bin"
 readonly SCRIPTDIR=$HOME"/Documents/mosfanet/Scripts/bash/my-scripts/"
 
-# Functions
+# Function to
 
 remove_tilde()
 {
+  NBU=$(find ./ -type f -name \*~ | wc -l)
+
+  echo -n $'\n'$"Removed $NBU '~' backup "
+  (( NBU == 1 )) && echo -n "file" || echo -n "files"
+  echo " in $BINDIR."
   find . -type f -iname \*~ -print -exec rm {} \;
 }
-
-clear
 
 # Change directory to ~/bin
 
 [ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
 
-echo "Clean-bin v$VERSION (Updated $UPDATED)"
+clear
+echo "$SCRIPT v$VERSION (Updated $UPDATED)"
 echo "Cleaning up and syncing $BINDIR ..."
 
 # Remove backup files ending with *~
-
-NBU=$(find ./ -type f -name \*~  | wc -l)
-
-if (( NBU == 1 )); then
-  echo $'\n'$"Removing $NBU '~' backup file in $BINDIR."
-  remove_tilde
-elif (( NBU > 1 )); then
-  echo $'\n'$"Removing $NBU '~' backup files in $BINDIR."
-  remove_tilde
-fi
+remove_tilde
 
 # Synchronize ~/bin with ~/Documents/mosfanet/Scripts/bash/my-scripts
-
 echo -e "\nSynchronizing ~/bin directory with the scripts backup directory.\n"
 rsync -aprv --delete --exclude 'Testing' . "$SCRIPTDIR/"
 
