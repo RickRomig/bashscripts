@@ -32,9 +32,10 @@
 main()
 {
   SCRIPT=$(basename "$0")
-  VERSION="2.0.0"
-  UPDATED="17 Apr 2020"
+  VERSION="2.1.0"
+  UPDATED="23 Apr 2020"
 
+  clear
   echo -e "\n\e[93mIP Information\e[0m"
   echo -e "\e[93m==============\e[0m\n"
   echo -e "\e[32mPublic IP:\e[0m"
@@ -44,6 +45,7 @@ main()
   show_wireless
   show_gateway_dns
   echo $'\n'$"$SCRIPT v$VERSION (Updated: $UPDATED)"
+  exit
 }
 
 show_public()
@@ -60,8 +62,9 @@ show_public()
 show_wired()
 {
   ETH_INT=$(/usr/bin/nmcli dev | awk '/ethernet/ { print $1 }')
+
   [ -n "$ETH_INT" ] && ETH_IP=$(/sbin/ip -o -4 addr show \
-   | awk -v name="$ETH_INT" '$0~name { print $4" ("$2")" }')
+  | awk -v name="$ETH_INT" '$0~name { print $4" ("$2")" }')
 
   echo -en "\t\e[92mEthernet:\e[0m "
   if [ -n "$ETH_INT" ] && [ -n "$ETH_IP" ]; then
@@ -76,16 +79,23 @@ show_wired()
 show_wireless()
 {
   WIFI_INT=$(/usr/bin/nmcli dev | awk '/wifi/ { print $1 }')
-  [ -n "$WIFI_INT" ] && WIFI_IP=$(/sbin/ip -o -4 addr show \
-   | awk -v name="$WIFI_INT" '$0~name { print $4" ("$2")" }')
-  [ -n "$WIFI_IP" ] && WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" \
-   | awk -F'=' '/Signal/ { print $3 }')
+
+  if [ -n "$WIFI_INT" ]; then
+    WIFI_IP=$(/sbin/ip -o -4 addr show | awk -v name="$WIFI_INT" '$0~name { print $4" ("$2")" }')
+    WIFI_DEV=$(/usr/bin/lspci | awk '/Network controller/ {print $8}')
+    case "$WIFI_DEV" in
+      BCM4313|BCM43228 )
+        WIFI_SIG="Not available" ;;
+      * )
+        WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" | awk -F'=' '/Signal/ { print $3 }')
+    esac
+  fi
 
   echo -en "\t\e[92mWireless:\e[0m "
   if [ -n "$WIFI_INT" ] && [ -n "$WIFI_IP" ]; then
     echo "$WIFI_IP"
     echo -e "\t  \e[92mSSID:\e[0m   $(/sbin/iwgetid -r)"
-    [ -n "$WIFI_SIG" ] && echo -e "\t  \e[92mSignal:\e[0m $WIFI_SIG"
+    echo -e "\t  \e[92mSignal:\e[0m $WIFI_SIG"
   elif [ -n "$WIFI_INT" ]; then
     echo "Not connected"
   else
@@ -104,5 +114,3 @@ show_gateway_dns()
 ## Execution ##
 
 main "$0"
-
-exit
