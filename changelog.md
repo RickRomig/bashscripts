@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+### 03 May 2020
+
+**rename-host 2.0.0**
+
+- Simplified the renaming process by using `sed` to change the hostname in both `/etc/hostname` and `/etc/hosts`.
+
+- Modified method to extract hostname from `/etc/hosts`since some distributions, noteabley Antix and MX Linux, place the host name on a line after `127.0.0.1` rather than `127.0.1.1`. If the line containing `127.0.1.1` is not found then the script looks for the second instance of `127.0.0.1`
+
+- The new hostname should be passed to the script in double-quotoes to prevent unexpected results. In testing wth AntiX and MX-Linux, the `sed` command produced several repeated characters when substituting the old host name with the new hostname unless the argument was in quotes.
+
 ### 23 April 2020
 
 **ip-info 2.1.0**
@@ -68,7 +78,7 @@
 **ren-space 2.0.3**
 
 * Replaced if-else with && and || operators
-
+  
   ```
   # Old code
   if find . -maxdepth 1 -type f | grep " " >/dev/null; then
@@ -131,7 +141,7 @@
 **clean-bin 2.0.4**
 
 * If there are no '~' backup files to be removed, this fact is no longer displayed.
-
+  
   ```
   # Old code:
   NBU=$(find ./ -type f -name \*~  | wc -l)
@@ -166,7 +176,7 @@
 **sysinfo 2.1.5**
 
 * Fixed the INFOFILE variable which prevented writing to the file.
-
+  
   ```
   # Old code:
   INFOFILE="$HOMEDIR/$MYHOST.info"
@@ -179,7 +189,7 @@
 **sysinfo 2.1.4**
 
 * Changed OSNAME variable to extract the name of the operating system rather than the distribution. Added variable to extract the distribution release.
-
+  
   ```
   # Old code:
   OSNAME=$(/usr/bin/lsb_release -d | cut -f2)
@@ -189,7 +199,7 @@
   ```
 
 * Renamed MYHOST variable to LHOST.
-
+  
   ```
   # Old code:
   MYHOST=$HOSTNAME
@@ -204,7 +214,7 @@
 * Updated error messages
 
 * Refined the routine to check arguments to use `if-elif-else` structure instead of nested `if` statements.
-
+  
   ```
   # Old code:
   if [ -z "$1" ]; then
@@ -234,7 +244,7 @@
 **sysinfo 2.1.3**
 
 * Modified the INSTALLED variable used to determine the date the file system was created by using piping the output from `tune2fs -l` to awk instead of piping it to grep then piping that result to awk.
-
+  
   ```
   # Old code:
   INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | grep "Filesystem created" \
@@ -256,7 +266,7 @@
 **sysinfo 2.1.2**
 
 * Changed how the `ETHMAC` and `WIFIMAC` variales are assigned.
-
+  
   ```
   # Old code:
   read -r ETHMAC < "/sys/class/net/$ETHINT/address"
@@ -283,7 +293,7 @@
 **upper2lower v2.0.4**
 
 * Corrected a variable name that caused the script to fail the file exists check when running the script against a single file.
-
+  
   ```
   # Old code:
   elif [ -e "$MYFILE" ]; then
@@ -292,7 +302,7 @@
   ```
 
 * Removed the call to the usage function the default choice of the case statement when `Y` is not chosen to confirm renaming all files in the directory. The usage message has already been displayed so repeating it is redundant. Replaced it with a statement that the script was exiting. Also removed the `exit` command since the script will exit anyway once it leaves the case statement.
-
+  
   ```
   # Old code:
   * )
@@ -309,7 +319,7 @@
 **sysinfo v2.1.1**
 
 * Added code to display the filesystem install date by using `df` to extract the the device containting the root partition and then `tune2fs` to get the creation date.
-
+  
   ```
   # New code:
   ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
@@ -317,7 +327,7 @@
   ```
 
 * In the code to extract the CPU model name, added a pipe to `sed` to remove the parenthesis and their contents.
-
+  
   ```
   # Old code:
   CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1')
@@ -332,7 +342,7 @@
 **sysinfo v2.1.0**
 
 * Revised method to extact the CPU model name. Solves the problems of preceding spaces and cutting off longer CPU model names.
-
+  
   ```
   # Old code:
   CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" "$6" " $7" "$8}')
@@ -341,7 +351,7 @@
   ```
 
 * Revised method to extract total system memory, displaying memory in a more generic manner.
-
+  
   ```
   # Old code:
   PHYSMEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo | xargs -I {} echo "scale=4; {}/1024^2" | bc)
@@ -350,7 +360,7 @@
   ```
 
 * Reivised method of extracting hard drive capacity from hdparm command . Displays capacity in GB and eliminates the parenthesis around the number.
-
+  
   ```
   # Old code:
   HDSIZE=$(sudo /sbin/hdparm -I "${DISK}" | awk '/GB/ {print $7" "$8" "$9" "$10}')
@@ -363,7 +373,7 @@
 **sysinfo v2.0.8**
 
 * Reverted back to the previous method of extracting CPU moden name. Using `cut` gave inconsistent results. On some systems `cut -c 22-` would display two extra spaces.
-
+  
   ```
   # Old code:
   CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
@@ -386,7 +396,7 @@
 **sysinfo v2.0.7**
 
 * Updated variable assignment for operating system:
-
+  
   ```
   # Old code:
   echo -e "Operating System: $(/usr/bin/lsb_release -d | cut -c 14-)\n"
@@ -396,7 +406,7 @@
   ```
 
 * Updated variable assignment for CPU model:
-
+  
   ```
   # Old code:
   CPUINFO=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
@@ -405,7 +415,7 @@
   ```
 
 * Updated variable assignment for graphics adapter:
-
+  
   ```
   # Old code:
   echo "Graphics Adapter:"
@@ -417,7 +427,7 @@
   ```
 
 * Updated variable assignments for network devices:
-
+  
   ```
   # Old code:
   ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -c 30-)
@@ -428,7 +438,7 @@
   ```
 
 * Updated variable assignment for hard drive model number:
-
+  
   ```
   # Old code:
   HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Model Number/ {print $3" "$4}')
@@ -441,7 +451,7 @@
 **clean-bin v2.0.0**
 
 * Removed the menu that selected the date range of files to backed up and replaced it with an `rsync` command to synchronize the contents of the ~/bin directory with the designated script archive directory.
-
+  
   ```
   rsync -arv --delete --exclude 'Testing' . "$SCRIPTDIR/"
   ```
@@ -485,7 +495,7 @@
 **chkupdates v1.1.5**
 
 * Changed line displayed when exiting if there are availabel updates.
-
+  
   ```
   # Old code:
   echo -e "\n\e[1;33mUpdates were not installed.\e[0m"
@@ -550,7 +560,7 @@
 **sysinfo v2.0.5**
 
 * Changed method of assigning the `bname` variable to prevent word splitting and update it from the legacy syntax.
-
+  
   ```
   # Old code:
   battery=$(/usr/bin/upower -i `/usr/bin/upower -e | grep 'BAT'` \
@@ -575,7 +585,7 @@
 **dos2linux**
 
 * Changed the variable assignment of myscript, the name of script, to separate the name from the path.
-
+  
   ```
   # Old code:
   myscript=$0
@@ -588,7 +598,7 @@
 **sysinfo**
 
 * Added a check to be sure hdparm was installed since it may not be installed by default in many Debian and Ubuntu-bases systems.
-
+  
   ```
   # Added code:
   dpkg -l | grep -qw hdparm || sudo apt install -yyq hdparm
@@ -599,7 +609,7 @@
 **chkupdates v1.1.2**
 
 * Changed the update function.
-
+  
   ```
   # Old code:
   sudo apt dist-upgrade
@@ -639,7 +649,7 @@
 **sysinfo**
 
 * Streamlined the process to obtain the amount of physical memory in the system.
-
+  
   ```
   # Old code:
   physmem=$(grep MemTotal /proc/meminfo | awk '{print $2}' | xargs -I {} echo "scale=4; {}/1024^2" | bc)
@@ -650,7 +660,7 @@
 **chkupdates**
 
 * Removed redirection after assigning number of updates to nupd variable because it was redundant.
-
+  
   ```
   # Old code:
   nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1) < /dev/null 2>&1
@@ -667,7 +677,7 @@
 **sysinfo**
 
 * Changed method for obtaining CPU model name to awk bcause using grep and cut produced exta spaces in the output on some systems.
-
+  
   ```
   # Old code:
   cpuinfo=$(/usr/bin/lscpu | grep 'Model name' | cut -c 22-)
@@ -677,7 +687,7 @@
 
 * Changed method for obtaining the hard drive model, serial number, and capacity to use awk
   instead of grep and cut.
-
+  
   ```
   # Old code:
   hdmodel=$(sudo /sbin/hdparm -I /dev/sda | grep 'Model Number' | cut -c 22-)
@@ -690,7 +700,7 @@
   ```
 
 * Changed method to obtain laptop battery information to use `upower` instead of using ls to list the contents of `/sys/class/power_supply`.
-
+  
   ```
   # Old code:
   if [ "$(ls -A /sys/class/power_supply/)" ]; then
@@ -726,16 +736,16 @@
 * Renamed ipinfo.sh to ipinfo.
 
 * Modified script to show local IP addresses for both wired and wireless interfaces, if installed.
-
+  
   * Added variables for network interfaces:
-
+    
     ```
     ethint=$(nmcli dev | awk '/ethernet/ {print $1}')
     wifint=$(nmcli dev | awk '/wifi/ {print $1}')
     ```
-
+  
   * Changed variables to obtain local IP addresses:
-
+    
     ```
     # Old code
     localip=$(ip -o -f inet addr show | awk '/scope global/ {print $4}')
@@ -743,9 +753,9 @@
     localip1=$(ip -o -f inet addr show | awk -v name="$ethint" '$0~name {print $4}')
     localip2=$(ip -o -f inet addr show | awk -v name="$wifint" '$0~name {print $4}')
     ```
-
+  
   * Changed code to display local IP information:
-
+    
     ```
     # Old code
     echo "Local IP:"
@@ -765,7 +775,7 @@
     ```
 
 * Modified code to display the default gateway for each active network interface. Eliminated the `gateway` variable and entered the code directly into the section that displays the IP information.
-
+  
   ```
   # Old code
   gateway=$(ip route | awk '/default/ {print $3}')
@@ -782,7 +792,7 @@
 **clean-bin**
 
 * Added an improved method to count the number of `*~` files to be removed.
-
+  
   ```
   New code:
   nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
@@ -797,7 +807,7 @@
 **rmtilde**
 
 * Added an improved method to count the number of `*~` files to be removed.
-
+  
   ```
   New code:
   nbu=$(find . -maxdepth 1 -type f -name \*~  | wc -l)
@@ -816,7 +826,7 @@
 * Double-quoted variable references to prevent globbing and word splitting.
 
 * Added a line to check for sudo privileges before clearing the screen and running the rest of the script.
-
+  
   ```
   # New code:
   sudo ls > /dev/null 2>&1
@@ -840,7 +850,7 @@
 **renspace**
 
 * Replaced `*` at the end of the `rename` command with `./*` so that file names containing dashes wouldn't be seen as options.
-
+  
   ```
   # Old code:
   # check for filenames containing spaces
@@ -863,7 +873,7 @@
 **rmtilde**
 
 * Romoved the code which calculated the number of \*~ files to be processed, undoing the previous change.
-
+  
   ```
   # Old code:
   if (( numf > 0 )) || (( dotf > 0 )); then
@@ -880,7 +890,7 @@
 **sysinfo**
 
 * Changed the method for obtaining CPU information (useless cat)
-
+  
   ```
   # Old code:
   cpuinfo=$(cat /proc/cpuinfo | grep 'model name' | uniq | cut -c 14-)
@@ -902,7 +912,7 @@
 **clean-bin**
 
 * Added a variable to hold the number of files ending with '~' and a conditional statement to determine if execution of find was necessary.
-
+  
   ```
   # Old code:
   echo "Cleaning up ~ backup files ..."
@@ -918,7 +928,7 @@
 **rmtilde**
 
 * Added variables to hold the number of files ending with '~' and a conditional statement to determine if execution of find was necessary.
-
+  
   ```
   # Old code:
   find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
@@ -950,7 +960,7 @@
 **rmtilde**
 
 * Replaced `ls` and if statements with a `find` command since `rm -v *~` did not remove hidden files.
-
+  
   ```
   find ./ -maxdepth 1 -type f -iname "*~" -print -exec rm {} \;
   ```
@@ -971,7 +981,7 @@
 * Removed echo statements to display number of available updates and to announce listing of updates since `apt -upgade` already shows number of updates.
 
 * Replaced the if statement to run `apt list --upgradeable` if updates are available.
-
+  
   ```
   # Old Code:
   if [ $nupd -gt 0 ]; then
@@ -988,7 +998,7 @@
 * replaced instances of `apt-get` with `apt`. Backward compatibility with Ubuntu 16.04 and Linux Mint 17.x is no longer necessary due to end of life.
 
 * Added `2>/dev/null` to `apt upgrade` command to prevent error: **WARNING: apt does not have a stable CLI interface. Use with caution in scripts.**  Apparently, `apt` displays this error when its ouput is piped to another command.
-
+  
   ```
   nupd=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded'|cut -d" " -f1) \
   >/dev/null 2>&1
@@ -999,7 +1009,7 @@
 **ren-ext**
 
 * Made the case patterns case-insensitive by setting the`shopt` Bash builtin and changing the case patterns to lowercase.
-
+  
   ```
   shopt -s nocasematch
   case
@@ -1013,7 +1023,7 @@
   ```
 
 * Made the rename commands case-insensitive by adding the `i` option and replacing `*.EXT` with `*`.
-
+  
   ```
   # Old code:
   rename -v 's/\.BAK$/\.bak/' *.BAK
@@ -1022,7 +1032,7 @@
   ```
 
 * Since supported extensions are now case-insensitive, removed the ls command and the following if statement to check if files with the given extension exist. If no files are renamed, no files are listed.
-
+  
   ```
   # Check to see if any files with the extension exist
   ls *.$ext > /dev/null 2>&1

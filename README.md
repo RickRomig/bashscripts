@@ -41,15 +41,19 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 ### rename-host
 
-1. A script to rename the system's hostname, changing in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each file is the same.
+1. A script to rename the system's hostname, changing in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each of the files is the same.
 
 2. Syntax: 
    
    ```bash
-   $ rename-host <new-hostname>
+   $ rename-host "new-hostname"
    ```
 
-3. The script checks to see if the input host name is the same as the current hostname. After the hostname is changed in both files, it check to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
+3. The new-hostname argument should be enclosed in quotes when passed to the script.
+
+4. The script checks to see if the input host name is the same as the current hostname. After the hostname is changed in both files, it checks to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
+
+5. A reboot is required for the changes take effect.
 
 ### ren-ext
 
