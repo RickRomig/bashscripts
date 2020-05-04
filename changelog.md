@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+### 04 May 2020
+
+**rename-host 2.0.1**
+
+- Added a line to usage function to remind user to enclose new hostname in double-quotes.
+
+- Changed the order of commands in changing the hostname to make backup copies of the original `/etc/hostname` and `/etc/hosts` before changing the files.
+
+- Added `/etc/hosts` to the second `sed` command which had been mistakely omitted.
+
 ### 03 May 2020
 
 **rename-host 2.0.0**
