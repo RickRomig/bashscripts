@@ -28,8 +28,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.0.0"
-readonly UPDATED="03 May 2020"
+readonly VERSION="2.0.1"
+readonly UPDATED="04 May 2020"
 
 ## Functions ##
 
@@ -48,6 +48,7 @@ leave()
 usage()
 {
   echo -e "\e[1;31mUsage:\e[0m $SCRIPT <new-hostname>" >&2
+  echo "New hostname should be enclosed in double-quotes." >&2
   exit 1
 }
 
@@ -68,12 +69,10 @@ else
 fi
 
 echo $'\n'$"Changing the hostname from $OLDHOST to $NEWHOST ..."
-# Change hostname in /etc/hostname
 cp -p /etc/hostname /etc/hostname.old > /dev/null 2>&1
-sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hostname
-# Change hostname in /etc/hosts
 cp -p /etc/hosts /etc/hosts.old > /dev/null 2>&1
-sudo sed -i "s/$OLDHOST/$NEWHOST/"
+sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hostname
+sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hosts
 
 # Confirm changes
 
