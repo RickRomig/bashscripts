@@ -32,8 +32,8 @@
 main()
 {
   SCRIPT=$(basename "$0")
-  VERSION="2.1.0"
-  UPDATED="23 Apr 2020"
+  VERSION="2.1.1"
+  UPDATED="11 May 2020"
 
   clear
   echo -e "\n\e[93mIP Information\e[0m"
@@ -87,14 +87,14 @@ show_wireless()
       BCM4313|BCM43228 )
         WIFI_SIG="Not available" ;;
       * )
-        WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" | awk -F'=' '/Signal/ { print $3 }')
+        WIFI_SIG="$(/sbin/iw "$WIFI_INT" station dump | awk '/signal:/ { print $2 }') dBm"
     esac
   fi
 
   echo -en "\t\e[92mWireless:\e[0m "
   if [ -n "$WIFI_INT" ] && [ -n "$WIFI_IP" ]; then
     echo "$WIFI_IP"
-    echo -e "\t  \e[92mSSID:\e[0m   $(/sbin/iwgetid -r)"
+    echo -e "\t    \e[92mSSID:\e[0m $(/sbin/iwgetid -r)"
     echo -e "\t  \e[92mSignal:\e[0m $WIFI_SIG"
   elif [ -n "$WIFI_INT" ]; then
     echo "Not connected"
