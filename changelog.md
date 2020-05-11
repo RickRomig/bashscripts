@@ -1,5 +1,20 @@
 # Changelog for bashscripts
 
+### 11 May 2020
+
+**ip-info 2.1.1**
+
+- Change output display for wireless information so labels are right-justified.
+
+- Replaced deprecated `iwconfig` command with the `iw` command.
+  
+  ```bash
+  # Old Code:
+  WIFI_SIG=$(/sbin/iwconfig "$WIFI_INT" | awk -F'=' '/Signal/ { print $3 }')
+  # New Code:
+  WIFI_SIG="$(/sbin/iw "$WIFI_INT" station dump | awk '/signal:/ { print $2 }') dBm"
+  ```
+
 ### 04 May 2020
 
 **rename-host 2.0.1**
