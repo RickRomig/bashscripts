@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+### 28 May 2020
+
+**clean-bin 2.0.6**
+
+- Changed `find` commands in the `remove_tilde` function to work from the `~/bin` directory instead of the current directory.
+
+- Changed the `rsync` command to explicitly synchronize from `~/bin` rather than the current directory.
+
+- Removed `pushd` and `popd` commands since operations now work with absolute directories rather than relative directories.
+
 ### 11 May 2020
 
 **ip-info 2.1.1**
