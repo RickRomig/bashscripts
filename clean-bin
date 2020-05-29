@@ -30,8 +30,8 @@
 # Variables
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.0.5"
-readonly UPDATED="18 Apr 2020"
+readonly VERSION="2.0.6"
+readonly UPDATED="28 May 2020"
 
 # Directory variables
 
@@ -39,21 +39,18 @@ readonly CURDIR=$PWD
 readonly BINDIR=$HOME"/bin"
 readonly SCRIPTDIR=$HOME"/Documents/mosfanet/Scripts/bash/my-scripts/"
 
-# Function to
+## Function ##
 
 remove_tilde()
 {
-  NBU=$(find ./ -type f -name \*~ | wc -l)
-
+  NBU=$(find ~/bin -type f -name \*~ | wc -l)
   echo -n $'\n'$"Removed $NBU '~' backup "
   (( NBU == 1 )) && echo -n "file" || echo -n "files"
   echo " in $BINDIR."
-  find . -type f -iname \*~ -print -exec rm {} \;
+  find ~/bin -type f -iname \*~ -print -exec rm {} \;
 }
 
-# Change directory to ~/bin
-
-[ "$CURDIR" != "$BINDIR" ] && pushd "$BINDIR" > /dev/null 2>&1
+## Execution ##
 
 clear
 echo "$SCRIPT v$VERSION (Updated $UPDATED)"
@@ -64,10 +61,6 @@ remove_tilde
 
 # Synchronize ~/bin with ~/Documents/mosfanet/Scripts/bash/my-scripts
 echo -e "\nSynchronizing ~/bin directory with the scripts backup directory.\n"
-rsync -aprv --delete --exclude 'Testing' . "$SCRIPTDIR/"
-
-# Return to the directory where you started
-
-[ "$CURDIR" != "$BINDIR" ] && popd > /dev/null 2>&1
+rsync -aprv --delete --exclude 'Testing' "$BINDIR/" "$SCRIPTDIR/"
 
 exit
