@@ -2,6 +2,14 @@
 
 ### 30 May 2020
 
+**clean-bin 2.0.7**
+
+- Added `(( NBU != 0 )) &&` to the `remove_tilde` function so the `find` command that removes the tilde files only runs if there are tilde files to be removed.
+  
+  ```bash
+  (( NBU > 0 )) && find ~/bin -type f -iname \*~ -print -exec rm {} \;
+  ```
+
 **rm-tilde 1.2.0**
 
 - Replaced the `if-elif-else` used to determine whether file is singular or plural with a simple test statement .
