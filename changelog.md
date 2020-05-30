@@ -1,5 +1,26 @@
 # Changelog for bashscripts
 
+### 30 May 2020
+
+**rm-tilde 1.2.0**
+
+- Replaced the `if-elif-else` used to determine whether file is singular or plural with a simple test statement .
+  
+  ```bash
+  echo -n "Removing $NBU '~' backup "
+  (( NBU == 1 )) && echo "file." || echo "files."
+  ```
+
+- Added a simple test statement to determine if command to delete ~ files should be run.
+  
+  ```bash
+  (( NBU != 0 )) && find ./ -maxdepth 1 -type f -iname \*~ -print -exec rm {} \;
+  ```
+
+- Eliminated the `remove_tilde` function and incorporated the functionality into the main code (see above).
+
+- **Note:** If you don't wish to see a listing of delted files, remove the `-print` option from the `find` command.
+
 ### 28 May 2020
 
 **clean-bin 2.0.6**
@@ -146,7 +167,7 @@
 
 * Renamed the script from sysinfo to system-info.
 
-**rm-tilde 2.1.4**
+**rm-tilde4.1.4**
 
 * Renamed the script from rmtilde to rm-tilde.
 
