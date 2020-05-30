@@ -3,7 +3,7 @@
 # Script Name  : clean-bin
 # Description  : cleans ~/bin of *~ backup files and synchorizes files with a
 #              : designated archive folder
-# Dependencies : find, pushd, popd, rm, rsync, wc
+# Dependencies : find, rm, rsync, wc
 # Arguments    : none
 # Author       : Richard Romig, 18 January 2019
 # Email        : rick.romig@gmail.com
@@ -27,11 +27,11 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
-# Variables
+## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.0.6"
-readonly UPDATED="28 May 2020"
+readonly VERSION="2.0.7"
+readonly UPDATED="30 May 2020"
 
 # Directory variables
 
@@ -47,7 +47,7 @@ remove_tilde()
   echo -n $'\n'$"Removed $NBU '~' backup "
   (( NBU == 1 )) && echo -n "file" || echo -n "files"
   echo " in $BINDIR."
-  find ~/bin -type f -iname \*~ -print -exec rm {} \;
+  (( NBU > 0 )) && find ~/bin -type f -iname \*~ -print -exec rm {} \;
 }
 
 ## Execution ##
