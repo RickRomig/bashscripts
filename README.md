@@ -101,7 +101,9 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 3. The script extracts the swap partition UUID from the output of `blkid` and writes it to `/etc/initramfs-tools/conf.d/resume`. Then it will display the `resume` file before updating initramfs.
 
-4. Once initramfs has been updated, the script will warn to close all files because the system reboot in one minute.  If you'd rather the system didn't reboot, you can remove the lines relating to rebooting. Or you can change the time of the `shutdown` command.
+4. If no swap partition is found, such as in the case where a swap file is used instead of  a swap partition, the script will exit without changing  the `RESUME` variable.
+
+5. Once initramfs has been updated, the script will warn to close all files because the system reboot in one minute.  If you'd rather the system didn't reboot, you can remove the lines relating to rebooting. Or you can change the time of the `shutdown` command.
 
 ### system-info
 
@@ -140,7 +142,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-28 February 2020
+31 May 2020
 
 ### DISCLAIMER
 
