@@ -25,14 +25,31 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-SCRIPT=$(basename "$0")
-VERSION="1.0.0"
-UPDATED="8 April 2020"
+## Functions ##
+
+antix_mx()
+{
+  DIST_ID=$(grep 'DISTRIB_ID' /etc/lsb-release 2> /dev/null | cut -d '=' -f2)
+  case $DIST_ID in
+    antiX|MX )
+      return 0 ;;
+    * )
+      return 1 ;;
+  esac
+}
 
 anykey()
 {
   read -rsn1 -p "Press any key to continue"; echo
 }
+
+## Variables ##
+
+SCRIPT=$(basename "$0")
+VERSION="1.1.0"
+UPDATED="31 May 2020"
+
+## Execution ##
 
 sudo ls > /dev/null 2>&1
 
@@ -46,10 +63,16 @@ echo "I: Set the RESUME variable to override this."
 # Extract swap partition UUID from blkid
 
 echo $'\n'$"Extracting the swap partition UUID using /sbin/blkid ..."
-SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $2}' | sed 's/"//g')
-if [ "$SWAP_UUID" = "LABEL=swap" ]; then
+if antix_mx; then
   SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $3}' | sed 's/"//g')
+else
+  SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $2}' | sed 's/"//g')
+  if [ "$SWAP_UUID" = "LABEL=swap" ]; then
+    SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $3}' | sed 's/"//g')
+  fi
 fi
+
+[ -z "$SWAP_UUID" ] && (echo "No UUID for swap found."; exit)
 
 # Set RESUME environment variable
 
