@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 31 May 2020
+
+**set-resume-var 1.1.0**
+
+- Added a function and conditional statement to detect if the system is running antiX or MX Linux and take appropriate action  to extract the swap partition UUID. Both antiX and MX Linux append the partition's label with the name of the distribution, e.g., `LABEL=swapantiX` or `LABEL=swapMX`.
+
+- Added a line to exit the script if no swap partition is found in the `blkid` output which may be the case if a swap file is used instead of a swap partition.
+
 ### 30 May 2020
 
 **clean-bin 2.0.7**
