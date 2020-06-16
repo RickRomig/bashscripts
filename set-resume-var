@@ -31,23 +31,16 @@ antix_mx()
 {
   DIST_ID=$(grep 'DISTRIB_ID' /etc/lsb-release 2> /dev/null | cut -d '=' -f2)
   case $DIST_ID in
-    antiX|MX )
-      return 0 ;;
-    * )
-      return 1 ;;
+    antiX|MX ) return 0 ;;
+    * ) return 1 ;;
   esac
-}
-
-anykey()
-{
-  read -rsn1 -p "Press any key to continue"; echo
 }
 
 ## Variables ##
 
 SCRIPT=$(basename "$0")
-VERSION="1.1.0"
-UPDATED="31 May 2020"
+VERSION="1.1.1"
+UPDATED="15 Jun 2020"
 
 ## Execution ##
 
@@ -85,10 +78,5 @@ echo "Confirmation (resume):"
 
 echo $'\n'$"Updating initramfs ..."
 sudo update-initramfs -u -k all
-echo "Close all open programs and files then reboot the system."
-anykey
-echo "The system will reboot in 1 minute."
-echo "Ensure all open programs and files are closed."
-sudo shutdown -r +1
 
 exit
