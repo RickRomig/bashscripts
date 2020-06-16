@@ -10,7 +10,7 @@
 # Comment      : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 28 Feb 2020
+# Last Updated : 15 Jun 2020
 # TODO (Rick)  :
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
@@ -42,7 +42,7 @@ HOMEDIR=$HOME
 LHOST=$(/bin/uname -n)
 INFOFILE="$HOMEDIR/$LHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.6"
+VERSION="v 2.1.7"
 
 # Computer information
 
@@ -61,8 +61,7 @@ INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" \
 
 # CPU, RAM and video
 
-CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' \
-  | sed "s/([^)]*)//g")
+CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' | sed "s/([^)]*)//g")
 PHYSMEM="$(/usr/bin/free -h | awk '/^Mem:/ {print $2}')"
 VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 
@@ -75,8 +74,7 @@ WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
 
 # Battery
 
-BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" \
-  | awk '/native-path/ {print $2}')
+BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" | awk '/native-path/ {print $2}')
 
 # Write data to file in user's home directory
 
@@ -100,15 +98,13 @@ clear
     echo "  Ethernet:"
     echo "    Device name: $ETHINT"
     echo "    $ETHERNETDEV"
-    ETHMAC=$(/bin/cat "/sys/class/net/$ETHINT/address")
-    echo "    MAC address: $ETHMAC"
+    echo "    MAC address: $(/bin/cat "/sys/class/net/$ETHINT/address")"
   fi
   if [ -n "$WIRELESSDEV" ]; then
     echo "  Wireless:"
     echo "    Device name: $WIFIINT"
     echo "    $WIRELESSDEV"
-    WIFIMAC=$(/bin/cat "/sys/class/net/$WIFIINT/address")
-    echo "    MAC address: $WIFIMAC"
+    echo "    MAC address: $(/bin/cat "/sys/class/net/$WIFIINT/address")"
   fi
   echo $'\n'$"Hard Disk information:"
   for DISK in /dev/sd[a-z]
@@ -116,8 +112,7 @@ clear
     HDDEV=$(sudo /sbin/hdparm -I "${DISK}" 2>/dev/null | grep -e '/dev/')
     HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | grep 'Model Number' | cut -c 22-)
     HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
-    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}"| awk '/GB/ {print $9" "$10}' \
-      | sed 's/[)(]//g')
+    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}"| awk '/GB/ {print $9" "$10}' | sed 's/[)(]//g')
     echo "$HDDEV"
     echo "  Model Number : $HDMODEL"
     echo "  Serial Number: $HDSERIAL"
