@@ -37,8 +37,8 @@ usage()
 }
 
 SCRIPT=$(basename "$0")
-VERSION="2.0.2"
-UPDATED="31 Jan 2020"
+VERSION="2.0.3"
+UPDATED="15 Jun 2020"
 
 echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
 echo "Bulk renames file extensions in the current diectory."
@@ -75,11 +75,11 @@ case $EXT in
     ;;
   htm|html)
     echo "Renaming .$EXT files to .html"
-    rename -v 's/\.html?$/\.html/i' ./*
+    rename -v 's/\.HTML?$/\.html/i' ./*
     ;;
   jpeg|jpg)
     echo "Renaming .$EXT files to .jpg"
-    rename -v 's/\.jpe?g$/\.jpg/i' ./*
+    rename -v 's/\.JPE?G$/\.jpg/i' ./*
     ;;
   mp3)
     echo "Renaming .$EXT files to .mp3"
