@@ -1,5 +1,25 @@
 # Changelog for bashscripts
 
+### 15 June 2020
+
+**ren-ext 2.0.2**
+
+- Changed the expressions to be changed by the rename commands to uppercase for consistency.  They're case insensitive since the `shopt -s nocasematch` was set.
+
+**set-resume-var 1.1.1**
+
+- Changed the case actions to one line in the `antix_mx` function.
+
+- Removed the code requiring a reboot at the end of the script. The decision to restart the system is up to the user.
+
+- Removed the `anykey` function since it was no longer needed.
+
+**system-info 2.17**
+
+- Removed the splits in long lines for better readability.
+
+- Replaced the ETHMAC and WIFIMAC variables with command substitution to extract the needed string.
+
 ### 31 May 2020
 
 **set-resume-var 1.1.0**

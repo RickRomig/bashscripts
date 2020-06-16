@@ -103,8 +103,6 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 4. If no swap partition is found, such as in the case where a swap file is used instead of  a swap partition, the script will exit without changing  the `RESUME` variable.
 
-5. Once initramfs has been updated, the script will warn to close all files because the system reboot in one minute.  If you'd rather the system didn't reboot, you can remove the lines relating to rebooting. Or you can change the time of the `shutdown` command.
-
 ### system-info
 
 1. Gathers system information and writes it to a file in the user's home directory. The file includes the following information:
@@ -142,7 +140,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-31 May 2020
+15 June 2020
 
 ### DISCLAIMER
 
