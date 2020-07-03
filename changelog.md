@@ -1,5 +1,27 @@
 # Changelog for bashscripts
 
+### 03 July 2020
+
+**rename-host 2.1.0**
+
+- Script now  reads user input for the new hostname rather than passing it as a command line argument.
+
+- Checks the new hostname against a set of basic rules for a proper hostname.
+  
+  - Allows only alphanumeric characters and the hyphen.
+  
+  - Does not allow the hostname to begin or end with a hyphen.
+  
+  - Does not allow the hostname to begin with a digit.
+  
+  - Does not allow non-alphanumeric characters other than the hyphen.
+  
+  - Hostname length is limited to 15 characters for NETBIOS compatibility.
+  
+  - Does not allow the new hostname to be identical to the old hostname (after conversion to lowercase).
+
+- Converts new hostame to lowercase for compatilbility with distributions that do not allow uppercase hostnames (i.e., Debian).
+
 ### 15 June 2020
 
 **ren-ext 2.0.2**
@@ -24,7 +46,7 @@
 
 **set-resume-var 1.1.0**
 
-- Added a function and conditional statement to detect if the system is running antiX or MX Linux and take appropriate action  to extract the swap partition UUID. Both antiX and MX Linux append the partition's label with the name of the distribution, e.g., `LABEL=swapantiX` or `LABEL=swapMX`.
+- Added a function and conditional statement to detect if the system is running antiX or MX Linux and take appropriate action  to extract the swap partition UUID. Both antiX and MX Linux append the swap partition's label with the name of the distribution, e.g., `LABEL=swapantiX` or `LABEL=swapMX`.
 
 - Added a line to exit the script if no swap partition is found in the `blkid` output which may be the case if a swap file is used instead of a swap partition.
 

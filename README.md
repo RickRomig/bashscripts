@@ -41,19 +41,25 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 ### rename-host
 
-1. A script to rename the system's hostname, changing in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each of the files is the same.
+1. A script to rename the system's hostname, changing it in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each of the files is the same.
 
-2. Syntax: 
+2. The script prompts the user to enter a new hostname and checks it against a set of basic rules for a proper hostname.
    
-   ```bash
-   $ rename-host "new-hostname"
-   ```
+   - Allows only alphanumeric characters and the hyphen. The new hostname is converted to lowercase for compatilbility with distributions that do not allow uppercase hostnames (i.e., Debian).
+   
+   - Does not allow the hostname to begin or end with a hyphen.
+   
+   - Does not allow the hostname to begin with a digit.
+   
+   - Does not allow non-alphanumeric characters other than the hyphen.
+   
+   - Limits hostname length to 15 characters for NETBIOS compatibility.
+   
+   - Does not allow the new hostname to be identical to the old hostname (after conversion to lowercase).
 
-3. The new-hostname argument should be enclosed in quotes when passed to the script.
+3.  After the hostname is changed in both `/etc/hostname` and `/etc/hosts`, it checks to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
 
-4. The script checks to see if the input host name is the same as the current hostname. After the hostname is changed in both files, it checks to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
-
-5. A reboot is required for the changes take effect.
+4. The script checks to see if the input host name is the same as the current hostname.A reboot is required for the changes take effect.
 
 ### ren-ext
 
@@ -140,7 +146,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-15 June 2020
+03 July 2020
 
 ### DISCLAIMER
 
