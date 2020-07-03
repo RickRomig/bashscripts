@@ -1,13 +1,13 @@
 #!/bin/bash
 #############################################################################
-# Script Name  : ren-hostname
+# Script Name  : rename-host
 # Description  : Changes the system hostname
 # Dependencies : awk, sed
-# Arguments    : new hostname
+# Arguments    : None
 # Author       : Richard B. Romig, 06 Nov 2019
 # Email        : rick.romig@gmail.com
-# Comments     : Changes in both /etc/hostname and /etc/hosts
-#              : new hostname argument should be in double-quotes
+# Comments     : Hostname is changed in both /etc/hostname and /etc/hosts.
+# Hostname length limited to 15 characters for NETBIOS compatibility.
 #############################################################################
 # Copyright (C) 2020, Richard B. Romig
 # Email: rick.romig@gmail.com
@@ -28,8 +28,9 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.0.1"
-readonly UPDATED="04 May 2020"
+readonly VERSION="2.1.0"
+readonly UPDATED="03 Jul 2020"
+readonly OLDHOST=$HOSTNAME
 
 ## Functions ##
 
@@ -45,29 +46,67 @@ leave()
   exit
 }
 
-usage()
+name_rules()
 {
-  echo -e "\e[1;31mUsage:\e[0m $SCRIPT <new-hostname>" >&2
-  echo "New hostname should be enclosed in double-quotes." >&2
-  exit 1
+  echo $'\n'$"The new hostname should be between 5 and 15 characters."
+  echo "Allowed characters: a-z, 0-9, and - (will be converted to lowercase)"
+  echo "The first character cannot be a hyphen (-) or a digit."
+  echo "The hostname cannot end with a hyphen (-)."
+  echo "The new hostname cannot be identical to the old one (after lowercase conversion)."
 }
 
 ## Execution ##
 
-echo "$SCRIPT v$VERSION"
-echo "(Updated: $UPDATED)"
-echo "Changes the system's hostname."
+# Enter new hostname and check rules
 
-if [ -z "$1" ]; then
-  echo -e "\n\e[1;31mError:\e[0m No hostname passed." >&2
-  usage
-else
-  readonly NEWHOST="$1"
-  readonly OLDHOST=$HOSTNAME
-  [ "$NEWHOST" == "$OLDHOST" ] && leave "Hostnames are the same, no changes made."
-  sudo ls > /dev/null 2>&1
-fi
+while true
+do
+  clear
+  echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
+  echo "Renames the system hostname."
+  name_rules
+  echo -e "\nCurrent hostname is $OLDHOST\n"
 
+  read -rp "Enter new hostname: " NEWHOST
+  STRLEN=${#NEWHOST}
+  if [ "$STRLEN" -lt 2 ] || [ "$STRLEN" -gt 15 ]; then
+    echo $'\n'$"Invalid length" >&2
+    name_rules
+    continue
+  fi
+  case $NEWHOST in
+    -* )
+      echo $'\n'$"Cannot start with a hypen" >&2
+      name_rules
+      continue
+      ;;
+    *- )
+      echo $'\n'$"Cannot end with a hyphen" >&2
+      name_rules
+      continue ;;
+    [0-9]* )
+      echo $'\n'$"Cannot start with a digit" >&2
+      name_rules;
+      continue
+      ;;
+    *[^a-zA-Z0-9-]* )
+      echo $'\n'$"Cannot contain special characters" >&2
+      name_rules;
+      continue
+      ;;
+  esac
+  NEWHOST=$(echo "$NEWHOST" | awk '{print tolower($0)}')
+  if [ "$NEWHOST" == "$OLDHOST" ]; then
+    echo "Hostnames are the same." >&2
+    name_rules
+    continue
+   fi
+  break;
+done
+
+# Make backups of old files and change hostnames
+
+sudo ls > /dev/null 2>&1
 echo $'\n'$"Changing the hostname from $OLDHOST to $NEWHOST ..."
 cp -p /etc/hostname /etc/hostname.old > /dev/null 2>&1
 cp -p /etc/hosts /etc/hosts.old > /dev/null 2>&1
