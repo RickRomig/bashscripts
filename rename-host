@@ -28,8 +28,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.1.0"
-readonly UPDATED="03 Jul 2020"
+readonly VERSION="2.1.1"
+readonly UPDATED="04 Jul 2020"
 readonly OLDHOST=$HOSTNAME
 
 ## Functions ##
@@ -94,14 +94,17 @@ do
       name_rules;
       continue
       ;;
+    * )
+      ;;
   esac
   NEWHOST=$(echo "$NEWHOST" | awk '{print tolower($0)}')
   if [ "$NEWHOST" == "$OLDHOST" ]; then
     echo "Hostnames are the same." >&2
     name_rules
     continue
-   fi
-  break;
+  else
+    break
+  fi
 done
 
 # Make backups of old files and change hostnames
