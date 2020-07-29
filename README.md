@@ -1,6 +1,12 @@
 # BASH Scripts
 
-I write scripts to fix a particular problem or to accomplish a routine task and I felt that these scripts might be of use to others. It should be noted that these scripts were written in Bash for Linux Mint (18.3, 19.x, and LMDE 3) but they should work for most Ubuntu and Debian based distributions. I've run these scripts with no problems on Debian 10, Lubuntu 18.04, and MX Linux 18.
+I write scripts to fix a particular problem or to accomplish a routine task and I felt that these scripts might be of use to others. It should be noted that these scripts were written in Bash for Linux Mint (18.3, 19.x, 20, and LMDE 4) but they should work for most Ubuntu and Debian based distributions. I've run these scripts with no problems on Debian 10, Lubuntu 18.04, antiX  19, and MX Linux 18 and 19.
+
+### bat-status
+
+1. Displays information about charging status and battery health for a laptop battery and displays a message regarding the health of the battery based on a percentage of the actual capacity in relation to the original rated capacity.
+
+2. The script is based on a script written by Elias W. (eliasw4u on Ezeetalk.com).  I changed the variable names and some of the routines, and added the routine to check the charging status.
 
 ### check-updates
 
@@ -57,7 +63,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
    
    - Does not allow the new hostname to be identical to the old hostname (after conversion to lowercase).
 
-3.  After the hostname is changed in both `/etc/hostname` and `/etc/hosts`, it checks to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
+3. After the hostname is changed in both `/etc/hostname` and `/etc/hosts`, it checks to ensure both files have the same hostname. If they don't match, the previous hostname and hosts files are restored.
 
 4. The script checks to see if the input host name is the same as the current hostname.A reboot is required for the changes take effect.
 
