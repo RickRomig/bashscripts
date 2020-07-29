@@ -1,0 +1,114 @@
+#!/bin/bash
+###############################################################################
+# Script Name  : bat-status
+# Description  : Determine the health of a laptop battery
+# Dependencies : upower
+# Arguments    : None
+# Author       : Richard B. Romig, 28 Jul 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Based on a script by Elias W (eliasw4u on Ezeetalk.com)
+#              : Licensed by Elias W under the GPL2
+###############################################################################
+
+# Copyright (C) 2020, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Variables ##
+
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="0.1.2"
+readonly UPDATED="29 Jul 2020"
+
+# Get battery name
+
+BAT_NAME=$(/usr/bin/upower -e | grep 'BAT' | cut -d "_" -f2)
+
+# Determine path to battery directory
+
+case "$BAT_NAME" in
+  "BAT0" )
+    BH_PATH="/sys/class/power_supply/BAT0" ;;
+  "BAT1" )
+    BH_PATH="/sys/class/power_supply/BAT1" ;;
+  * )
+    echo "No battery present." >&2
+    echo $'\n'$"$SCRIPT v$VERSION (Updated: $UPDATED)"
+    exit 1 ;;
+esac
+
+# Determine path to the files
+
+if [ -f "$BH_PATH/charge_full" ]; then
+  ACTUAL_FULL="charge_full"
+else
+  ACTUAL_FULL="energy_full"
+fi
+
+if [ -f "$BH_PATH/charge_full_design" ]; then
+  DESIGN_FULL="charge_full_design"
+else
+  DESIGN_FULL="energy_full_design"
+fi
+
+# Get capacity information
+
+ACTUAL_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BH_PATH/$ACTUAL_FULL")
+DESIGN_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BH_PATH/$DESIGN_FULL")
+
+CAP_PERCENT=$(echo "100/${DESIGN_MAX}*${ACTUAL_MAX}" | bc -l)
+
+BAT_HEALTH=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%2.2f")
+WARN_LEVEL=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%.0f")
+
+## Functions ##
+
+battery_status()
+{
+  if [ "$WARN_LEVEL" -le "35" ]; then
+    echo -e "\U26D4\e[31m    The battery should be replaced.\e[0m \U26D4"
+  elif [ "$WARN_LEVEL" -le "65" ]; then
+    echo -e "\U26A0\UFE0F\e[33m    The battery is getting weak.\e[0m \U26A0\UFE0F"
+  else
+    echo "    The battery is in good condition."
+  fi
+}
+
+battery_state()
+{
+  echo -e "\n\e[33mBattery charge:\e[0m"
+  /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" | grep --color=never -E "state|to\ full|to\ empty|percentage"
+}
+
+battery_health()
+{
+  echo -e "\n\e[33mBattery health:\e[0m"
+  echo -e "    Design capacity: $DESIGN_MAX Wh"
+  echo -e "    Actual capacity: $ACTUAL_MAX Wh"
+  echo -e "    Battery health:  $BAT_HEALTH%"
+  # upower -i `upower -e | grep 'BAT'` | grep --color=never -E "energy-full:|energy-full-design:|capacity:" -- Displays the above information
+}
+
+## Execution ##
+
+clear
+echo -e "\e[1;33mBattery Status\e[0m"
+echo -e "\n\e[33mBattery:\e[0m $BAT_NAME"
+battery_state
+battery_health
+battery_status
+echo $'\n'$"$SCRIPT v$VERSION (Updated: $UPDATED)"
+
+exit
