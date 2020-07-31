@@ -1,0 +1,107 @@
+#!/bin/bash
+###############################################################################
+# Script Name  : bat-health
+# Description  : Determine the health of a laptop battery
+# Dependencies : upower
+# Arguments    : None
+# Author       : Richard B. Romig, 30 Jul 2020
+# Email        : rick.romig@gmail.com
+# Comments     : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
+# TODO (Rick)  :
+###############################################################################
+
+# Copyright (C) 2020, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Variables ##
+
+readonly SCRIPT=$(basename "$0")
+readonly VERSION="0.1.1"
+readonly UPDATED="30 Jul 2020"
+
+## Functions ##
+
+function die()
+{
+  local MSG="$1"	    # message
+  local EC=${2-1}	    # default exit status 1
+  echo -e "\e[91mERROR:\e[0m $MSG" >&2
+  exit "$EC"
+}
+
+cleanup()
+{
+  [ -f "$UPOWER_FILE" ] && rm -f "$UPOWER_FILE"
+}
+
+battery_charge()
+{
+  echo -e "\n\e[33mBattery charge:\e[0m"
+  echo "$(grep --color=never -E "state|to\ full|to\ empty|percentage" "$UPOWER_FILE")"
+}
+
+battery_health()
+{
+  echo -e "\n\e[33mBattery health:\e[0m"
+  echo "$(grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$UPOWER_FILE")"
+}
+
+warning_level()
+{
+  CAP=$(awk '/capacity/ {print $2}' "$UPOWER_FILE" | sed 's/%//') # strip off '%'
+  CAP=$(echo "$CAP" | awk '{printf "%i", $1}')  # Get integer portion
+  return "$CAP"
+}
+
+battery_status()
+{
+  warning_level
+  WARN_LEVEL="$?"
+  if [ "$WARN_LEVEL" -le "0" ]; then
+    echo -e "    \U2620\e[31m Replace the battery.\e[0m \U2620"
+  elif [ "$WARN_LEVEL" -le "35" ]; then
+    echo -e "    \U26D4\e[31m The battery should be replaced.\e[0m \U26D4"
+  elif [ "$WARN_LEVEL" -le "65" ]; then
+    echo -e "    \U26A0\UFE0F\e[33m The battery is getting weak.\e[0m \U26A0\UFE0F"
+  else
+    echo -e "\e[32m    The battery is in good condition.\e[0m"
+  fi
+}
+
+## Execution ##
+
+BAT_NAME=$(/usr/bin/upower -e | grep 'BAT' | cut -d "_" -f2)
+if [ -z "$BAT_NAME"]; then
+  echo "No battery installed." >&2
+  echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)"
+  exit 1
+fi
+
+UPOWER_FILE=$(mktemp) || die "Failed to create temporary file." 1
+
+trap cleanup EXIT
+
+/usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$UPOWER_FILE"
+
+clear
+echo -e "\e[1;33mBattery Status\e[0m"
+echo -e "\n\e[33mBattery:\e[0m $BAT_NAME"
+battery_charge
+battery_health
+battery_status
+echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)"
+
+exit
