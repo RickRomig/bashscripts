@@ -6,7 +6,9 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 1. Displays information about charging status and battery health for a laptop battery and displays a message regarding the health of the battery based on a percentage of the actual capacity in relation to the original rated capacity.
 
-2. The script is based on a script written by Elias W. (eliasw4u on Ezeetalk.com).  I changed the variable names and some of the routines, and added the routine to check the charging status.
+2. The original script was based on a script written by Elias W. (eliasw4u on Ezeetalk.com).  I changed the variable names and some of the routines, and added the routine to check the charging status.
+
+3. The current version uses the `upower` utility to obtain data on the battery charging status and capacity and pertient data is extracted and displayed.
 
 ### check-updates
 
@@ -152,7 +154,9 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Richard Romig
 
-03 July 2020
+ 🇺🇸 🇵🇭
+
+30 July 2020
 
 ### DISCLAIMER
 
