@@ -2,13 +2,19 @@
 
 I write scripts to fix a particular problem or to accomplish a routine task and I felt that these scripts might be of use to others. It should be noted that these scripts were written in Bash for Linux Mint (18.3, 19.x, 20, and LMDE 4) but they should work for most Ubuntu and Debian based distributions. I've run these scripts with no problems on Debian 10, Lubuntu 18.04, antiX  19, and MX Linux 18 and 19.
 
-### bat-status
+### battery-check
 
 1. Displays information about charging status and battery health for a laptop battery and displays a message regarding the health of the battery based on a percentage of the actual capacity in relation to the original rated capacity.
 
-2. The original script was based on a script written by Elias W. (eliasw4u on Ezeetalk.com).  I changed the variable names and some of the routines, and added the routine to check the charging status.
+2. The original script was based on a script written by Elias W. (eliasw4u on Ezeetalk.com). I changed the variable names and some of the routines, and added the routine to check the charging status.
 
-3. The current version uses the `upower` utility to obtain data on the battery charging status and capacity and pertient data is extracted and displayed.
+3. This scripts extracts battery data from the battery information in the `/sys/class/power_supply/`directory and requires no special utilities such as `upower`.
+
+### check-battery
+
+1. Displays information about charging status and battery health for a laptop battery and displays a message regarding the health of the battery based on a percentage of the actual capacity in relation to the original rated capacity.
+
+2. This  script uses the `upower` utility to obtain data on the battery charging status and capacity and pertient data is extracted and displayed.
 
 ### check-updates
 
