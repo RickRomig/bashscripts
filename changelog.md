@@ -1,5 +1,15 @@
 # Changelog for bashscripts
 
+### 07 August 2020
+
+**check-battery 0.1.5**
+
+- Renamed from `bat-health` to `check-battery`.
+
+- Added checks for case when the battery's actual capacity or design capacity is zero (battery is completely ded and unusable).
+
+- Modified the execution section to use a single `if-then`statemenmt.
+
 ### 30 July 2020
 
 **bat-health 0.1.1**
