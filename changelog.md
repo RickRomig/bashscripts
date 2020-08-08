@@ -1,5 +1,11 @@
 # Changelog for bashscripts
 
+### 08 August 2020
+
+**battery-check 0.2.3**
+
+- Changed the order of the battery capacity display, showing the actual capacity before the design capacity, more closely resembling the `upower` output.
+
 ### 07 August 2020
 
 **check-battery 0.1.5**
