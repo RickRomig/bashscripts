@@ -30,8 +30,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.2"
-readonly UPDATED="07 Aug 2020"
+readonly VERSION="0.2.3"
+readonly UPDATED="08 Aug 2020"
 
 ## Functions ##
 
@@ -83,8 +83,8 @@ battery_capacity()
   BAT_HEALTH=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%2.2f")
 
   echo -e "\n\e[33mBattery health:\e[0m"
-  echo -e "\t\e[92mDesign capacity:\e[0m $DESIGN_MAX $UNIT"
   echo -e "\t\e[92mActual capacity:\e[0m $ACTUAL_MAX $UNIT"
+  echo -e "\t\e[92mDesign capacity:\e[0m $DESIGN_MAX $UNIT"
   echo -e "\t\e[92mBattery health:\e[0m  $BAT_HEALTH%"
   battery_condition "$CAP_PERCENT"
 }
