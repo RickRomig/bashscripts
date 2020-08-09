@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 09 August 2020
+
+**battery-check 0.2.4**
+
+- Combined check for `charge_full*` and `energy_full*` into one if statement.
+
+- Moved `BAT_HEALTH` variable assignment to be included with the CAP_PERCENT variable assignment in the 'else' portion of the if statement.
+
 ### 08 August 2020
 
 **battery-check 0.2.3**
