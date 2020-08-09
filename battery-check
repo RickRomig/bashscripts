@@ -30,8 +30,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.3"
-readonly UPDATED="08 Aug 2020"
+readonly VERSION="0.2.4"
+readonly UPDATED="09 Aug 2020"
 
 ## Functions ##
 
@@ -59,28 +59,25 @@ battery_capacity()
 {
   if [ -f "$BATTERY/charge_full" ]; then
     ACTUAL_FULL="charge_full"
+    DESIGN_FULL="charge_full_design"
     UNIT="Ah"
   else
     ACTUAL_FULL="energy_full"
-    UNIT="Wh"
-  fi
-
-  if [ -f "$BATTERY/charge_full_design" ]; then
-    DESIGN_FULL="charge_full_design"
-  else
     DESIGN_FULL="energy_full_design"
+    UNIT="Wh"
   fi
 
   ACTUAL_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BATTERY/$ACTUAL_FULL")
   DESIGN_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BATTERY/$DESIGN_FULL")
   INT_DES="${DESIGN_MAX%%.*}"
   INT_ACT="${ACTUAL_MAX%%.*}"
+
   if [ "$INT_DES" -eq 0 ] || [ "$INT_ACT" -eq 0 ]; then
     CAP_PERCENT="0"
   else
     CAP_PERCENT=$(echo "100/${DESIGN_MAX}*${ACTUAL_MAX}" | bc -l)
+    BAT_HEALTH=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%2.2f")
   fi
-  BAT_HEALTH=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%2.2f")
 
   echo -e "\n\e[33mBattery health:\e[0m"
   echo -e "\t\e[92mActual capacity:\e[0m $ACTUAL_MAX $UNIT"
