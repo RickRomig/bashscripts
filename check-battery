@@ -29,8 +29,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.1.5"
-readonly UPDATED="07 Aug 2020"
+readonly VERSION="0.1.7"
+readonly UPDATED="09 Aug 2020"
 
 ## Functions ##
 
@@ -38,7 +38,7 @@ function die()
 {
   local MSG="$1"	    # message
   local EC=${2-1}	    # default exit status 1
-  echo -e "\e[91mERROR:\e[0m $MSG" >&2
+  echo -e "\n\e[91mERROR:\e[0m $MSG" >&2
   exit "$EC"
 }
 
@@ -92,17 +92,20 @@ battery_condition()
 
 ## Execution ##
 
+clear
+echo -e "\e[1;33mBattery Status\e[0m"
+
+dpkg -l | grep -qw upower || die "Missing dependency - upower is not installed."
+
 BAT_NAME=$(/usr/bin/upower -e | grep 'BAT' | cut -d "_" -f2)
+
 if [ -z "$BAT_NAME" ]; then
-  echo -e "\e[91mNo battery detected.\e[0m"
+  echo -e "\n\e[91mNo battery detected.\e[0m"
 else
   UPOWER_FILE=$(mktemp) || die "Failed to create temporary file." 1
   trap cleanup EXIT
 
   /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$UPOWER_FILE"
-
-  clear
-  echo -e "\e[1;33mBattery Status\e[0m"
   echo -e "\n\e[33mBattery:\e[0m $BAT_NAME"
   battery_status
   battery_capacity
