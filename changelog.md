@@ -8,6 +8,10 @@
 
 - Moved `BAT_HEALTH` variable assignment to be included with the CAP_PERCENT variable assignment in the 'else' portion of the if statement.
 
+**check-battery 0.1.7**
+
+- Checks to see if `upower` is installed and exits with an error message if it is not.
+
 ### 08 August 2020
 
 **battery-check 0.2.3**
