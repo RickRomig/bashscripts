@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 14 August 2020
+
+**rename-host 2.1.2**
+
+- Updated hostname rules to improve display.
+
+- Backup copies of `hostname` and `hosts` files are maintained.
+
 ### 09 August 2020
 
 **battery-check 0.2.4**
