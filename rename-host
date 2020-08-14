@@ -28,8 +28,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.1.1"
-readonly UPDATED="04 Jul 2020"
+readonly VERSION="2.1.2"
+readonly UPDATED="14 Aug 2020"
 readonly OLDHOST=$HOSTNAME
 
 ## Functions ##
@@ -39,7 +39,7 @@ leave()
   local MSG="$1"
 
   if [ -z "$MSG" ]; then
-    echo "Existing the script."
+    echo "Exiting the script."
   else
     echo "$MSG"
   fi
@@ -48,11 +48,13 @@ leave()
 
 name_rules()
 {
-  echo $'\n'$"The new hostname should be between 5 and 15 characters."
-  echo "Allowed characters: a-z, 0-9, and - (will be converted to lowercase)"
-  echo "The first character cannot be a hyphen (-) or a digit."
-  echo "The hostname cannot end with a hyphen (-)."
-  echo "The new hostname cannot be identical to the old one (after lowercase conversion)."
+  echo -e "\e[31mHostname Rules\e[0m"
+  echo -e "\e[33m*\e[0m 5-15 characters"
+  echo -e "\e[33m*\e[0m a-z, 0-9, - (hyphen)"
+  echo -e "\e[33m*\e[0m lowercase (uppercase will be converted)"
+  echo -e "\e[33m*\e[0m no special characters"
+  echo -e "\e[33m*\e[0m first character cannot be a hyphen or a digit"
+  echo -e "\e[33m*\e[0m last character cannot be a hyphen"
 }
 
 ## Execution ##
@@ -69,7 +71,7 @@ do
 
   read -rp "Enter new hostname: " NEWHOST
   STRLEN=${#NEWHOST}
-  if [ "$STRLEN" -lt 2 ] || [ "$STRLEN" -gt 15 ]; then
+  if [ "$STRLEN" -lt 5 ] || [ "$STRLEN" -gt 15 ]; then
     echo $'\n'$"Invalid length" >&2
     name_rules
     continue
@@ -123,8 +125,6 @@ HOST2=$(awk '/127.0.1.1/ { print $2 }' /etc/hosts)
 [ -z "$HOST2" ] && HOST2=$(grep -m2 '127.0.0.1' /etc/hosts | tail -n1 | awk '{print $2}')
 echo -e "/etc/hostname = $HOST1\t/etc/hosts = $HOST2"
 if [ "$HOST1" == "$NEWHOST" ] && [ "$HOST2" == "$NEWHOST" ]; then
-  rm /etc/hosts.old > /dev/null 2>&1
-  rm /etc/hostname.old > /dev/null 2>&1
   echo "Hostname successfully changed."
   leave "Reboot required for changes to take effect."
 else
