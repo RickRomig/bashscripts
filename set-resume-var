@@ -2,11 +2,11 @@
 #############################################################################
 # Script Name  : set-resume-var
 # Description  : Set the RESUME variable after update-initramfs error
-# Dependencies : awk, update-initramfs
+# Dependencies : awk, blkid, update-initramfs
 # Arguments    : None
 # Author       : Richard B. Romig, 12 Nov 2019
 # Email        : rick.romig@gmail.com
-# Comments     : Extacts swap partition UUID from /sbin/blkid
+# Comments     : Extacts swap partition UUID from output of /sbin/blkid
 #############################################################################
 
 # Copyright (C) 2020, Richard B. Romig
@@ -39,8 +39,8 @@ antix_mx()
 ## Variables ##
 
 SCRIPT=$(basename "$0")
-VERSION="1.1.1"
-UPDATED="15 Jun 2020"
+VERSION="1.1.2"
+UPDATED="14 Sep 2020"
 
 ## Execution ##
 
@@ -53,15 +53,15 @@ echo "I: The initramfs will attempt to resume from /dev/sda2"
 echo "I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)"
 echo "I: Set the RESUME variable to override this."
 
-# Extract swap partition UUID from blkid
+# Extract swap partition UUID from blkid (Artix & Ubuntu require sudo)
 
 echo $'\n'$"Extracting the swap partition UUID using /sbin/blkid ..."
 if antix_mx; then
-  SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $3}' | sed 's/"//g')
+  SWAP_UUID=$(sudo /sbin/blkid | awk '/TYPE="swap"/ {print $3}' | sed 's/"//g')
 else
-  SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $2}' | sed 's/"//g')
+  SWAP_UUID=$(sudo /sbin/blkid | awk '/TYPE="swap"/ {print $2}' | sed 's/"//g')
   if [ "$SWAP_UUID" = "LABEL=swap" ]; then
-    SWAP_UUID=$(sudo /sbin/blkid | awk '/swap/ {print $3}' | sed 's/"//g')
+    SWAP_UUID=$(sudo /sbin/blkid | awk '/TYPE="swap"/ {print $3}' | sed 's/"//g')
   fi
 fi
 
@@ -72,6 +72,7 @@ fi
 echo $'\n'$"Setting the RESUME environment variable..."
 echo "RESUME=$SWAP_UUID" | sudo tee /etc/initramfs-tools/conf.d/resume
 echo "Confirmation (resume):"
+echo "Contents of /etc/initramfs-tools/conf.d/resume"
 /bin/cat /etc/initramfs-tools/conf.d/resume
 
 # Update initramfs and reboot the system
