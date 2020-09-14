@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 14 September 2020
+
+**set-resume-var 1.1.2**
+
+- In the `awk ` command that extracts the swap partition's UUID, changed `/swap/`to `TYPE="swap"`to clarify the search term.
+
+- In testing the `SWAP_UUID` assigment, noted that Debian, LMDE, antiX, MX, and Linux Mint did not require `sudo` to run `/sbin/blkid`. Ubuntu 18.04 did require elevated privileges.
+
 ### 14 August 2020
 
 **rename-host 2.1.2**
