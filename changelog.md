@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 21 September 2020
+
+**battery-check 0.2.5 & check-battery 0.1.8**
+
+- Added check to determine if the system is a laptop.
+
+- Added check to determine if the laptop is connected to AC power.
+
 ### 14 September 2020
 
 **set-resume-var 1.1.2**
