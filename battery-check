@@ -30,8 +30,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.4"
-readonly UPDATED="09 Aug 2020"
+readonly VERSION="0.2.5"
+readonly UPDATED="21 Sep 2020"
 
 ## Functions ##
 
@@ -107,21 +107,40 @@ battery_condition()
   fi
 }
 
+ac_status()
+{
+  if [ -d /sys/class/power_supply/AC ]; then
+    STATUS=$(cat /sys/class/power_supply/AC/online)
+  elif [ -d /sys/class/power_supply/ACAD ]; then
+    STATUS=$(cat /sys/class/power_supply/ACAD/online)
+  fi
+  return "$STATUS"
+}
+
 ## Execution ##
 
 clear
-
-for BATTERY in /sys/class/power_supply/BAT?
-do
-  echo -e "\e[1;33mBattery Status\e[0m"
-  if [ "$BATTERY" = "/sys/class/power_supply/BAT?" ]; then
-    echo -e "\n\e[91mNo battery detected.\e[0m"
-  else
-    echo -e "\n\e[33mBattery:\e[0m ${BATTERY##*/}"
-    battery_status
-    battery_capacity
-  fi
-done
+echo -e "\e[1;33mBattery Status\e[0m"
+if [ -d /proc/acpi/button/lid/ ]; then
+  for BATTERY in /sys/class/power_supply/BAT?; do
+    if [ "$BATTERY" = "/sys/class/power_supply/BAT?" ]; then
+      echo -e "\n\e[91mNo battery detected.\e[0m"
+    else
+      echo -e "\n\e[33mBattery:\e[0m ${BATTERY##*/}"
+      battery_status
+      battery_capacity
+    fi
+  done
+  echo -e "\n\e[33mAC Power:\e[0m"
+  ac_status
+  AC_STATUS="$?"
+  echo -en "\tLaptop is "
+  [ "$AC_STATUS" -eq 0 ] && echo -n "not "
+  echo "plugged in."
+else
+  echo $'\n'$"This system is not a laptop."
+  echo "No battery detected."
+fi
 echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)\n"
 
 exit
