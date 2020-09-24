@@ -29,10 +29,28 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.1.8"
-readonly UPDATED="21 Sep 2020"
+readonly VERSION="0.1.9"
+readonly UPDATED="24 Sep 2020"
 
 ## Functions ##
+
+help()
+{
+  echo "$SCRIPT $VERSION, Upated: $UPDATED"
+  echo "Usage: $SCRIPT [option]"
+  echo "OPTIONS"
+  echo -e "  -h | --help\tdisplays this help message."
+  echo -e "  --version\tdisplays the version and information about the script."
+}
+
+version()
+{
+  cat << _EOF_
+$SCRIPT $VERSION, Upated: $UPDATED
+Displays the charge state and health of a laptop battery using data obtained
+from the upower utilty.
+_EOF_
+}
 
 function die()
 {
@@ -102,6 +120,13 @@ ac_status()
 ## Execution ##
 
 clear
+if [[ $# = 1 ]]; then
+  case "$1" in
+    -h|--help ) help; exit;;
+    --version ) version; exit;;
+  esac
+fi
+
 echo -e "\e[1;33mBattery Status\e[0m"
 if [ -d /proc/acpi/button/lid/ ]; then
   dpkg -l | grep -qw upower || die "Missing dependency - upower is not installed."
