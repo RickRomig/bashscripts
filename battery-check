@@ -30,10 +30,29 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.5"
-readonly UPDATED="21 Sep 2020"
+readonly VERSION="0.2.6"
+readonly UPDATED="24 Sep 2020"
 
 ## Functions ##
+
+help()
+{
+  echo "$SCRIPT $VERSION, Upated: $UPDATED"
+  echo "Usage: $SCRIPT [option]"
+  echo "OPTIONS"
+  echo -e "  -h | --help\tdisplays this help message."
+  echo -e "  --version\tdisplays the version and information about the script."
+}
+
+version()
+{
+  cat << _EOF_
+$SCRIPT $VERSION, Upated: $UPDATED
+Displays the charge state and health of a laptop battery using data obtained
+from files in the /sys/class/power_supply/BAT*. Capacity information may shown
+in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
+_EOF_
+}
 
 function die()
 {
@@ -113,6 +132,8 @@ ac_status()
     STATUS=$(cat /sys/class/power_supply/AC/online)
   elif [ -d /sys/class/power_supply/ACAD ]; then
     STATUS=$(cat /sys/class/power_supply/ACAD/online)
+  else
+    echo "AC power status cannot be determined."
   fi
   return "$STATUS"
 }
@@ -120,6 +141,13 @@ ac_status()
 ## Execution ##
 
 clear
+if [[ $# = 1 ]]; then
+  case "$1" in
+    -h|--help ) help; exit;;
+    --version ) version; exit;;
+  esac
+fi
+
 echo -e "\e[1;33mBattery Status\e[0m"
 if [ -d /proc/acpi/button/lid/ ]; then
   for BATTERY in /sys/class/power_supply/BAT?; do
