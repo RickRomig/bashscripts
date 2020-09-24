@@ -1,5 +1,11 @@
 # Changelog for bashscripts
 
+### 24 September 2020
+
+**battery-check 0.2.6 & check-battery 0.1.9**
+
+- Added functions to display help and version information
+
 ### 21 September 2020
 
 **battery-check 0.2.5 & check-battery 0.1.8**
@@ -12,7 +18,7 @@
 
 **set-resume-var 1.1.2**
 
-- In the `awk ` command that extracts the swap partition's UUID, changed `/swap/`to `TYPE="swap"`to clarify the search term.
+- In the `awk` command that extracts the swap partition's UUID, changed `/swap/`to `TYPE="swap"`to clarify the search term.
 
 - In testing the `SWAP_UUID` assigment, noted that Debian, LMDE, antiX, MX, and Linux Mint did not require `sudo` to run `/sbin/blkid`. Ubuntu 18.04 did require elevated privileges.
 
