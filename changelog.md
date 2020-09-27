@@ -1,5 +1,17 @@
 # Changelog for bashscripts
 
+### 26 September 2020
+
+**ip-info 2.2.0**
+
+- Changed the  `WIFI_SIG` variable to include `dBm` after the numerical value.
+
+- Removed the check for the WIFI device model name. If `WIFI_SIG` is empty, the strong "Not available" will be assigned and displayed.
+  
+  - The Broadcom BCM4313 wireless card which did work with Ubuntu 18.04, did work when I reloaded the system with Debian 10. This may have been due to a different versions of  `iw` rather than the device itself.
+  
+  - 
+
 ### 24 September 2020
 
 **battery-check 0.2.6 & check-battery 0.1.9**
@@ -200,7 +212,7 @@
 
 **ip-info 2.1.0**
 
-- In the `show_wireless function`, added a check of the wireless device to check for Broadcom devices that are know not work with iwconfig to get the signal level. If the system uses one of these wireless devices, the `WIFI_SIG` variable is set to "Not avaliable."
+- In the `show_wireless function`, added a check of the wireless device to check for Broadcom devices that are known not work with iwconfig to get the signal level. If the system uses one of these wireless devices, the `WIFI_SIG` variable is set to "Not avaliable."
 
 - Broadcom models BCM4313 and BCM43228 have been tested and will not show the `iwconfig` signal level information. The Broadcom BCM43224 wireless device will provide the siginal level.
 
@@ -214,7 +226,7 @@
 
 **ip-info 2.0.0**
 
-- Moved logical sections of the script into individual function which are called by a main function.
+- Moved logical sections of the script into individual functions which are called by a main function.
 
 - Moved variables into the functions in which they are used.
 
@@ -236,7 +248,7 @@
 
 - The public IP address is displayed only if present, otherwise a message is displayed saying that no Internet address was found.
 
-- Streamlined how the IP addresses are displayed. How the the information is displayed in the terminal and its format are unchanged.
+- Streamlined how the IP addresses are displayed. How the the information is displayed in the terminal and its format is unchanged.
 
 ### 16 April 2020
 
