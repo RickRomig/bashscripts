@@ -32,8 +32,8 @@
 main()
 {
   SCRIPT=$(basename "$0")
-  VERSION="2.1.1"
-  UPDATED="11 May 2020"
+  VERSION="2.2.0"
+  UPDATED="26 Sep 2020"
 
   clear
   echo -e "\n\e[93mIP Information\e[0m"
@@ -61,10 +61,10 @@ show_public()
 
 show_wired()
 {
-  ETH_INT=$(/usr/bin/nmcli dev | awk '/ethernet/ { print $1 }')
+  ETH_INT=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
 
   [ -n "$ETH_INT" ] && ETH_IP=$(/sbin/ip -o -4 addr show \
-  | awk -v name="$ETH_INT" '$0~name { print $4" ("$2")" }')
+  | awk -v name="$ETH_INT" '$0~name {print $4" ("$2")"}')
 
   echo -en "\t\e[92mEthernet:\e[0m "
   if [ -n "$ETH_INT" ] && [ -n "$ETH_IP" ]; then
@@ -78,17 +78,12 @@ show_wired()
 
 show_wireless()
 {
-  WIFI_INT=$(/usr/bin/nmcli dev | awk '/wifi/ { print $1 }')
+  WIFI_INT=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
 
   if [ -n "$WIFI_INT" ]; then
-    WIFI_IP=$(/sbin/ip -o -4 addr show | awk -v name="$WIFI_INT" '$0~name { print $4" ("$2")" }')
-    WIFI_DEV=$(/usr/bin/lspci | awk '/Network controller/ {print $8}')
-    case "$WIFI_DEV" in
-      BCM4313|BCM43228 )
-        WIFI_SIG="Not available" ;;
-      * )
-        WIFI_SIG="$(/sbin/iw "$WIFI_INT" station dump | awk '/signal:/ { print $2 }') dBm"
-    esac
+    WIFI_IP=$(/sbin/ip -o -4 addr show | awk -v name="$WIFI_INT" '$0~name {print $4" ("$2")"}')
+    WIFI_SIG="$(/sbin/iw "$WIFI_INT" station dump | awk '/signal:/ {print $2,$3;exit}')"
+    [ -z "$WIFI_SIG" ] && WIFI_SIG="Not available"
   fi
 
   echo -en "\t\e[92mWireless:\e[0m "
@@ -106,9 +101,9 @@ show_wireless()
 show_gateway_dns()
 {
   echo -e "\e[32mDefault Gateway:\e[0m"
-  /sbin/ip route | awk '/default/ { print "\t"$5": "$3 }'
+  /sbin/ip route | awk '/default/ {print "\t"$5": "$3}'
   echo -e "\e[32mDNS Servers:\e[0m"
-  /usr/bin/nmcli dev show | awk '/IP4.DNS/ { printf "\t%s\n",$2 }'
+  /usr/bin/nmcli dev show | awk '/IP4.DNS/ {printf "\t%s\n",$2}'
 }
 
 ## Execution ##
