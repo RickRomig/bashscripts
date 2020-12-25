@@ -29,22 +29,22 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.1.9"
-readonly UPDATED="24 Sep 2020"
+readonly VERSION="0.1.10"
+readonly UPDATED="25 Dec 2020"
 
 ## Functions ##
 
-help()
-{
+help() {
   echo "$SCRIPT $VERSION, Upated: $UPDATED"
-  echo "Usage: $SCRIPT [option]"
-  echo "OPTIONS"
-  echo -e "  -h | --help\tdisplays this help message."
-  echo -e "  --version\tdisplays the version and information about the script."
+  echo -e "\e[32mUsage:\e[0m $SCRIPT [option]"
+  echo -e "\e[33mOPTIONS\e[0m"
+  echo -e "$SCRIPT \t\t# displays battery health."
+  echo -e "$SCRIPT -h\t# displays this help message."
+  echo -e "$SCRIPT --help\t# displays this help message."
+  echo -e "$SCRIPT --version\t# displays the version and information about the script."
 }
 
-version()
-{
+version() {
   cat << _EOF_
 $SCRIPT $VERSION, Upated: $UPDATED
 Displays the charge state and health of a laptop battery using data obtained
@@ -52,21 +52,18 @@ from the upower utilty.
 _EOF_
 }
 
-function die()
-{
+function die() {
   local MSG="$1"	    # message
   local EC=${2-1}	    # default exit status 1
   echo -e "\n\e[91mERROR:\e[0m $MSG" >&2
   exit "$EC"
 }
 
-cleanup()
-{
+cleanup() {
   [ -f "$UPOWER_FILE" ] && rm -f "$UPOWER_FILE"
 }
 
-battery_status()
-{
+battery_status() {
   echo -e "\n\e[33mBattery charge:\e[0m"
   grep --color=never -E "state|to\ full|to\ empty|percentage" "$UPOWER_FILE"
 }
@@ -77,8 +74,7 @@ battery_capacity()
   (grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$UPOWER_FILE"
 }
 
-warning_level()
-{
+warning_level() {
   ENERGY_DES=$(awk '/energy-full-design:/ {print $2}' "$UPOWER_FILE" | sed 's/ wh//')
   ENERGY_DES="${ENERGY_DES%%.*}"
   ENERGY_ACT=$(awk '/energy-full:/ {print $2}' "$UPOWER_FILE" | sed 's/ wh//')
@@ -93,8 +89,7 @@ warning_level()
   fi
 }
 
-battery_condition()
-{
+battery_condition() {
   warning_level
   WARN_LEVEL="$?"
   if [ "$WARN_LEVEL" -le "0" ]; then
@@ -108,8 +103,7 @@ battery_condition()
   fi
 }
 
-ac_status()
-{
+ac_status() {
   STATUS=$(/usr/bin/upower -i $(/usr/bin/upower -e | grep 'AC') | awk '/online:/ {print $2}')
   echo -e "\n\e[33mAC Power:\e[0m"
   echo -n "    Laptop is "
@@ -120,10 +114,11 @@ ac_status()
 ## Execution ##
 
 clear
-if [[ $# = 1 ]]; then
+if [[ $# > 0 ]]; then
   case "$1" in
     -h|--help ) help; exit;;
     --version ) version; exit;;
+    * ) die "Invalid argument." 1
   esac
 fi
 
@@ -145,8 +140,7 @@ if [ -d /proc/acpi/button/lid/ ]; then
     ac_status
   fi
 else
-  echo $'\n'$"This system is not a laptop."
-  echo "No battery detected."
+  echo $'\n'$"This system is not a laptop. No battery detected."
 fi
 
 echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)"
