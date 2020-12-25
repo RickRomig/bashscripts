@@ -31,40 +31,34 @@
 
 set -e
 
-install_updates()
-{
+install_updates() {
   echo -e "\n\e[33mInstalling updates ...\e[0m"
   sudo apt-get full-upgrade -yy
 }
 
-clean_cache()
-{
+clean_cache() {
   echo -e "\n\e[33mCleaning up apt cache ...\e[0m"
   sudo apt-get autoclean
 }
 
-remove_orphans()
-{
+remove_orphans() {
   echo -e "\n\e[33mRemoving orphaned packages ...\e[0m"
   sudo apt-get autoremove -yy
 }
 
-all_done()
-{
+all_done() {
   echo -en "\n\e[33mUpdate complete. $NUPD "
   [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
   echo -e " installed.\e[0m"
 }
 
-defer_updates()
-{
+defer_updates() {
   echo -en "\n\e[1;33mNo updates installed. $NUPD "
   [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
   echo -e " deferred.\e[0m"
 }
 
-format_time()
-{
+format_time() {
   ET="$1"
   ((h=ET/3600))
   ((m=(ET%3600)/60))
