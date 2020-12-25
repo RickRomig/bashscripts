@@ -1,5 +1,13 @@
 # Changelog for bashscripts
 
+### 24 December 2020
+
+**rename-host 2.1.3**
+
+- Add GNU GPL v2.0 to header.
+
+- Removed instuction to reboot. All you should need to do to check the changes is to open a new terminal or a terminal tab.
+
 ### 26 September 2020
 
 **ip-info 2.2.0**
