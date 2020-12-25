@@ -4,9 +4,19 @@
 
 **rename-host 2.1.3**
 
-- Add GNU GPL v2.0 to header.
+- Added GNU GPL v2.0 to header.
 
 - Removed instuction to reboot. All you should need to do to check the changes is to open a new terminal or a terminal tab.
+
+**check-updates 1.3.0**
+
+- Removed elasped time function call from `all\_done` and `defer\_updates' functions and placed it at the end of the script.
+
+- Added GNU GPL v2.0 to header.
+
+- In the `select` do loop, replaced `\$OPT` with `\$REPLY` in the `case` statement.
+
+- Updated the options array for the `select` command.
 
 ### 26 September 2020
 
