@@ -2,7 +2,7 @@
 ###############################################################################
 # Script Name  : chekk-updates
 # Description  : check to see if updates are available
-# Dependencies : apt, cut, grep, select, sudo
+# Dependencies : apt-get, select
 # Arguments    : none
 # Author       : Richard Romig, 08 December 2018
 # Email        : rick.romig@gmail.com
@@ -27,42 +27,40 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
+# shellcheck disable=SC2034
+
 set -e
 
 install_updates()
 {
-  echo -e "\n\e[1;33mInstalling updates ...\e[0m"
-  sudo apt full-upgrade -yy
+  echo -e "\n\e[33mInstalling updates ...\e[0m"
+  sudo apt-get full-upgrade -yy
 }
 
 clean_cache()
 {
-  echo -e "\n\e[1;33mCleaning up apt cache ...\e[0m"
-  sudo apt autoclean
+  echo -e "\n\e[33mCleaning up apt cache ...\e[0m"
+  sudo apt-get autoclean
 }
 
 remove_orphans()
 {
-  echo -e "\n\e[1;33mRemoving orphaned packages ...\e[0m"
-  sudo apt autoremove -yy
+  echo -e "\n\e[33mRemoving orphaned packages ...\e[0m"
+  sudo apt-get autoremove -yy
 }
 
 all_done()
 {
-  echo -e "\n\e[1;33mUpdate complete.\e[0m"
-  echo -en "\n\e[1;33m$NUPD "
+  echo -en "\n\e[33mUpdate complete. $NUPD "
   [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
   echo -e " installed.\e[0m"
-  echo "Update completed in $(format_time $SECONDS)"
 }
 
 defer_updates()
 {
-  echo -e "\n\e[1;33mNo updates installed.\e[0m"
-  echo -en "\n\e[1;33m$NUPD "
+  echo -en "\n\e[1;33mNo updates installed. $NUPD "
   [ "$NUPD" -eq 1 ] && echo -n "update was" || echo -n "updates were"
   echo -e " deferred.\e[0m"
-  echo "Script completed in $(format_time $SECONDS)"
 }
 
 format_time()
@@ -75,47 +73,37 @@ format_time()
 }
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="v1.2.5"
-readonly UPDATED="18 Apr 2020"
-readonly LHOST=$HOSTNAME
-
-sudo ls > /dev/null 2>&1
+readonly VERSION="v1.3.0"
+readonly UPDATED="24 Dec 2020"
 
 SECONDS=0
 
 clear
 echo -e "\e[1;33m$SCRIPT $VERSION ($UPDATED)\e[0m"
+echo "Licensed under the GNU General Public License, version 2.0"
 echo -e "\e[1;33mChecking for updates on $LHOST...\e[0m"
-sudo apt update
+sudo apt-get update
 
-# Without the `2>/dev/null`, apt will display the following error message:
-# `WARNING: apt does not have a stable CLI interface. Use with caution in scripts.`
+NUPD=$(apt-get upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 
-NUPD=$(apt upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
-
-if (( NUPD > 0 )); then
+if [ "$NUPD" -gt 0 ]; then
   apt list --upgradeable
   echo -e "\n\e[1;33mUpdate options:\e[0m"
-  PS3="Choice: "
-  OPTIONS=("Install updates" "Install updates and clean up" \
-   "Install updates and remove orphaned packages" "Defer updates")
+  PS3="Choose an option: "
+  OPTIONS=("Install updates." "Install updates, remove orphaned packages, & clean cache." \
+   "Install updates and remove orphaned packages" "Defer updates until later.")
   select OPT in "${OPTIONS[@]}"
   do
-    case $OPT in
-      "Install updates")
-        install_updates; all_done; break ;;
-      "Install updates and clean up")
-        install_updates; remove_orphans; clean_cache; all_done; break ;;
-      "Install updates and remove orphaned packages")
-        install_updates; remove_orphans; all_done; break ;;
-      "Defer updates")
-        defer_updates; break ;;
-      *)
-        echo -e "\e[1;31mInvalid option! Try again.\e[0m" >&2 ;;
+    case $REPLY in
+      1 ) install_updates; all_done; break ;;
+      2 ) install_updates; remove_orphans; clean_cache; all_done; break ;;
+      3 ) install_updates; remove_orphans; all_done; break ;;
+      4 ) defer_updates; break ;;
+      * ) echo -e "\e[91mInvalid option! Try again.\e[0m" >&2 ;;
     esac
   done
 else
-  echo "Script completed in $(format_time $SECONDS)"
+  echo -e "\n\e[33mAll packages are up to date.\e[0m"
 fi
-
+echo "Script completed in $(format_time $SECONDS)"
 exit
