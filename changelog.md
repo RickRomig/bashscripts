@@ -1,5 +1,23 @@
 # Changelog for bashscripts
 
+### 25 December 2020
+
+**battery-check 0.2.7**
+
+- Modified `ac\_status` function. Returns 0 if not connected to AC power, 1 if connected to AC power, and 2 if AC power status cannot be determined.
+
+- Displays AC status based on status returned by `ac\_status`.
+
+- Checks for arguments other than `-h`, `--help`, or `--version`. Terminates the script if an invalid argument is passed.
+
+**check-battery 0.1.10**
+
+- 
+
+- Displays AC status based on status returned by `ac\_status`.
+
+- Checks for arguments other than `-h`, `--help`, or `--version`. Terminates the script if an invalid argument is passed.
+
 ### 24 December 2020
 
 **rename-host 2.1.3**
