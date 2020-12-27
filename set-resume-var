@@ -39,19 +39,27 @@ antix_mx()
 ## Variables ##
 
 SCRIPT=$(basename "$0")
-VERSION="1.1.2"
+VERSION="1.1.3"
 UPDATED="14 Sep 2020"
+
+## Functions ##
+
+print_message() {
+  cat <<- EOF
+  Set RESUME environment variable after an update-initramfs error message.
+  The error message wil be similar to:
+  I: The initramfs will attempt to resume from /dev/sda2
+  I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
+  I: Set the RESUME variable to override this.
+  EOF
+}
 
 ## Execution ##
 
 sudo ls > /dev/null 2>&1
 
-echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
-echo "Set RESUME environment variable after an update-initramfs error message."
-echo "The error message wil be similar to:"
-echo "I: The initramfs will attempt to resume from /dev/sda2"
-echo "I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)"
-echo "I: Set the RESUME variable to override this."
+echo -e "$SCRIPT v$VERSION (Updated: $UPDATED)\n"
+print_message
 
 # Extract swap partition UUID from blkid (Artix & Ubuntu require sudo)
 
