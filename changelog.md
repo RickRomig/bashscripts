@@ -1,20 +1,24 @@
 # Changelog for bashscripts
 
+### 27 December 2020
+
+**set-resume-var 1.1.3**
+
+- Replaced sample update-initramfs message with a function containing a heredoc.
+
 ### 25 December 2020
 
 **battery-check 0.2.7**
 
-- Modified `ac\_status` function. Returns 0 if not connected to AC power, 1 if connected to AC power, and 2 if AC power status cannot be determined.
+- Modified `ac_status` function. Returns 0 if not connected to AC power, 1 if connected to AC power, and 2 if AC power status cannot be determined.
 
-- Displays AC status based on status returned by `ac\_status`.
+- Displays AC status based on status returned by `ac_status`.
 
 - Checks for arguments other than `-h`, `--help`, or `--version`. Terminates the script if an invalid argument is passed.
 
 **check-battery 0.1.10**
 
-- 
-
-- Displays AC status based on status returned by `ac\_status`.
+- Displays AC status based on status returned by `ac_status`.
 
 - Checks for arguments other than `-h`, `--help`, or `--version`. Terminates the script if an invalid argument is passed.
 
@@ -28,11 +32,11 @@
 
 **check-updates 1.3.0**
 
-- Removed elasped time function call from `all\_done` and `defer\_updates' functions and placed it at the end of the script.
+- Removed elasped time function call from `all_done` and `defer_updates` functions and placed it at the end of the script.
 
 - Added GNU GPL v2.0 to header.
 
-- In the `select` do loop, replaced `\$OPT` with `\$REPLY` in the `case` statement.
+- In the `select` do loop, replaced `$OPT` with `$REPLY` in the `case` statement.
 
 - Updated the options array for the `select` command.
 
@@ -45,8 +49,6 @@
 - Removed the check for the WIFI device model name. If `WIFI_SIG` is empty, the strong "Not available" will be assigned and displayed.
   
   - The Broadcom BCM4313 wireless card which did work with Ubuntu 18.04, did work when I reloaded the system with Debian 10. This may have been due to a different versions of  `iw` rather than the device itself.
-  
-  - 
 
 ### 24 September 2020
 
@@ -240,7 +242,7 @@
 
 - Simplified the renaming process by using `sed` to change the hostname in both `/etc/hostname` and `/etc/hosts`.
 
-- Modified method to extract hostname from `/etc/hosts`since some distributions, noteabley Antix and MX Linux, place the host name on a line after `127.0.0.1` rather than `127.0.1.1`. If the line containing `127.0.1.1` is not found then the script looks for the second instance of `127.0.0.1`
+- Modified method to extract hostname from `/etc/hosts`since some distributions, noteably Antix and MX Linux, place the host name on a line after `127.0.0.1` rather than `127.0.1.1`. If the line containing `127.0.1.1` is not found then the script looks for the second instance of `127.0.0.1`
 
 - The new hostname should be passed to the script in double-quotoes to prevent unexpected results. In testing wth AntiX and MX-Linux, the `sed` command produced several repeated characters when substituting the old host name with the new hostname unless the argument was in quotes.
 
@@ -728,7 +730,7 @@
 
 **chkupdates v1.1.5**
 
-* Changed line displayed when exiting if there are availabel updates.
+* Changed line displayed when exiting if there are available updates.
   
   ```
   # Old code:
@@ -919,8 +921,7 @@
   cpuinfo=$(/usr/bin/lscpu | awk '/Model name/ {print $3" "$4" "$5" " $6" "$7" "$8" "$9}')
   ```
 
-* Changed method for obtaining the hard drive model, serial number, and capacity to use awk
-  instead of grep and cut.
+* Changed method for obtaining the hard drive model, serial number, and capacity to use awk instead of grep and cut.
   
   ```
   # Old code:
