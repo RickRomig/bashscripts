@@ -8,7 +8,7 @@
 # Email        : rick.romig@gmail.com
 # Comments     : Lists available updates, if any.
 #              : For Debian/Ubuntu-based Linux distributions
-# Last updated : 18 Apr 2020
+# Last updated : 24 Dec 2020
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -33,7 +33,7 @@ set -e
 
 install_updates() {
   echo -e "\n\e[33mInstalling updates ...\e[0m"
-  sudo apt-get full-upgrade -yy
+  sudo apt-get dist-upgrade -yy
 }
 
 clean_cache() {
@@ -67,8 +67,8 @@ format_time() {
 }
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="v1.3.0"
-readonly UPDATED="24 Dec 2020"
+readonly VERSION="v1.3.1"
+readonly UPDATED="21 Jan 2021"
 
 SECONDS=0
 
@@ -76,16 +76,20 @@ clear
 echo -e "\e[1;33m$SCRIPT $VERSION ($UPDATED)\e[0m"
 echo "Licensed under the GNU General Public License, version 2.0"
 echo -e "\e[1;33mChecking for updates on $LHOST...\e[0m"
+
 sudo apt-get update
 
 NUPD=$(apt-get upgrade -s 2>/dev/null | grep -P '^\d+ upgraded' | cut -d" " -f1)
 
 if [ "$NUPD" -gt 0 ]; then
+  echo -en "\e[33m$NUPD "
+  (( NUPD > 1 )) && echo -n "packages" || echo -n "package"
+  echo " can be upgraded.${normal}"
   apt list --upgradeable
-  echo -e "\n\e[1;33mUpdate options:\e[0m"
+  echo -e "\n\e[4;33mUpdate options:\e[0m"
   PS3="Choose an option: "
   OPTIONS=("Install updates." "Install updates, remove orphaned packages, & clean cache." \
-   "Install updates and remove orphaned packages" "Defer updates until later.")
+   "Install updates & remove orphaned packages" "Defer updates until later.")
   select OPT in "${OPTIONS[@]}"
   do
     case $REPLY in
@@ -93,7 +97,7 @@ if [ "$NUPD" -gt 0 ]; then
       2 ) install_updates; remove_orphans; clean_cache; all_done; break ;;
       3 ) install_updates; remove_orphans; all_done; break ;;
       4 ) defer_updates; break ;;
-      * ) echo -e "\e[91mInvalid option! Try again.\e[0m" >&2 ;;
+      * ) echo -e "\e[91mInvalid option!\e[0m Select 1..4" >&2 ;;
     esac
   done
 else
