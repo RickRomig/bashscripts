@@ -30,8 +30,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.7"
-readonly UPDATED="25 Dec 2020"
+readonly VERSION="0.2.8"
+readonly UPDATED="21 Jan 2021"
 
 ## Functions ##
 
@@ -46,12 +46,12 @@ help() {
 }
 
 version() {
-  cat << _EOF_
-$SCRIPT $VERSION, Upated: $UPDATED
-Displays the charge state and health of a laptop battery using data obtained
-from files in the /sys/class/power_supply/BAT*. Capacity information may shown
-in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
-_EOF_
+  cat <<- EOF
+  $SCRIPT $VERSION, Upated: $UPDATED
+  Displays the charge state and health of a laptop battery using data obtained
+  from files in the /sys/class/power_supply/BAT*. Capacity information may shown
+  in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
+EOF
 }
 
 function die() {
@@ -67,7 +67,7 @@ battery_status() {
   BAT_STATUS=$(awk '{print $1}' "$BATTERY/status")
   [ -f "$BATTERY/capacity" ] || die "Problem with the battery! Replace it!"
   BAT_CHARGE=$(awk '{print $1}' "$BATTERY/capacity")
-  [ "$BAT_STATUS" = "Discharging" ] && [ "$BAT_CHARGE" -le 25 ] && WARN="\U26A0\UFE0F"
+  [[ "$BAT_STATUS" = "Discharging" && "$BAT_CHARGE" -le 25 ]] && WARN="\U26A0\UFE0F"
   echo -e "\t\e[92mStatus:\e[0m $BAT_STATUS"
   echo -e "\t\e[92mCharge:\e[0m $BAT_CHARGE%  $WARN"
 }
@@ -88,7 +88,7 @@ battery_capacity() {
   INT_DES="${DESIGN_MAX%%.*}"
   INT_ACT="${ACTUAL_MAX%%.*}"
 
-  if [ "$INT_DES" -eq 0 ] || [ "$INT_ACT" -eq 0 ]; then
+  if [[ "$INT_DES" -eq 0 || "$INT_ACT" -eq 0 ]]; then
     CAP_PERCENT="0"
   else
     CAP_PERCENT=$(echo "100/${DESIGN_MAX}*${ACTUAL_MAX}" | bc -l)
@@ -136,11 +136,11 @@ ac_status() {
 ## Execution ##
 
 clear
-if [[ $# > 0 ]]; then
+if [ $# -gt 0 ]; then
   case "$1" in
     -h|--help ) help; exit ;;
     --version ) version; exit ;;
-    * ) die "Invalid argument." 1
+    * ) die "Invalid argument." 1 ;;
   esac
 fi
 
@@ -160,9 +160,9 @@ if [ -d /proc/acpi/button/lid/ ]; then
   AC_STATUS="$?"
   echo -en "\tLaptop is "
   case "$AC_STATUS" in
-    0 ) echo "not plugged in to AC power."
-    1 ) echo "plugged in to AC power."
-    * ) echo "AC power status cannot be determined."
+    0 ) echo "not plugged in to AC power." ;;
+    1 ) echo "plugged in to AC power." ;;
+    * ) echo "AC power status cannot be determined." ;;
   esac
 else
   echo $'\n'$"This system is not a laptop."
