@@ -1,5 +1,39 @@
 # Changelog for bashscripts
 
+### 21 January 2021
+
+**battery-check 0.2.8**
+
+- Modified heredoc in `version()` function for better readabilty and format.
+
+- Combined conditional statements in `battery_status()` and `battery_capacity()` functions to use double brackets.
+
+- Changed the conditional statement at the beginning of the "Execution" section from double to single brackets and replaced the `<` with `-gt`.
+
+- Fixed case statements by to include `;;` at the end of each case.
+
+**check-battery 0.1.11**
+
+- Modified heredoc in `version()` function for better readabilty and format.
+
+- Combined conditional statements in the `warning_level()` function to use double brackets.
+
+- Changed the conditional statement at the beginning of the "Execution" section from double to single brackets and replaced the `<` with `-gt`.
+
+- Fixed case statements by to include `;;` at the end of each case.
+
+- In the `ac_status()` function, placed the seconde upower command in double quotes to prevent word splitting.
+
+**clean-bin 2.0.8**
+
+- Removed unused variable `CURDIR`.
+
+**check-updates 1.3.1**
+
+- In `install_updates()`, changed `apt-get full-upgrade` to `apt-get dist-upgrade`.
+
+- Added code to display how many packages can be upgraded.
+
 ### 27 December 2020
 
 **set-resume-var 1.1.3**
