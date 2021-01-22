@@ -29,8 +29,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.1.10"
-readonly UPDATED="25 Dec 2020"
+readonly VERSION="0.1.11"
+readonly UPDATED="21 Jan 2021"
 
 ## Functions ##
 
@@ -45,11 +45,11 @@ help() {
 }
 
 version() {
-  cat << _EOF_
-$SCRIPT $VERSION, Upated: $UPDATED
-Displays the charge state and health of a laptop battery using data obtained
-from the upower utilty.
-_EOF_
+  cat <<- EOF
+  $SCRIPT $VERSION, Upated: $UPDATED
+  Displays the charge state and health of a laptop battery using data obtained
+  from the upower utilty.
+EOF
 }
 
 function die() {
@@ -80,7 +80,7 @@ warning_level() {
   ENERGY_ACT=$(awk '/energy-full:/ {print $2}' "$UPOWER_FILE" | sed 's/ wh//')
   ENERGY_ACT="${ENERGY_ACT%%.*}"
 
-  if [ "$ENERGY_ACT" -eq 0 ] || [ "$ENERGY_DES" -eq 0 ]; then
+  if [[ "$ENERGY_ACT" -eq 0 || "$ENERGY_DES" -eq 0 ]]; then
     return 0
   else
     CAP=$(awk '/capacity/ {print $2}' "$UPOWER_FILE" | sed 's/%//') # strip off '%'
@@ -104,21 +104,21 @@ battery_condition() {
 }
 
 ac_status() {
-  STATUS=$(/usr/bin/upower -i $(/usr/bin/upower -e | grep 'AC') | awk '/online:/ {print $2}')
+  STATUS=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $2}')
   echo -e "\n\e[33mAC Power:\e[0m"
   echo -n "    Laptop is "
   [ "$STATUS" = "no" ] && echo -n "not "
-  echo "plugged in."
+  echo "plugged in to AC power."
 }
 
 ## Execution ##
 
 clear
-if [[ $# > 0 ]]; then
+if [ $# -gt 0 ]; then
   case "$1" in
-    -h|--help ) help; exit;;
-    --version ) version; exit;;
-    * ) die "Invalid argument." 1
+    -h|--help ) help; exit ;;
+    --version ) version; exit ;;
+    * ) die "Invalid argument." 1 ;;
   esac
 fi
 
