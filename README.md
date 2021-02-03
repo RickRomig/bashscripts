@@ -53,6 +53,18 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 2. On Linux Mint systems (and probably other Ubuntu-based distributions) locale information is often stored in a single archive and can't be read by update-initramfs. The fix is to purge the existing locales and to store them in individual directories instead of in an archive then run `update-initramfs` with the -u and -t flags.
 
+### pwfeedback.sh
+
+1. A menu-driven script to enable/disable the display of asterisks on the command line when typing in a sudo password.
+
+2. The script assumes that if password feedback is enabled, it is either in `/etc/sudoers` or with `/etc/sudoers.d/0pwfeedback`.
+
+3. The script checks for the term pwfeedback in `/etc/sudoers` or the existence of `/etc/sudoers.d/0pwfeedback`.
+   
+   1. If you wish to enable password feedback and it has not been already enabled, the `0pwfeedback` file is created. The is the method Linux Mint uses to enable this feature.
+   
+   2. if  password feedback is enabled and you wish to disable the feature, the `0pwfeedback` file is removed, if it exists. Otherwise, you are instructed to edit the sudoers file using 'sudo visudo' .
+
 ### rename-host
 
 1. A script to rename the system's hostname, changing it in `/etc/hostname` and in `/etc/hosts`, ensuring that the hostname in each of the files is the same.
@@ -162,7 +174,7 @@ Richard Romig
 
  🇺🇸 🇵🇭
 
-30 July 2020
+3 February 2021
 
 ### DISCLAIMER
 
