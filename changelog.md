@@ -1,5 +1,11 @@
 # Changelog for bashscripts
 
+### 3 February 2021
+
+**pwfeedback.sh 1.0.0**
+
+- Added to repository and updated README.md.
+
 ### 21 January 2021
 
 **battery-check 0.2.8**
