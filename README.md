@@ -61,7 +61,7 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
 
 3. The script checks for the term pwfeedback in `/etc/sudoers` or the existence of `/etc/sudoers.d/0pwfeedback`.
    
-   1. If you wish to enable password feedback and it has not been already enabled, the `0pwfeedback` file is created. The is the method Linux Mint uses to enable this feature.
+   1. If you wish to enable password feedback and it has not been already enabled, the `0pwfeedback` file is created and the permissions are set to read-only for the user and group (root:root). The is the method Linux Mint uses to enable this feature.
    
    2. if  password feedback is enabled and you wish to disable the feature, the `0pwfeedback` file is removed, if it exists. Otherwise, you are instructed to edit the sudoers file using 'sudo visudo' .
 
@@ -143,8 +143,8 @@ I write scripts to fix a particular problem or to accomplish a routine task and 
    * Operating system (uname)
    * Linux distribution (lsb_release)
    * Filesystem creation date (df, tune2fs)
-   * CPU model (lscpu)
-   * Amount of physical memory (free -h)
+   * CPU model (lscpu) and number of threads (nproc)
+   * Amount of physical memory (free -h) and type (dmidecode)
    * Graphics adapter (lspci)
    * Network adapters (wired and wireless) with device names and MAC addresses (lspci, nmcli, /sys/class/net/)
    * Hard disk information - model, serial number, and capacity (hdparm)
@@ -168,13 +168,13 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * [GitHub](https://github.com/RickRomig/bashscripts)
 * [Rick's Tech Stuff](https://ricktech.wordpress.com)
 * [Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
-* Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rb_romig@twc.com](mailto:rb_romig@twc.com)
+* Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romgi@mymetronet.net](mailto:rick.romig@mymentronet.net)
 
 Richard Romig
 
  🇺🇸 🇵🇭
 
-3 February 2021
+23 September 2022
 
 ### DISCLAIMER
 
