@@ -6,7 +6,8 @@
 # Arguments    : None
 # Author       : Richard B. Romig, 30 Jul 2020
 # Email        : rick.romig@gmail.com
-# Comments     : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
+# Comments     : Obtains battery data from upower utility.
+#              : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
 # TODO (Rick)  :
 ###############################################################################
 
@@ -29,8 +30,8 @@
 ## Variables ##
 
 readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.1.11"
-readonly UPDATED="21 Jan 2021"
+readonly VERSION="0.2.0"
+readonly UPDATED="21 Mar 2021"
 
 ## Functions ##
 
@@ -60,31 +61,28 @@ function die() {
 }
 
 cleanup() {
-  [ -f "$UPOWER_FILE" ] && rm -f "$UPOWER_FILE"
+  [ -f "$UPOWER_DATA" ] && rm -f "$UPOWER_DATA"
 }
 
 battery_status() {
   echo -e "\n\e[33mBattery charge:\e[0m"
-  grep --color=never -E "state|to\ full|to\ empty|percentage" "$UPOWER_FILE"
+  grep --color=never -E "state|to\ full|to\ empty|percentage" "$UPOWER_DATA"
 }
 
 battery_capacity()
 {
   echo -e "\n\e[33mBattery health:\e[0m"
-  (grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$UPOWER_FILE"
+  (grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$UPOWER_DATA"
 }
 
 warning_level() {
-  ENERGY_DES=$(awk '/energy-full-design:/ {print $2}' "$UPOWER_FILE" | sed 's/ wh//')
-  ENERGY_DES="${ENERGY_DES%%.*}"
-  ENERGY_ACT=$(awk '/energy-full:/ {print $2}' "$UPOWER_FILE" | sed 's/ wh//')
-  ENERGY_ACT="${ENERGY_ACT%%.*}"
+  ENERGY_DES=$(awk '/energy-full-design:/ {printf "%i", $2}' "$UPOWER_DATA")
+  ENERGY_ACT=$(awk '/energy-full:/ {printf "%i", $2}' "$UPOWER_DATA")
 
   if [[ "$ENERGY_ACT" -eq 0 || "$ENERGY_DES" -eq 0 ]]; then
     return 0
   else
-    CAP=$(awk '/capacity/ {print $2}' "$UPOWER_FILE" | sed 's/%//') # strip off '%'
-    CAP=$(echo "$CAP" | awk '{printf "%i", $1}')  # Get integer portion of number
+    CAP=$(awk '/capacity/ {printf "%i", $2}' "$UPOWER_DATA")
     return "$CAP"
   fi
 }
@@ -126,13 +124,13 @@ echo -e "\e[1;33mBattery Status\e[0m"
 if [ -d /proc/acpi/button/lid/ ]; then
   dpkg -l | grep -qw upower || die "Missing dependency - upower is not installed."
   # dpkg -l | grep -qw upower || sudo apt install upower -yy"
-  BAT_NAME=$(/usr/bin/upower -e | grep 'BAT' | cut -d "_" -f2)
+  BAT_NAME=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
   if [ -z "$BAT_NAME" ]; then
     echo -e "\n\e[91mNo battery detected.\e[0m"
   else
-    UPOWER_FILE=$(mktemp) || die "Failed to create temporary file." 1
+    UPOWER_DATA=$(mktemp) || die "Failed to create temporary file." 1
     trap cleanup EXIT
-    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$UPOWER_FILE"
+    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$UPOWER_DATA"
     echo -e "\n\e[33mBattery:\e[0m $BAT_NAME"
     battery_status
     battery_capacity

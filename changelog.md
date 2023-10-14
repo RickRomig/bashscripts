@@ -1,5 +1,25 @@
 # Changelog for bashscripts
 
+### 4 February 2021
+
+**pwfeedback.sh 1.0.1**
+
+- Incorporated variables for filenames.
+
+- Modified line to set permissions for `/etc/sudoers.d/0pwfeedback` to read only for owner and group (root:root).
+
+**system-info 2.1.8**
+
+- Added code to display the type of memory in the system (DDR2, DDR3, DDR4, etc).
+
+- Changed code to display the amount of physical memory as an integer amount (8 GB, 16 GB, etc).
+
+- Added code to display the number of CPU threads.
+
+- Added check to install `upower` utility if it's not already installed (needed for battery informaton).
+
+- Changed the `upower` command to the 
+
 ### 3 February 2021
 
 **pwfeedback.sh 1.0.0**

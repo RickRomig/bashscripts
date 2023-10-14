@@ -4,14 +4,16 @@
 # Description  : Gathers system information to a file in home directory
 # Dependencies : apt, awk, cut, date, dmidecode, df, dpkg, free, grep, hdpram,
 #              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs uname
-# Args         : None
+# Arguments    : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Comment      : Requires root/sudo privileges
+# Comments     : Requires root/sudo privileges
 # dmidecode may produce error messages in some systems. They can be
 # safely ignored and removed from the file with any text editor.
-# Last Updated : 15 Jun 2020
-# TODO (Rick)  :
+# hdparm may display extraneous info which can be removed in a text editor.
+# lsblk may incorrectly display the home partition, if timeshift was installed
+# and configured to save snapshots to the /home. This may be edited.
+# Last Updated : 04 Feb 2021
 ###############################################################################
 # Copyright (C) 2018  Richard Romig
 # Email: rick.romig@gmail.com
@@ -35,6 +37,7 @@ sudo ls > /dev/null 2>&1
 # hdparm needed to extract hard drive information
 
 dpkg -l | grep -qw hdparm || sudo apt install hdparm -yyq
+dpkg -l | grep -qw upower || sudo apt install upower -yyq   # laptop battery
 
 # Base variables
 
@@ -42,7 +45,7 @@ HOMEDIR=$HOME
 LHOST=$(/bin/uname -n)
 INFOFILE="$HOMEDIR/$LHOST.info"
 TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.7"
+VERSION="v 2.1.8"
 
 # Computer information
 
@@ -56,13 +59,14 @@ SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
 OSNAME=$(/bin/uname -o)
 DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
 ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
-INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" \
- | awk '/Filesystem created/ {print $5,$4,$7}')
+INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | awk '/Filesystem created/ {print $5,$4,$7}')
 
 # CPU, RAM and video
 
 CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' | sed "s/([^)]*)//g")
-PHYSMEM="$(/usr/bin/free -h | awk '/^Mem:/ {print $2}')"
+THREADS=$(/usr/bin/nproc --all)
+PHYSMEM=$(/usr/bin/free -h | awk '/^Mem:/ {printf "%.0f\n", $2 + 0.5}')
+RAMTYPE=$(sudo /usr/sbin/dmidecode --type 17 | awk '/DDR/ {print $2; exit}')
 VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
 
 # Network
@@ -74,13 +78,13 @@ WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
 
 # Battery
 
-BATTERY=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'BAT')" | awk '/native-path/ {print $2}')
+BATTERY=$(/usr/bin/upower -e | grep 'BAT' | cut -d'_' -f2)
 
 # Write data to file in user's home directory
 
 clear
 {
-  echo "System-Info ($VERSION), Copyright 2019, Richard Romig"
+  echo "System-Info ($VERSION), Copyright 2019-2021, Richard Romig"
   echo $'\n'$"System information for $LHOST as of $TODAY"
   echo "Manufacturer:  $MFGNAME"
   echo "Product name:  $PRODNAME"
@@ -90,8 +94,8 @@ clear
   echo "Distribution:       $DISTRO"
   echo "Filesystem created: $INSTALLED"
   echo $'\n'$"Hardware:"
-  echo "  CPU:  $CPUINFO"
-  echo "  RAM:  $PHYSMEM"
+  echo "  CPU:  $CPUINFO (Threads: $THREADS)"
+  echo "  RAM:  $PHYSMEM GB $RAMTYPE"
   echo "  Graphics:"
   echo "    $VIDEO"
   if [ -n "$ETHERNETDEV" ]; then
