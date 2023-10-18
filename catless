@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : catless
+# Description  : view text file with less or cat based on terminal window size.
+# Dependencies : None
+# Arguments    : $1 -> file to be viewed
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 18 Oct 2023
+# Last updated : 18 Oct 2023
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="18 Oct 2023"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [filename] [-h] [--help]
+
+$_script displays a text file using either cat or less depending the number of
+lines in the file and the number of rows in the current terminal window. Less 
+is used when the number of lines is greater than the 87% of the rows, otherwise
+cat is used.
+
+$_script $_version (Updated $_updated)	
+END_HELP
+  exit "$errcode"
+}
+
+## Execution ##
+
+# Check arguments
+if [[ $# -eq 0 ]]; then
+  printf "%s No argument passed.\n" "$red_error" >&2
+  usage 2
+elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+  usage 0
+elif [[ ! -f "$1" ]]; then
+  printf "%s %s not found.\n" "$red_error" "$1" >&2
+  usage 2
+else
+  filename="$1"
+fi
+
+max=$(( $(tput lines)*87/100 ))
+size=$(wc -l "$filename" |  cut -d' ' -f1)
+
+# clear
+box "File: $filename"
+if (( size < max )); then
+	cat "$filename"
+	over_line "$_script $_version (Updated $_updated)" "*"
+	# print_line "-" 36
+else
+	less "$filename"
+	echo "$_script $_version (Updated $_updated)"
+fi
+
+exit
