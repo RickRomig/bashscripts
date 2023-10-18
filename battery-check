@@ -1,173 +1,218 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : battery-check
 # Description  : Display charge and health statics of a laptop battery
-# Dependencies : None
-# Arguments    : None
-# Author       : Richard B. Romig, 28 Jul 2020
-# Email        : rick.romig@gmail.com
-# Comments     : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
+# Dependencies : bc (not installed by default on BunsenLabs Beryllium)
+# Arguments    : -h, --help, -v --version
+# Author       : Copyright (C) 2020, Richard B. Romig, 28 Jul 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Uses data from /sys/class/power_supply/BAT*
+#              : Batttery health based on a script by Elias W (eliasw4u on Ezeetalk.com)
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
-#              : Supports multiple batteries.
 # TODO (Rick)  :
-###############################################################################
-# Copyright (C) 2020, Richard B. Romig
+# License      : GNU General Public License, version 2
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+###############################################################################
+
+# Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 ## Variables ##
 
-readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.8"
-readonly UPDATED="21 Jan 2021"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.6.2"
+readonly _updated="05 Oct 2023"
 
 ## Functions ##
 
 help() {
-  echo "$SCRIPT $VERSION, Upated: $UPDATED"
-  echo -e "\e[32mUsage:\e[0m $SCRIPT [option]"
-  echo -e "\e[33mOPTIONS\e[0m"
-  echo -e "$SCRIPT \t\t# displays battery health."
-  echo -e "$SCRIPT -h\t# displays this help message."
-  echo -e "$SCRIPT --help\t# displays this help message."
-  echo -e "$SCRIPT --version\t# displays the version and information about the script."
+  local errcode="${1:-2}"
+  cat <<- EOF
+  ${green}Usage:${normal} $_script [option]
+  With no argument, displays battery health information.
+  ${orange}OPTIONS:${normal}
+  -h        # displays this help message.
+  --help    # displays this help message.
+  -v        # displays the version and information about the script.
+  --version # displays the version and information about the script.
+  $_script $_version, Upated: $_updated
+EOF
+  exit "$errcode"
 }
 
 version() {
   cat <<- EOF
-  $SCRIPT $VERSION, Upated: $UPDATED
+  $_script $_version, Updated: $_updated
   Displays the charge state and health of a laptop battery using data obtained
-  from files in the /sys/class/power_supply/BAT*. Capacity information may shown
+  from files in /sys/class/power_supply/BAT*. Capacity information may be shown
   in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
 EOF
 }
 
-function die() {
-  local MSG="$1"	    # message
-  local EC=${2-1}	    # default exit status 1
-  echo -e "\e[91mERROR:\e[0m $MSG" >&2
-  exit "$EC"
-}
-
 battery_status() {
-  echo -e "\n\e[33mBattery charge:\e[0m"
-  [ -f "$BATTERY/status" ] || die "Problem with the battery! Replace it!"
-  BAT_STATUS=$(awk '{print $1}' "$BATTERY/status")
-  [ -f "$BATTERY/capacity" ] || die "Problem with the battery! Replace it!"
-  BAT_CHARGE=$(awk '{print $1}' "$BATTERY/capacity")
-  [[ "$BAT_STATUS" = "Discharging" && "$BAT_CHARGE" -le 25 ]] && WARN="\U26A0\UFE0F"
-  echo -e "\t\e[92mStatus:\e[0m $BAT_STATUS"
-  echo -e "\t\e[92mCharge:\e[0m $BAT_CHARGE%  $WARN"
+  printf "\n%sBattery charge:%s\n" "$orange" "$normal"
+  [[ -f "$battery_path/status" ]] || die "Problem with the battery! Replace it!"
+  bat_status=$(cat "$battery_path/status")
+  [[ -f "$battery_path/capacity" ]] || die "Problem with the battery! Replace it!"
+  bat_charge=$(cat "$battery_path/capacity")
+  [[ "$bat_status" == "Discharging" && "$bat_charge" -le 25 ]] && warn="\U26A0\UFE0F"
+  printf "\t%sStatus:%s %s\n" "$lightgreen" "$normal" "$bat_status"
+  printf "\t%sCharge:%s %s%%  %s\n" "$lightgreen" "$normal" "$bat_charge" "$warn"
 }
 
 battery_capacity() {
-  if [ -f "$BATTERY/charge_full" ]; then
-    ACTUAL_FULL="charge_full"
-    DESIGN_FULL="charge_full_design"
-    UNIT="Ah"
+  if [[ -f "$battery_path/charge_full" ]]; then
+    actual_full="charge_full"
+    design_full="charge_full_design"
+    unit="Ah"
   else
-    ACTUAL_FULL="energy_full"
-    DESIGN_FULL="energy_full_design"
-    UNIT="Wh"
+    actual_full="energy_full"
+    design_full="energy_full_design"
+    unit="Wh"
   fi
 
-  ACTUAL_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BATTERY/$ACTUAL_FULL")
-  DESIGN_MAX=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$BATTERY/$DESIGN_FULL")
-  INT_DES="${DESIGN_MAX%%.*}"
-  INT_ACT="${ACTUAL_MAX%%.*}"
+  actual_max=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$battery_path/$actual_full")
+  design_max=$(awk 'NF{print $1/1000000}' OFMT="%2.2f" "$battery_path/$design_full")
+  int_des="${design_max%%.*}"
+  int_act="${actual_max%%.*}"
 
-  if [[ "$INT_DES" -eq 0 || "$INT_ACT" -eq 0 ]]; then
-    CAP_PERCENT="0"
+  if [[ "$int_des" -eq 0 || "$int_act" -eq 0 ]]; then
+    cap_percent="0"
+    bat_health="0"
   else
-    CAP_PERCENT=$(echo "100/${DESIGN_MAX}*${ACTUAL_MAX}" | bc -l)
-    BAT_HEALTH=$(echo "$CAP_PERCENT" | awk 'NF{print $1/1}' OFMT="%2.2f")
+    cap_percent=$(echo "100/${design_max}*${actual_max}" | bc -l)
+    bat_health=$(echo "$cap_percent" | awk 'NF{print $1/1}' OFMT="%2.2f")
   fi
 
-  echo -e "\n\e[33mBattery health:\e[0m"
-  echo -e "\t\e[92mActual capacity:\e[0m $ACTUAL_MAX $UNIT"
-  echo -e "\t\e[92mDesign capacity:\e[0m $DESIGN_MAX $UNIT"
-  echo -e "\t\e[92mBattery health:\e[0m  $BAT_HEALTH%"
-  battery_condition "$CAP_PERCENT"
+  printf "\n%s%-17s%s\n" "$orange" "Battery health:" "$normal"
+  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Actual capacity:" "$normal" "$actual_max" "$unit"
+  printf "\t%s%-17s%s %s %s\n" "$lightgreen" "Design capacity:" "$normal" "$design_max" "$unit"
+  printf "\t%s%-17s%s %s%%\n" "$lightgreen" "Battery health:" "$normal" "$bat_health"
+  battery_condition "$cap_percent"
 }
 
 battery_condition() {
-  CAP_PCT="$1"
-  C_PCT="${CAP_PCT%%.*}"
-  if [ "$C_PCT" -eq 0 ]; then
-    WARN_LEVEL=0
+  local cap_pct="$1"
+  local c_pct="${cap_pct%%.*}"
+  if [[ "$c_pct" -eq 0 ]]; then
+    warn_level=0
   else
-    WARN_LEVEL=$(echo "$CAP_PCT" | awk 'NF{print $1/1}' OFMT="%.0f")
+    warn_level=$(echo "$cap_pct" | awk 'NF{print $1/1}' OFMT="%.0f")
   fi
 
-  if [ "$WARN_LEVEL" -le "0" ]; then
-    echo -e "\t\U26D4\e[31m  Replace the Battery!\e[0m \U26D4 "
-  elif [ "$WARN_LEVEL" -le "35" ]; then
-    echo -e "\t\U26D4\e[31m  The battery should be replaced.\e[0m \U26D4 "
-  elif [ "$WARN_LEVEL" -le "65" ]; then
-    echo -e "\t\U26A0\UFE0F\e[33m  The battery is getting weak.\e[0m \U26A0\UFE0F "
+  if [[ "$warn_level" -le "0" ]]; then
+    warn="\U1F4A9"
+    printf "\t%sReplace the Battery!%s  %\n" "$red" "$normal" "$warn"
+  elif [[ "$warn_level" -le "35" ]]; then
+    warn="\U1F622"
+    printf "\t%sThe battery should be replaced.%s  %\n" "$red" "$normal" "$warn"
+  elif [[ "$warn_level" -le "65" ]]; then
+    warn="\U26A0\UFE0F"
+    printf "\t%sThe battery is getting weak.%s  %\n" "$orange" "$normal" "$warn"
   else
-    echo -e "\e[32m\tThe battery is in good condition.\e[0m"
+    printf "\t%sThe battery is in good condition.%s\n" "$green" "$normal"
   fi
 }
 
-ac_status() {
-  if [ -d /sys/class/power_supply/AC ]; then
-    STATUS=$(cat /sys/class/power_supply/AC/online)
-  elif [ -d /sys/class/power_supply/ACAD ]; then
-    STATUS=$(cat /sys/class/power_supply/ACAD/online)
-  else
-    STATUS=2
-  fi
-  return "$STATUS"
+battery_specs() {
+  battery_data=$(cat "$battery_path"/uevent)
+  battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
+  [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
+  printf "\n%sBattery Data:%s\n" "$orange" "$normal"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Manufacturer:" "$normal" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Nodel name:" "$normal" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Serial number:" "$normal" "$battery_serial"
+  printf "\t%s%-15s%s%s\n" "$lightgreen" "Technology:" "$normal" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
+}
+
+ac_power() {
+  ac_path=$(find /sys/class/power_supply/ -name "AC*")
+  ac_status="$(cat "$ac_path/online")"
+  printf "\n%sAC Power:%s\n" "$orange" "$normal"
+  printf "\tLaptop"
+  case "$ac_status" in
+    0 )
+      printf " is not plugged in to AC power.\n"
+    ;;
+    1 )
+      printf " is plugged in to AC power.\n"
+    ;;
+    * )
+      printf "'s AC power status cannot be determined.\n"
+  esac
+}
+
+hidpp_battery() {
+  for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
+    if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
+      printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
+      printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "$(basename "$hidpp_path")"
+      printf "\t%s%s %s:%s %s%%\n" "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
+    fi
+  done
 }
 
 ## Execution ##
 
-clear
-if [ $# -gt 0 ]; then
+if [[ $# -gt 0 ]]; then
   case "$1" in
-    -h|--help ) help; exit ;;
-    --version ) version; exit ;;
-    * ) die "Invalid argument." 1 ;;
+    -h|--help )
+      help 0
+    ;;
+    -v|--version )
+      version
+      exit
+    ;;
+    * )
+      printf "%sInvalid argument: %s%s\n" "$lightred" "$1" "$normal" >&2
+      help 2
   esac
 fi
 
-echo -e "\e[1;33mBattery Status\e[0m"
-if [ -d /proc/acpi/button/lid/ ]; then
-  for BATTERY in /sys/class/power_supply/BAT?; do
-    if [ "$BATTERY" = "/sys/class/power_supply/BAT?" ]; then
-      echo -e "\n\e[91mNo battery detected.\e[0m"
-    else
-      echo -e "\n\e[33mBattery:\e[0m ${BATTERY##*/}"
-      battery_status
-      battery_capacity
-    fi
-  done
-  echo -e "\n\e[33mAC Power:\e[0m"
-  ac_status
-  AC_STATUS="$?"
-  echo -en "\tLaptop is "
-  case "$AC_STATUS" in
-    0 ) echo "not plugged in to AC power." ;;
-    1 ) echo "plugged in to AC power." ;;
-    * ) echo "AC power status cannot be determined." ;;
-  esac
+check_package bc
+clear
+printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
+if [[ -d /proc/acpi/button/lid/ ]]; then
+  battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+  if [[ -n "$battery_name" ]]; then
+    battery_path="/sys/class/power_supply/$battery_name"
+    printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
+    battery_status
+    battery_capacity
+    battery_specs
+  else
+    printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
+  fi
+  ac_power
+  hidpp_battery
 else
-  echo $'\n'$"This system is not a laptop."
-  echo "No battery detected."
+  printf "\nThis system is not a laptop.\n" >&2
 fi
-echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)\n"
+
+printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 
 exit

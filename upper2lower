@@ -1,63 +1,102 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : upper2lower
-# Description  : Renames uppercase filenames to lowercase
+# Description  : Renames uppercase in filenames to lowercase
 # Dependencies : rename
-# Args         : filename to be renamed
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
-# Comment      : If no filename is passed, renames all files in folder
-#              : to all lowercase
-###############################################################################
-# Copyright (C) 2018  Richard Romig
+# Args         : --all, --help, filename(s) to be renamed
+# Author       : Copyright (C) 2018, Richard Romig
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comment      :
+# License      : GNU General Public License, version 2.0
+##############################################################################
+
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-###############################################################################
 
-usage()
-{
-  echo "Usage: $SCRIPT [filename]"
-  echo -e "\e[1;31mWARNING!\e[0m If no filename is passed,"
-  echo "$SCRIPT will change ALL filenames in the current directory to lowercase."
-}
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
 
-SCRIPT=$(basename "$0")
-FILE="$1"
-VERSION="2.0.5"
-UPDATED="24 Feb 2020"
+## Source function library ##
 
-echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
-echo "Changes uppercase letters in files names to lowercase."
-echo "Copyright 2018, Richard Romig"
-
-# if no filename passed then get confirmation from user
-if  [ -z "$FILE"  ]; then
-  usage
-  read -rn1 -p "Are you sure you want to do this? [y/N] " YN
-  case $YN in
-    [Yy]*)
-      rename -v 'y/A-Z/a-z/' ./* ;;
-    *)
-      echo "Exiting the script. No files renamed." ;;
-  esac
-elif [ -f "$FILE" ]; then
-  rename -v 'y/A-Z/a-z/' "$FILE"
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
 else
-  echo -e "\e[1;31mERROR:\e[0m $FILE does not exist. Try again." >&2
-  usage
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
   exit 1
 fi
 
-exit
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="3.2.2"
+readonly _updated="14 Sep 2023"
+
+## Functions ##
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOF
+Renames filenames in the current directory to all lowercase.
+${orange}Usage:${normal} $_script [option] [filename1] [filename2] ...
+${orange}Options:${normal}
+  --all    change all files in the current directory.
+  --help   display this help message.
+One or more filenames may be entered to be renamed.
+$_script Filename	# Renames filename to lowercase
+$_script Filename1 Filename2	# Renames Filename1 and Filename2 to lowercase
+EOF
+  exit "$errcode"
+}
+
+upper_lower() {
+	local filename="$1"
+	if [[ -f "$filename" ]]; then
+		rename -v 'y/A-Z/a-z/' "$filename"
+	else
+		printf "%s %s not found.\n" "$red_error" "$filename" >&2
+	fi
+}
+
+## Execution ##
+
+if [[ $# -eq 0 ]]; then
+	printf "%s No argument passed.\n" "$red_error" >&2
+  help 1
+elif [[ $# -eq 1 ]]; then
+	case "$1" in
+		"--all" )
+			printf "Renaming all files in the current directory to lowercase.\n"
+			find . -maxdepth 1 -type f -exec rename -v 'y/A-Z/a-z/' {} + | sed 's/\.\///g'
+		;;
+		"--help" )
+			printf "%s help...\n" "$_script"
+			help 0
+		;;
+		--* )
+			printf "%s Invalid argument, %s\n" "$red_error"  "$1" >&2
+			help 1
+		;;
+		* )
+			printf "Renaming %s to lowercase.\n" "$1"
+			upper_lower "$1"
+	esac
+else
+	printf "Renaming selected files to lowercase.\n"
+	for fname in "$@"; do upper_lower "$fname"; done
+fi
+
+leave "$_script v$_version ($_updated)"

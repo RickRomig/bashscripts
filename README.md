@@ -8,6 +8,21 @@ I maintain a small home network of about a dozen desktops and laptops. Most of t
 
 All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to download and use them if you find them useful. Modify them to fit your own use cases. I don't ask that you send me any changes you make, but if you find a way to make them better, I'd appreciate you sharing them with me.
 
+### The Scripts
+- **battery-check** - Displays charge and health status of a laptop battery. Pulls its data from files in /sys/class/power_supply/BAT?.
+- **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
+- **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
+- **functionlib** - A library of useful functions that can be sourced by a script.
+- **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
+- **locale-fix.sh**
+- **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
+- **rename-host** - Rename the system's hostname, based on a set of rules.
+- **ren-ext** - Rename capitalized, mixed capitalization, and non-standard file extensions.
+- **ren-space** - Replaces spaces in a file name with underscores.
+- **set-resume** - Sets the RESUME environment variable with the UUID of the swap partition.
+- **system-info** - Displays system information in an easy-to-read format.
+- upper2lower** - Changes filenames to all lowercase.
+
 ### Feedback:
 
 Feel free to contact me with comments and suggestions. I can be reached through my blog, Twitter, and email.
@@ -17,9 +32,9 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * [Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
 * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romig@mymetronet.net](mailto:rick.romig@mymentronet.net)
 
-Rick Romig
-*The Luddite Geek*
-15 October 2023
+Rick Romig (*The Luddite Geek*)
+
+17 October 2023
 
 ### DISCLAIMER
 

@@ -1,130 +1,276 @@
-#!/bin/bash
-###############################################################################
+#!/usr/bin/env bash
+##########################################################################
 # Script Name  : system-info
-# Description  : Gathers system information to a file in home directory
-# Dependencies : apt, awk, cut, date, dmidecode, df, dpkg, free, grep, hdpram,
-#              : lsblk, lsb_release, lscpu, lspci, nmcli, sed, tee, tune2fs uname
-# Arguments    : None
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
-# Comments     : Requires root/sudo privileges
-# dmidecode may produce error messages in some systems. They can be
-# safely ignored and removed from the file with any text editor.
-# hdparm may display extraneous info which can be removed in a text editor.
-# lsblk may incorrectly display the home partition, if timeshift was installed
-# and configured to save snapshots to the /home. This may be edited.
-# Last Updated : 04 Feb 2021
-###############################################################################
-# Copyright (C) 2018  Richard Romig
+# Description  : Gathers system information and writes to a file in home directory
+# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli
+# Arguments    : none
+# Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Rewrite of version 2.5.0
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-###############################################################################
 
-sudo ls > /dev/null 2>&1
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
 
-# hdparm needed to extract hard drive information
+## Source function library ##
 
-dpkg -l | grep -qw hdparm || sudo apt install hdparm -yyq
-dpkg -l | grep -qw upower || sudo apt install upower -yyq   # laptop battery
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
-# Base variables
+## Variables ##
 
-HOMEDIR=$HOME
-LHOST=$(/bin/uname -n)
-INFOFILE="$HOMEDIR/$LHOST.info"
-TODAY=$(date +"%d %B %Y")
-VERSION="v 2.1.8"
+_script=$(basename "$0"); readonly _script
+readonly _version="3.4.0"
+readonly _updated="05 Oct 2023"
+readonly lhost="${HOSTNAME:-$(hostname)}"
+readonly info_file="$HOME/$lhost.info"
+today=$(date +'%d %B %Y'); readonly today
 
-# Computer information
+## Functions ##
 
-MFGNAME=$(sudo /usr/sbin/dmidecode -s system-manufacturer 2>/dev/null)
-PRODNAME=$(sudo /usr/sbin/dmidecode -s system-product-name 2>/dev/null)
-VERNAME=$(sudo /usr/sbin/dmidecode -s system-version 2>/dev/null)
-SERNUM=$(sudo /usr/sbin/dmidecode -s system-serial-number 2>/dev/null)
+check_dependencies() {
+  check_package "lshw"
+  [[ -b /dev/sda ]] && check_package hdparm
+  [[ -c /dev/nvme0 ]] && check_package nvme-cli
+}
 
-# Operating system
+cleanup() {
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+  [[ -f "$hd_data" ]] && rm -f "$hd_data"
+}
 
-OSNAME=$(/bin/uname -o)
-DISTRO=$(/usr/bin/lsb_release -d | cut -f2)
-ROOTDEV=$(/bin/df -P / | tail -1 | cut -d" " -f1)
-INSTALLED=$(sudo /sbin/tune2fs -l "$ROOTDEV" | awk '/Filesystem created/ {print $5,$4,$7}')
+save_info() {
+  printf "\n"
+  if default_yes "Save system information to ~/$(basename "$info_file")"; then
+    printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
+    cp -v "$tmp_file" "$info_file"
+    chmod 664 "$info_file"
+  else
+    printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
+  fi
+}
 
-# CPU, RAM and video
+rename_mnt_pt() {
+  local ts_path="/run/timeshift/backup"
+  ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
+  printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
+  PS3="Select the appropriate mountpoint: "
+  select opt in "/home" "/data" "/ (root)" "/run/timeshift/backup"; do
+    case $REPLY in
+      1 )
+        sed -i '/timeshift/s/run\/timeshift\/backup/home/' "$tmp_file"
+        printf "%s mountpoint changed to /home\n" "$ts_drv"
+        break
+      ;;
+      2 )
+        sed -i '/timeshift/s/run\/timeshift\/backup/data/' "$tmp_file"
+        printf "%s mountpoint changed to /data\n" "$ts_drv"
+        break
+      ;;
+      3 )
+        sed -i '/timeshift/s/run\/timeshift\/backup//' "$tmp_file"
+        printf "%s mountpoint changed to /]n" "$ts_drv"
+        break
+      ;;
+      4 )
+        printf "%s mountpoint left as is." "$ts_drv"
+        break
+      ;;
+      * )
+        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$red_error"
+    esac
+  done
+}
 
-CPUINFO=$(/usr/bin/lscpu | grep 'Model name' | cut -f 2 -d ":" | awk '{$1=$1}1' | sed "s/([^)]*)//g")
-THREADS=$(/usr/bin/nproc --all)
-PHYSMEM=$(/usr/bin/free -h | awk '/^Mem:/ {printf "%.0f\n", $2 + 0.5}')
-RAMTYPE=$(sudo /usr/sbin/dmidecode --type 17 | awk '/DDR/ {print $2; exit}')
-VIDEO=$(/usr/bin/lspci | grep 'VGA' | cut -d ' ' -f5-)
+ff_fix() {
+  printf "Form factor not displayed in Hard Disk Information.\n" >&2
+  PS3="Select form factor: " >&2
+  options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
+  select opt in "${options[@]}"; do
+    case "$REPLY" in
+      1 )
+        hd_ff="2.5 inch"
+        break
+      ;;
+      2 )
+        hd_ff="3.5 inch"
+        break
+      ;;
+      3 )
+        hd_ff="less than 1.8 inch"
+        break
+      ;;
+      4 )
+        break
+      ;;
+      * )
+        printf "%s Invalid choice!$ Choose 1, 2, 3, or 4\n1" >&2 "$red_error"
+    esac
+  done
+}
 
-# Network
+mfg_info() {
+	local dmi_dir="/sys/class/dmi/id"
+	mfg_version=$(cat $dmi_dir/product_version)
+	[[ -z "${mfg_version// }" ]] && mfg_version="Not specified"
+	mfg_serial=$(sudo cat $dmi_dir/product_serial)
+	[[ -z "${mfg_serial// }" ]] && mfg_serial="Not specified"
+	printf "%-14s %s\n" "Manufacturer:" "$(cat $dmi_dir/sys_vendor)"
+	printf "%-14s %s\n" "Product name:" "$(cat $dmi_dir/product_name)"
+	printf "%-14s %s\n" "Version:" "$mfg_version"
+	printf "%-14s %s\n" "Serial number:" "$mfg_serial"
+}
 
-ETHINT=$(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}')
-WIFIINT=$(/usr/bin/nmcli dev | awk '/wifi/ {print $1}')
-ETHERNETDEV=$(/usr/bin/lspci | grep 'Ethernet controller' | cut -d ' ' -f4-)
-WIRELESSDEV=$(/usr/bin/lspci | grep 'Network controller' | cut -d ' ' -f4-)
+os_info() {
+	r_p=$(df -P / | awk '/dev/ {print $1}')
+	created_date=$(sudo /usr/sbin/tune2fs -l "$r_p" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
+	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
+	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
+	printf "%-19s %s\n" "Filesystem created:" "$created_date"
+}
 
-# Battery
+cpu_info() {
+  model=$(lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
+  arch=$(lscpu | awk '/Architecture:/ {print $NF}')
+  threads=$(lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
+	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
+}
 
-BATTERY=$(/usr/bin/upower -e | grep 'BAT' | cut -d'_' -f2)
+memory_info() {
+	phys_mem=$(sudo lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
+	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
+	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
+	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
+}
 
-# Write data to file in user's home directory
+graphics_info() {
+	printf "%-9s %s\n" "Graphics:" "$(/usr/bin/lspci | awk -F: '/VGA/ {print $NF}' | sed 's/^ //')"
+}
 
+wired_info() {
+	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
+	if [[ -n "$eth_int" ]]; then
+		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
+		e_mac=$(cat /sys/class/net/"${eth_int}"/address)
+		printf "\nEthernet: %s\n" "$ethernet_dev"
+    printf "%15s %s\n" "Device name:" "$eth_int" "MAC address:" "$e_mac"
+	fi
+}
+
+wireless_info() {
+	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
+	if [[ -n "$wifi_int" ]]; then
+		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
+		w_mac=$(cat /sys/class/net/"${wifi_int}"/address)
+		printf "\nWireless: %s\n" "$wireless_dev"
+	  printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac"
+	fi
+}
+
+ssd_hd_info() {
+	printf "\nHard Disk Information:\n"
+	hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
+	for disk in /dev/sd[a-z]; do
+		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
+    printf "%s\n" "$(grep -w dev "$hd_data")"
+    printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
+    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | sed 's/[)(]//g')"
+    hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
+    [[ -z "$hd_ff" ]] && ff_fix
+    printf "   %-15s%s" "Form Factor:" "$hd_ff"
+    hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
+    case "$hd_rpm" in
+    	[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
+    	* ) printf " %s\n" "$hd_rpm" ;;
+    esac
+	done
+}
+
+nvme_info() {
+  printf "\nNVMe Information\n"
+  nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
+  for devline in "${nvme_data[@]}"; do
+    printf "%s\n" "$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)"
+    printf "   %-15s%s\n" "Model Number:" "$(echo "$devline" | awk '/dev/ {print $3,$4}' | sed 's/ [0-9].*$//')"
+    printf "   %-15s%s\n" "Serial Number:" "$(echo "$devline" | awk '/dev/ {print $2}')"
+    printf "   %-15s%s\n" "Capacity:" "$(echo "$devline" | awk '/dev/ {print $(NF-7),$(NF-6)}')"
+  done
+}
+
+partition_info() {
+	printf "\nPartition Information:\n"
+	lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
+}
+
+battery_info() {
+  printf "\nBattery Information:\n"
+  battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+  if [[ -n "$battery_name" ]]; then
+    battery_path="/sys/class/power_supply/$battery_name"
+    battery_data=$(cat "$battery_path"/uevent)
+    battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
+    [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
+    printf "%s\n" "$battery_name"
+    printf "   %-15s%s\n" "Manufactuer:" "$(echo "$battery_data" | awk -F= '/MANUFACTURER/ {print $NF}' | sed 's/^ //')"
+    printf "   %-15s%s\n" "Model name:" "$(echo "$battery_data" | awk -F= '/MODEL/ {print $NF}')"
+    printf "   %-15s%s\n" "Serial number:" "$battery_serial"
+    printf "   %-15s%s\n" "Technology:" "$(echo "$battery_data" | awk -F= '/TECHNOLOGY/ {print $NF}')"
+  else
+    printf "No battery detected\n"
+  fi
+}
+
+## Execution ##
+
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
+user_in_sudo
+check_dependencies
 clear
 {
-  echo "System-Info ($VERSION), Copyright 2019-2021, Richard Romig"
-  echo $'\n'$"System information for $LHOST as of $TODAY"
-  echo "Manufacturer:  $MFGNAME"
-  echo "Product name:  $PRODNAME"
-  echo "Version:       $VERNAME"
-  echo "Serial number: $SERNUM"
-  echo $'\n'$"Operating System:   $OSNAME"
-  echo "Distribution:       $DISTRO"
-  echo "Filesystem created: $INSTALLED"
-  echo $'\n'$"Hardware:"
-  echo "  CPU:  $CPUINFO (Threads: $THREADS)"
-  echo "  RAM:  $PHYSMEM GB $RAMTYPE"
-  echo "  Graphics:"
-  echo "    $VIDEO"
-  if [ -n "$ETHERNETDEV" ]; then
-    echo "  Ethernet:"
-    echo "    Device name: $ETHINT"
-    echo "    $ETHERNETDEV"
-    echo "    MAC address: $(/bin/cat "/sys/class/net/$ETHINT/address")"
-  fi
-  if [ -n "$WIRELESSDEV" ]; then
-    echo "  Wireless:"
-    echo "    Device name: $WIFIINT"
-    echo "    $WIRELESSDEV"
-    echo "    MAC address: $(/bin/cat "/sys/class/net/$WIFIINT/address")"
-  fi
-  echo $'\n'$"Hard Disk information:"
-  for DISK in /dev/sd[a-z]
-  do
-    HDDEV=$(sudo /sbin/hdparm -I "${DISK}" 2>/dev/null | grep -e '/dev/')
-    HDMODEL=$(sudo /sbin/hdparm -I "${DISK}" | grep 'Model Number' | cut -c 22-)
-    HDSERIAL=$(sudo /sbin/hdparm -I "${DISK}" | awk '/Serial Number/ {print $3}')
-    HDSIZE=$(sudo /sbin/hdparm -I "${DISK}"| awk '/GB/ {print $9" "$10}' | sed 's/[)(]//g')
-    echo "$HDDEV"
-    echo "  Model Number : $HDMODEL"
-    echo "  Serial Number: $HDSERIAL"
-    echo "  Capacity: $HDSIZE"
-  done
-  echo $'\n'$"Partition information:"
-  /bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-  [ -n "$BATTERY" ] && echo $'\n'$"Battery: $BATTERY"
-} | tee "$INFOFILE"
+	printf "System information for %s, as of %s\n\n" "$lhost" "$today"
+	mfg_info
+	os_info
+	cpu_info
+	memory_info
+	graphics_info
+	wired_info
+	wireless_info
+	[[ -b /dev/sda ]] && ssd_hd_info
+  [[ -c /dev/nvme0 ]] && nvme_info
+	partition_info
+	is_laptop && battery_info
+	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+} | tee "$tmp_file"
+
+# Change lsblk timeshift mountpoint to normal partition name.
+grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
+
+# Save system info to file in the home directory?
+save_info
 
 exit

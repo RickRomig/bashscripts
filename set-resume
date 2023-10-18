@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : set-resume
+# Description  : Set the RESUME environment variable after update-initramfs error
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2019, Richard B. Romig, 12 Nov 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Extracts swap partition UUID from output of /sbin/blkid
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.3"
+readonly _updated="15 Oct 2023"
+
+## Functions ##
+
+print_message() {
+  cat << EOF
+  Set RESUME environment variable after an update-initramfs error message.
+  The error message wil be similar to:
+  I: The initramfs will attempt to resume from /dev/sda2
+  I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
+  I: Set the RESUME variable to override this.
+EOF
+}
+
+get_uuid() {
+  if antix_mx; then
+    swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
+  else
+    swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $2}')
+    [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $3}')
+  fi
+  printf "%s\n" "$swap_uuid"
+}
+
+set_resume() {
+  local uuid="$1"
+  local resume_path="/etc/initramfs-tools/conf.d/resume"
+  printf "\nSWAP UUID: %s\n" "$uuid"
+  printf "\nSetting the RESUME environment variable...\n"
+  printf "RESUME=UUID=%s\n" "$uuid" | sudo tee "$resume_path" > /dev/null
+}
+
+update_initramfs() {
+  printf "\nUpdating initramfs ...\n"
+  sudo update-initramfs -u -k all
+}
+
+## Execution ##
+
+user_in_sudo
+
+printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
+print_message
+printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
+swap_uuid=$(get_uuid)
+[[ -z "$swap_uuid" ]] && die "No UUID for swap found." 1
+set_resume "$swap_uuid"
+update_initramfs
+leave "Reboot the system for the change to take affect."

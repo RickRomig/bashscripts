@@ -1,42 +1,45 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : ren-space
 # Description  : replaces spaces with underscores in filenames in the current
 #                directory
-# Dependencies : rename, egrep
+# Dependencies : None
 # Args         : None
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
-# Last updated : 28 Feb 2020
 # Comment      :
+# License      : GNU General Public License, version 2.0
 ###############################################################################
-# renspace
-# Copyright (C) 2018  Richard Romig
+
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-###############################################################################
 
-VERSION="1.0.3"
-UPDATED="23 Mar 2020"
+## Variables ##
 
-echo "Renspace v$VERSION  - renames filenames containing spaces."
-echo "Copyright 2018, Richard Romig"
-echo -e "Last updated: $UPDATED\n"
+_script=$(basename "$0"); readonly _script
+readonly _version="1.0.4"
+readonly _updated="17 Oct 2023"
+
+## Execution ##
+
+echo "$_script v$_version  - renames filenames containing spaces."
+echo -e "Last updated: $_updated\n"
 
 # check for filenames containing spaces
 
-find . -maxdepth 1 -type f | grep " " >/dev/null && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
+find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
 
 exit

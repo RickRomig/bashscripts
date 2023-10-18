@@ -1,0 +1,853 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : functionlib
+# Description  : personal function library used in Bash scripts
+# Dependencies : none
+# Arguments    : none except those passed to individual functions
+# Author       : Copyright (C) 2019, Richard B. Romig, 21 Sep 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : source into the current shell environment by entering:
+# . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
+# Environmental variables like $HOME or $USER cannot be used with the . alias.
+# Last updated : 13 Oct 2023
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+## Shellcheck Directives ##
+# shellcheck disable=SC2034,SC2154,SC1003
+
+## Global variables ##
+declare -r TRUE=0
+declare -r FALSE=1
+red_error=$(printf "\e[91mERROR:\e[0m")
+red_warning=$(printf "\e[91mWARNING!\e[0m")
+Gitea_URL="http://192.168.0.16:3000/Nullifidian"
+localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
+# First three octets of the local network. Assumes a /24 private network.
+
+## Colors ##
+# Text attributes
+normal=$(echo -en "\e[0m")
+bold=$(echo -en "\e[1m")
+dim=$(echo -en "\e[2m")
+underline=$(echo -en "\e[4m")
+blink=$(echo -en "\e[5m")
+reverse=$(echo -en "\e[7m")
+hidden=$(echo -en "\e[8m")
+strikethrough=$(echo -en "\e[9m")
+# Foreground (text) colors
+black=$(echo -en "\e[30m")
+red=$(echo -en "\e[31m")
+green=$(echo -en "\e[32m")
+orange=$(echo -en "\e[33m")
+blue=$(echo -en "\e[34m")
+purple=$(echo -en "\e[35m")
+aqua=$(echo -en "\e[36m")
+gray=$(echo -en "\e[37m")
+darkgray=$(echo -en "\e[90m")
+lightred=$(echo -en "\e[91m")
+lightgreen=$(echo -en "\e[92m")
+lightyellow=$(echo -en "\e[93m")
+lightblue=$(echo -en "\e[94m")
+lightpurple=$(echo -en "\e[95m")
+lightaqua=$(echo -en "\e[96m")
+white=$(echo -en "\e[97m")
+default=$(echo -en "\e[39m")
+# Background colors
+BLACK=$(echo -en "\e[40m")
+RED=$(echo -en "\e[41m")
+GREEN=$(echo -en "\e[42m")
+ORANGE=$(echo -en "\e[43m")
+BLUE=$(echo -en "\e[44m")
+PURPLE=$(echo -en "\e[45m")
+AQUA=$(echo -en "\e[46m")
+GRAY=$(echo -en "\e[47m")
+DARKGRAY=$(echo -en "\e[100m")
+LIGHTRED=$(echo -en "\e[101m")
+LIGHTGREEN=$(echo -en "\e[102m")
+LIGHTYELLOW=$(echo -en "\e[103m")
+LIGHTBLUE=$(echo -en "\e[104m")
+LIGHTPURPLE=$(echo -en "\e[105m")
+LIGHTAQUA=$(echo -en "\e[106m")
+WHITE=$(echo -en "\e[107m")
+DEFAULT=$(echo -en "\e[49m")
+
+## Functions ##
+
+###############################################################################
+# die
+# Purpose: Display an error message and die (exit with an error code)
+# Arguments:
+#   $1 -> Error message
+#   $2 -> Exit status (optional, default is 1)
+###############################################################################
+die() {
+  local errmsg="${1:-Undefined error}"
+  local errcode="${2:-1}"
+  printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
+  exit "$errcode"
+}
+
+###############################################################################
+# diehard
+# Purpose: Display an error message of 1 or more lines and exit 
+# Arguments: Any text immediately following the function call.
+# Example: diehard "File not found." "Check directory."
+###############################################################################
+diehard() {
+	printf "\e[91mERROR:\e[0m "
+	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
+}
+
+###############################################################################
+# error_handler
+# Purpose: Display message for trapped errors.
+# Arguments:
+#   $1 -> Error code passed by trap builtin
+#   $2 -> Line number of error passed by trap builtin
+# trap 'error_handler $? $LINENO' ERR
+# Do not use in scripts with functions that return non-error integers.
+###############################################################################
+error_handler() {
+  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$1" "$2" >&2
+  exit "$1"
+}
+
+###############################################################################
+# root_user
+# Purpose: Return true if script is being executed by the root user
+# Arguments: none
+# Returns: True or False
+###############################################################################
+root_user() {
+  [[ "$(id -u)" -eq "0" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# user_exists
+# Purpose: Return true if user exists in /etc/passwd
+# Arguments:
+#   $1 (username) -> Username to check in /etc/passwd
+# Returns: True or False
+###############################################################################
+user_exists() {
+  local U="$1"
+  grep -q "^${U}" /etc/passwd && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# user_in_sudo
+# Purpose: Prompts for user password if user is in the sudo group.
+# If user is not in the sudo group, displays error message and exits.
+###############################################################################
+user_in_sudo() {
+  if id -nG "$USER" | grep -qw sudo; then
+    sudo ls > /dev/null 2>&1
+  else
+    die "$USER is not a member of the sudo group. Access denied." 1
+  fi
+}
+
+###############################################################################
+# bin_in_path
+# Purpose: Return true if $HOME/bin is in the PATH
+# Returns: True or False
+###############################################################################
+bin_in_path() {
+  echo "$PATH" | grep -q "$HOME/bin" && return $TRUE || return $FALSE
+}
+
+###############################################################################
+# exists
+# Purpose: Returns true if command/program is installed.
+# Arguments:
+#   $1 -> command/program to be checked.
+# Returns: True or False
+###############################################################################
+exists() {
+  command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# get_distribution
+# Purpose: Sets global variable 'distro' to the full name of the current distribution.
+###############################################################################
+get_distribution() {
+  if [[ -f /etc/lsb-release ]]; then
+    distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
+  else
+    distro=$(/usr/bin/lsb_release --description --short)
+  fi
+  echo "$distro"
+}
+
+###############################################################################
+# is_debian
+# Purpose: Returns true if the distribution is based on Debian.
+# Returns: True or False
+# Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
+###############################################################################
+is_debian() {
+  codename=$(/usr/bin/lsb_release --codename --short)
+  case "$codename" in
+    bookworm|bullseye|buster|debbie|elsie|faye )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
+  esac
+}
+
+###############################################################################
+# is_focal
+# Purpose: Returns true if distribution is based on Ubuntu 20.04 (i.e., Mint 20.x)
+# Returns: True or False
+###############################################################################
+is_focal() {
+  ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
+  [[ "$ubuntu_code" == "focal" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_jammy
+# Purpose: Returns true if distribution is based on Ubuntu 22.04 (i.e., Mint 21.x)
+# Returns: True or False
+###############################################################################
+is_jammy() {
+  ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
+  [[ "$ubuntu_code" == "jammy" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# support_ppa
+# Purpose: Returns true if the distribution supports Ubuntu PPA.
+# Returns: True or False
+###############################################################################
+support_ppa() {
+  codename=$(/usr/bin/lsb_release --codename --short)
+  case "$codename" in
+    focal|jammy|uma|una|vanessa|vera|victoria )
+      return "$TRUE"
+    ;;
+    * )
+      return "$FALSE"
+  esac
+}
+
+###############################################################################
+# antix_mx
+# Purpose: Returns true if distribution is antiX or MX Linux
+# Returns: True or False
+###############################################################################
+antix_mx() {
+  dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
+  [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# bunsenlabs
+# Purpose: Returns true if distribution is BunsenLabs
+# Returns: True or False
+###############################################################################
+bunsenlabs() {
+  distro=$(/usr/bin/lsb_release --id --short)
+  [[ "$distro" == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_arch
+# Purpose: Return true if distribution is based on Arch Linux
+# Returns: True or False
+###############################################################################
+is_arch() {
+  [[ -d /etc/pacman.d ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_systemd
+# Purpose: Returns true is the init system is systemd
+# Returns: True or False
+###############################################################################
+is_systemd() {
+ init_sys=$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')
+ [[ "$init_sys" == systemd ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_sysv
+# Purpose: Returns true is the init system is SysV
+# Returns: True or False
+###############################################################################
+is_sysv() {
+ init_sys=$(/sbin/init --version 2>/dev/null | awk '{print $1}')
+ [[ "$init_sys" == "SysV" ]]  && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_cinnamon
+# Purpose: Returns true is the desktop environment is Cinnamon
+# Returns: True or False
+###############################################################################
+is_cinnamon() {
+  [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_laptop
+# Purpose: Returns true is the system is a laptop
+# Returns: True or False
+###############################################################################
+is_laptop() {
+  [[ -d /proc/acpi/button/lid/ ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# leapyear
+# Purpose: Returns true if the current year is a leap year.
+# Arguments:
+#   $1 -> 4-digit year to be checked
+# Returns: True or False (0 or 1)
+###############################################################################
+leapyear() {
+  local year="$1"
+  [[ $(( year % 4 )) -ne 0 ]] && return "$FALSE"
+  [[ $(( year % 400 )) -eq 0 ]] && return "$TRUE"
+  [[ $(( year % 100 )) -eq 0 ]] && return "$FALSE" || return "$TRUE"
+}
+
+###############################################################################
+# local_ip
+# Purpose: Extract the last octet of the local IP address
+# Assumes a Class C /24 network, last octet of 1 - 254
+# Priority is wired connection, then wireless.
+###############################################################################
+local_ip() {
+  en_ip=$(/usr/bin/ip route show | awk '/en/ && /src/ {print $9}')
+  wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /src/ {print $9}')
+  et_ip=$(/usr/bin/ip route show | awk '/eth/ && /src/ {print $9}')
+
+  if [[ -n "$en_ip" ]]; then
+    octet="${en_ip##*.}"
+  elif [[ -n "$et_ip" ]]; then
+    octet="${et_ip##*.}"
+  elif [[ -n "$wl_ip" ]]; then
+    octet="${wl_ip##*.}"
+  else
+    die "No IP address. Check network status." 1
+  fi
+  printf "%s" "$octet"
+}
+
+###############################################################################
+# valid_ip
+# Purpose: Return a valid and reachable IP address
+# Assumes a Class C /24 network, last octet of 1 - 254
+# Network identifier and broadcast addresses are excluded
+# Arguments:
+#   $1 -> last octet of the IP address to be validated.
+# Returns 0 if the argument is a valid and reachable IP address.
+# Exits with exit code of 1 if the argument is an empty string.
+# Exits with exit code of 2 if the argument is the IP address of local client.
+# Exits with exit code of 3 if the argument is a valid address but unreachable.
+# Exits with exit code of 4 if the argument is outside the range of valid addresses.
+# Exits with exit code of 5 if the argument is not an integer value.
+###############################################################################
+valid_ip() {
+  local octet="$1"
+  local status=0
+  localip="$(local_ip)"
+  if [[ -z "$octet" ]]; then
+    status=1    # No argument passed.
+  elif [[ "$1" =~ ^[0-9]+$ ]] 2>/dev/null; then
+    # Argument is an integer value
+    if (( octet > 0 )) && (( octet < 255 )); then
+      # Valid address - test if reachable or local machine
+      if [[ "$localip" -eq "$octet" ]]; then
+        status=2    # Valid address - local machine
+      elif ping -c 1 "$localnet.$octet" > /dev/null 2>&1; then
+        status=0    # Valid and reachable address
+      else
+        status=3    # Valid address but unreachable
+      fi
+    else
+      status=4  # invalid address - out of range
+    fi
+  else
+    status=5    # Argument is a non-integer value
+  fi
+
+  # Display the status message
+  case $status in
+    0 )
+      printf "%s.%s is a valid and reachable IP address.\n" "$localnet" "$octet" ;;
+    1 )
+      printf "\e[91mERROR:\e[0m No argument passed. No host IP.\n" >&2
+      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
+    2 )
+      printf "\e[91mERROR:\e[0m %s.%s is the local client computer.\n" "$localnet" "$octet" >&2 ;;
+    3 )
+      printf "\e[91mERROR:\e[0m %s.%s is valid IP address but is unreachable.\n" "$localnet" "$octet" >&2
+      printf "Check to see if it is on the network.\n" >&2 ;;
+    4 )
+      printf "\e[91mERROR:\e[0m %s.%s is not a valid IP address.\n" "$localnet" "$octet" >&2
+      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
+    * )
+      printf "\e[91mERROR:\e[0m Invalid argument: %s\n" "$octet" >&2
+      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
+  esac
+
+  (( status == 0 )) && return "$status" || exit "$status"
+}
+
+###############################################################################
+# edit_view_quit
+# Purpose: Edit or view a file after it's been created by a script.
+# Arguments:
+#   $1 -> file to be edited or reviewed.
+###############################################################################
+edit_view_quit() {
+  local filename="$1"
+  printf "\nYou may edit or view %s at this time.\n\n" "$filename"
+  PS3="Choose an option: "
+  select opt in Edit View Quit; do
+    case "$REPLY" in
+      1 )
+        if exists micro; then
+          /usr/bin/micro "$filename"
+        else
+          /usr/bin/nano "$filename"
+          remove_tilde
+        fi
+        break
+      ;;
+      2 )
+        if exists bat; then
+          /usr/bin/bat "$filename"
+        else
+          viewtext "$filename"
+        fi
+        break
+      ;;
+      3 )
+        printf "\nExiting.\n"
+        break
+      ;;
+      * )
+        printf "\e{33mInvalid choice. Try again.\e[0m\n" >&2
+    esac
+  done
+}
+
+###############################################################################
+# viewtext
+# Purpose: View a text file with less or cat
+# Arguments:
+#   $1 -> file to be viewed
+###############################################################################
+viewtext() {
+  local file="$1"
+  trows=$(/usr/bin/tput lines)
+  cat_limit=$(( trows*87/100 ))
+  num_lines=$(wc -l "$file" | cut -d " " -f1)
+  if [[ "$num_lines" -gt "$cat_limit" ]]; then less "$file"; else cat "$file"; fi
+}
+
+###############################################################################
+# remove_tilde
+# Purpose: Removes backup files ending with a tilde '~' in the current directory
+###############################################################################
+remove_tilde() {
+  nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
+  (( nbu > 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+}
+
+###############################################################################
+# anykey
+# Purpose: Press any key to continue
+###############################################################################
+anykey() {
+  read -rsn1 -p "Press any key to continue"; echo
+}
+
+###############################################################################
+# print_line
+# Purpose: Print a line of characters across the screen
+# Arguments:
+#  $1 -> character to be printed (optional, = is the default)
+#  #2 -> integer length of the line (optional, width or termina is the default)
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
+# Length argument, if present, must follow a character argument.
+###############################################################################
+print_line() {
+  local char="${1:-=}"
+  width=$(tput cols); local width
+  if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
+  local len=${#char}
+  (( len > 1 )) && char=${char::1}
+  printf "%${width}s\n" | sed "s/ /$char/g"
+}
+
+###############################################################################
+# box
+# Purpose: Displays a box of asterisks around a line of text.
+# Arguments:
+#   $1 -> A single line of text to be displayed.
+#   $2 -> Optional character to form the box. Default is `*`
+# The line of text cannot contain any special characters.
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
+###############################################################################
+box() {
+  local char="${2:-*}"
+  local len=${#char}
+  (( len > 1 )) && char=${char::1}
+  local title="$char $1 $char"
+  edge=$(echo "$title" | sed "s/./$char/g")
+  echo "$edge"
+  echo "$title"
+  echo "$edge"
+}
+
+###############################################################################
+# under_line
+# Purpose: Displays a line of hyphen/dashes under a line of text.
+# Argument:
+#   $1 -> A single line of text to be displayed.
+#   $2 -> Optional character to form the line. Default is `-`
+# The line of text cannot contain any special characters.
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
+###############################################################################
+under_line() {
+  local title="$1"
+  local char="${2:--}"
+  local len=${#char}
+  (( len > 1 )) && char=${char::1}
+  line=$(echo "$title" | sed "s/./$char/g")
+  echo "$title"
+  echo "$line"
+}
+
+###############################################################################
+# leave
+# Purpose: Display either a random message from a file or a message string passed
+# as an argument before exiting the script.
+# Arguments:
+#   $1 -> Exit message (Optional)
+###############################################################################
+leave() {
+  local message="$1"
+  local msg_file="$HOME/.local/share/doc/leave.txt"
+  [[ -z "$message" ]] && message=$(shuf -n 1 "$msg_file")
+  printf "%s\n" "$message"
+  exit 0
+}
+
+###############################################################################
+# format_time
+# Purpose: Displays the elasped time for a script to run
+# Arguments:
+#   $1 -> $SECONDS
+# Place SECONDS=0 ahead of task to be timed.
+# SECONDS and ((...)) are undefined in POSIX.
+###############################################################################
+format_time() {
+  local ET="$1"
+  ((h=ET/3600))
+  ((m=(ET%3600)/60))
+  ((s=ET%60))
+  printf "%02d:%02d:%02d\n" $h $m $s
+}
+
+###############################################################################
+# check_package
+# Purpose: Check if a package is installed, and install if not.
+# Argurments:
+#   $1 -> name of package to check and install
+# Example: check_package "$package"
+###############################################################################
+check_package() {
+  local package="$1"
+  if dpkg -l | grep -qw "$package"; then
+    printf "%s - OK\n" "$package"
+  else
+    printf "%s - installing...\n" "$package"
+    sudo apt-get install "$package" -yyq
+  fi
+  sleep 2
+}
+
+###############################################################################
+# check_packages
+# Purpose: Check if a group of packages are installed, and install if not.
+# Argurments:
+#   $@ -> array of packages to check and install
+# Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
+###############################################################################
+check_packages() {
+	local pkgs=("$@")
+  printf "Checking dependencies...\n"
+	for pkg in "${pkgs[@]}"; do
+		if dpkg -l | grep -qw "$pkg"; then
+			printf "%s - OK\n" "$pkg"
+		else
+			printf "%s - installing...\n" "$pkg"
+			sudo apt-get install "$pkg" -yyq
+		fi
+	done
+  sleep 2
+}
+
+###############################################################################
+# in_repos
+# Purpose: Returns true if a package is in the repositories, including PPAs and
+# other added software sources in /etc/apt/sources.list.d.
+# Arguments:
+#   $1 -> package to be checked
+# Returns: True or False
+###############################################################################
+in_repos() {
+  local package="$1"
+  in_repo=$(apt-cache show "$package" 2>/dev/null)
+  [[ -n "$in_repo" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# mount_server
+# Purpose: Mounts a sshfs server on the local network using sshfs in user's home directory.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
+###############################################################################
+mount_server() {
+  local server_ip="11"
+  local share="HP-6005"
+  ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
+  if [[ -d "$HOME/mnt/$share/" ]]; then
+    mounted=$(mount | grep "$share")
+    if [[ -z "$mounted" ]]; then
+      sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
+      echo "$share has been mounted."
+    else
+      echo "$share is already mounted"
+    fi
+  else
+    # Create the mount point.
+    mkdir -p "$HOME/mnt/$share/"
+    sshfs -o follow_symlinks rick@"$localnet.$server_ip:/home/rick" "$HOME/mnt/$share/"
+    echo "$share has been created and mounted."
+  fi
+}
+
+###############################################################################
+# unmount_server() {
+# Purpose: Unmounts a sshfs server on the local network.
+# Removes temp directory and temp file, if present.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
+###############################################################################
+unmount_server() {
+  local share="HP-6005"
+  mounted=$(mount | grep "$share")
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    printf "%s has been unmounted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
+}
+
+###############################################################################
+# mount_nas
+# Purpose: Mount the NAS on the local network using sshfs.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
+###############################################################################
+mount_nas() {
+  local server_ip="4"
+  local share="NASD97167"
+  ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
+  if [[ -d "$HOME/mnt/$share/" ]]; then
+    mounted=$(mount | grep "$share")
+    if [[ -z "$mounted" ]]; then
+      sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
+      echo "$share has been mounted."
+    else
+      echo "$share is already mounted"
+    fi
+  else
+    mkdir -p "%HOME/mnt/$share/"    # Create the mount point.
+    sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
+    echo "$share has been created and mounted."
+  fi
+} 
+
+###############################################################################
+# unmount_nas
+# Purpose: Unmounts the NAS (sshfs server) on local network
+# Removes temp directory and temp file, if present.
+# $tmp_dir, $tmp_file must be global variables in the calling script.
+###############################################################################
+unmount_nas() {
+  local share="NASD97167"
+  mounted=$(mount | grep "$share"); local mounted
+  if [[ -n "$mounted" ]]; then
+    fusermount -u "$HOME/mnt/$share"
+    [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+    [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+    printf "%s has been unmounted.\n" "$share"
+  else
+    printf "%s is not mounted.\n" "$share" >&2
+  fi
+}
+
+###############################################################################
+# clone_repo
+# Purpose: Clone a git repository on the Gitea server to ~/Downloads
+# Arguments:
+#   $1 -> name of the repository to clone
+###############################################################################
+clone_repo() {
+  local git_svr="http://192.168.0.16:3000/Nullifidian"
+  local git_repo="${1}.git"
+  git clone "$git_svr/$git_repo" "$HOME/Downloads"
+}
+
+###############################################################################
+# dots
+# Purpose: Display a series of dots to indicate a running process.
+# Arguments:
+#   $1 -> optional character to be repeated. Default is '.' (period)
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
+# Refer to ~/bin/functions/dots-spin.md for usage instructions.
+###############################################################################
+dots() {
+  local char="${1:-.}"
+  local len="${#char}"
+  (( len > 1 )) && char=${char::1}
+  tput civis
+  while true; do echo -n "."; sleep 0.2; done &
+}
+
+###############################################################################
+# spin
+# Purpose: Display a spinning character to indicate a running process.
+# Refer to ~/bin/functions/dots-spin.md for ussage instructions.
+###############################################################################
+spin() {
+  local spinner=( '|' '/' '-' '\' )
+  while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
+}
+
+###############################################################################
+# y_or_n
+# Purpose: Displays a yes or no prompt (y|n).
+# Arguement: A string requiring a yes or no response.
+# Returns: True or False
+# Example: y_or_n "Question" && do_something || do_something_else
+###############################################################################
+y_or_n() {
+  while true; do
+    read -rp "$* [y/n]: " yn
+    case "$yn" in
+      [Yy]* )
+        return "$TRUE"
+      ;;
+      [Nn]* )
+        return "$FALSE"
+      ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$red_warning" >&2
+      ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# yes_or_no
+# Purpose: Displays a yes or no prompt (yes|no). 
+# Arguement: A string requiring a yes or no response.
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+yes_or_no() {
+  while true; do
+    read -rp "$* [yes/no]: " yesno
+    case "${yesno,,}" in
+      yes )
+        return "$TRUE"
+      ;;
+      no )
+        return "$FALSE"
+      ;;
+      '' )
+        printf "%s Response required -- try again.\n" "$red_warning" >&2
+      ;;
+      * )
+        printf "%s Invalid choice. Enter yes or no.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# default_yes
+# Purpose: Displays a yes or no prompt (Y|n), defaulsts to yes if pressing Enter. 
+# Arguement: A string requiring a yes or no response.
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+default_yes() {
+  while true; do
+    read -rp "$* [Y/n]: " yn
+    case "$yn" in
+      [Yy]*|'' )
+        return "$TRUE"
+      ;;
+      [Nn]* )
+        return "$FALSE"
+      ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$red_error" >&2
+    esac
+  done
+}
+
+###############################################################################
+# default_no
+# Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter. 
+# Arguement: A string requiring a yes or no response.
+# Returns: True or False
+# Example: yes_or_no "Question" && do_something || do_something_else
+###############################################################################
+default_no() {
+  while true; do
+    read -rp "$* [y/N]: " yn
+    case "$yn" in
+      [Yy]* )
+        return "$TRUE"
+      ;;
+      [Nn]*|'' )
+        return "$FALSE"
+      ;;
+      * )
+        printf "%s Invalid choice. Enter y or n.\n" "$red_error" >&2
+    esac
+  done
+}

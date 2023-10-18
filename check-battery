@@ -1,146 +1,187 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###############################################################################
 # Script Name  : check-battery
 # Description  : Determine the health of a laptop battery
 # Dependencies : upower
 # Arguments    : None
-# Author       : Richard B. Romig, 30 Jul 2020
-# Email        : rick.romig@gmail.com
+# Author       : Copyright (C) 2020, Richard B. Romig, 30 Jul 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Comments     : Obtains battery data from upower utility.
 #              : Inspired by a script by Elias W (eliasw4u on Ezeetalk.com)
 # TODO (Rick)  :
-###############################################################################
-
-# Copyright (C) 2020, Richard B. Romig
+# License      : GNU General Public License, version 2.0
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 ## Variables ##
 
-readonly SCRIPT=$(basename "$0")
-readonly VERSION="0.2.0"
-readonly UPDATED="21 Mar 2021"
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.2"
+readonly _updated="05 Oct 2023"
 
 ## Functions ##
 
 help() {
-  echo "$SCRIPT $VERSION, Upated: $UPDATED"
-  echo -e "\e[32mUsage:\e[0m $SCRIPT [option]"
-  echo -e "\e[33mOPTIONS\e[0m"
-  echo -e "$SCRIPT \t\t# displays battery health."
-  echo -e "$SCRIPT -h\t# displays this help message."
-  echo -e "$SCRIPT --help\t# displays this help message."
-  echo -e "$SCRIPT --version\t# displays the version and information about the script."
+  local errcode="${1:-2}"
+  cat <<- EOF
+  ${green}Usage:${normal} $_script [option]
+  With no argument, displays battery health information.
+  ${orange}OPTIONS:${normal}
+  -h  --help    # displays this help message.
+  -v  --version # displays the version and information about the script.
+  $_script $_version, Updated: $_updated
+EOF
+  exit "$errcode"
 }
 
 version() {
   cat <<- EOF
-  $SCRIPT $VERSION, Upated: $UPDATED
+  $_script $_version, Upated: $_updated
   Displays the charge state and health of a laptop battery using data obtained
   from the upower utilty.
 EOF
 }
 
-function die() {
-  local MSG="$1"	    # message
-  local EC=${2-1}	    # default exit status 1
-  echo -e "\n\e[91mERROR:\e[0m $MSG" >&2
-  exit "$EC"
-}
-
 cleanup() {
-  [ -f "$UPOWER_DATA" ] && rm -f "$UPOWER_DATA"
+  [[ -f "$battery_data" ]] && rm -f "$battery_data"
 }
 
 battery_status() {
-  echo -e "\n\e[33mBattery charge:\e[0m"
-  grep --color=never -E "state|to\ full|to\ empty|percentage" "$UPOWER_DATA"
+  echo $'\n'"${orange}Battery charge:${normal}"
+  grep --color=never -E "state|to\ full|to\ empty|percentage" "$battery_data"
 }
 
-battery_capacity()
-{
-  echo -e "\n\e[33mBattery health:\e[0m"
-  (grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$UPOWER_DATA"
+battery_capacity() {
+  echo $'\n'"${orange}Battery health:${normal}"
+  grep --color=never -E "energy-full:|energy-full-design:|capacity:" "$battery_data"
 }
 
 warning_level() {
-  ENERGY_DES=$(awk '/energy-full-design:/ {printf "%i", $2}' "$UPOWER_DATA")
-  ENERGY_ACT=$(awk '/energy-full:/ {printf "%i", $2}' "$UPOWER_DATA")
+  energy_des=$(awk '/energy-full-design:/ {printf "%i", $2}' "$battery_data")
+  energy_act=$(awk '/energy-full:/ {printf "%i", $2}' "$battery_data")
 
-  if [[ "$ENERGY_ACT" -eq 0 || "$ENERGY_DES" -eq 0 ]]; then
-    return 0
+  if [[ "$energy_act" -eq 0 || "$energy_des" -eq 0 ]]; then
+    capacity="0"
   else
-    CAP=$(awk '/capacity/ {printf "%i", $2}' "$UPOWER_DATA")
-    return "$CAP"
+    capacity=$(awk '/capacity/ {printf "%i", $2}' "$battery_data")
   fi
+  echo "$capacity"
 }
 
 battery_condition() {
-  warning_level
-  WARN_LEVEL="$?"
-  if [ "$WARN_LEVEL" -le "0" ]; then
-    echo -e "    \U2620  \e[31mReplace the battery!\e[0m \U2620 "
-  elif [ "$WARN_LEVEL" -le "35" ]; then
-    echo -e "    \U26D4  \e[31mThe battery should be replaced.\e[0m \U26D4 "
-  elif [ "$WARN_LEVEL" -le "65" ]; then
-    echo -e "    \U26A0\UFE0F  \e[33mThe battery is getting weak.\e[0m \U26A0\UFE0F "
+  warn_level="$(warning_level)"
+  # warn_level="$?"
+  if [[ "$warn_level" -le "0" ]]; then
+    warn="\U1F4A9"
+    echo -e "    ${red}Replace the battery!${normal}  $warn"
+  elif [[ "$warn_level" -le "35" ]]; then
+    warn="\U1F622"
+    echo -e "    ${red}The battery should be replaced.${normal}  $warn"
+  elif [[ "$warn_level" -le "65" ]]; then
+    warn="\U26A0\UFE0F"
+    echo -e "    ${orange}The battery is getting weak.${normal}  $warn"
   else
-    echo -e "    \e[32mThe battery is in good condition.\e[0m"
+    echo -e "    ${green}The battery is in good condition.${normal}"
   fi
 }
 
+battery_specs() {
+  battery_serial=$(awk -F: '/serial/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
+  [[ -z "$battery_serial" ]] && battery_serial="Not specified"
+  battery_tech=$(awk -F: '/technology/ {print $NF}' "$battery_data" | awk '{$1=$1}1')
+  [[ -z "$battery_tech" ]] && battery_tech="Unknown"
+  printf "\n%sBattery Data:%s\n" "$orange" "$normal"
+  printf "    %-21s%s\n" "Manufacturer:" "$(awk -F: '/vendor/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "    %-21s%s\n" "Nodel name:" "$(awk -F: '/model/ {print $NF}' "$battery_data" | awk '{$1=$1}1')"
+  printf "    %-21s%s\n" "Serial number:" "$battery_serial"
+  printf "    %-21s%s\n" "Technology:" "$battery_tech"
+}
+
+
 ac_status() {
-  STATUS=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $2}')
-  echo -e "\n\e[33mAC Power:\e[0m"
+  status=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $NF}')
+  echo $'\n'"${orange}AC Power:${normal}"
   echo -n "    Laptop is "
-  [ "$STATUS" = "no" ] && echo -n "not "
+  [[ "$status" = "no" ]] && echo -n "not "
   echo "plugged in to AC power."
+}
+
+hidpp_battery() {
+  if /usr/bin/upower -e | grep -q mouse_hidpp_battery; then
+    hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
+    echo $'\n'$"${orange}HID++ Battery:${normal}"
+    echo "    Device: $(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
+    echo -n "    $(echo "$hidpp_data" | awk '/model/ {print $NF}'):   "
+    echo "$hidpp_data" | awk '/percentage/ {print $NF}'
+  fi
 }
 
 ## Execution ##
 
+check_package upower
 clear
-if [ $# -gt 0 ]; then
+if [[ $# -gt 0 ]]; then
   case "$1" in
-    -h|--help ) help; exit ;;
-    --version ) version; exit ;;
-    * ) die "Invalid argument." 1 ;;
+    -h|--help )
+      help 0
+    ;;
+    -v|--version )
+      version
+      exit
+    ;;
+    * )
+    echo "${lightred}Invalid argument:${normal} $1" >&2
+    help 2
   esac
 fi
 
-echo -e "\e[1;33mBattery Status\e[0m"
-if [ -d /proc/acpi/button/lid/ ]; then
-  dpkg -l | grep -qw upower || die "Missing dependency - upower is not installed."
-  # dpkg -l | grep -qw upower || sudo apt install upower -yy"
-  BAT_NAME=$(/usr/bin/upower -e | awk -F_ '/BAT/ {print $NF}')
-  if [ -z "$BAT_NAME" ]; then
-    echo -e "\n\e[91mNo battery detected.\e[0m"
-  else
-    UPOWER_DATA=$(mktemp) || die "Failed to create temporary file." 1
+echo -e "${bold}${orange}Battery Information${normal}"
+if [[ -d /proc/acpi/button/lid/ ]]; then
+  if /usr/bin/upower -e | grep -q 'BAT'; then
+    battery_data=$(mktemp) || die "Failed to create temporary file." 1
     trap cleanup EXIT
-    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$UPOWER_DATA"
-    echo -e "\n\e[33mBattery:\e[0m $BAT_NAME"
+    /usr/bin/upower -i "$(/usr/bin/upower -e | grep BAT)" > "$battery_data"
+    echo $'\n'$"${orange}Battery:${normal} $(awk '/native-path:/ {print $NF}' "$battery_data")"
     battery_status
     battery_capacity
     battery_condition
-    ac_status
+    battery_specs
+  else
+    echo $'\n'"${lightred}No battery detected.${normal}" >&2
   fi
+  ac_status
+  hidpp_battery
 else
-  echo $'\n'$"This system is not a laptop. No battery detected."
+  echo $'\n'$"This system is not a laptop." >&2
 fi
 
-echo -e "\n$SCRIPT v$VERSION (Updated: $UPDATED)"
+echo $'\n'$"$_script v$_version ($_updated)"
 
 exit

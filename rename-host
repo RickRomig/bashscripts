@@ -1,106 +1,116 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #############################################################################
 # Script Name  : rename-host
 # Description  : Changes the system hostname
-# Dependencies : awk, sed
+# Dependencies : None
 # Arguments    : None
-# Author       : Richard B. Romig, 06 Nov 2019
-# Email        : rick.romig@gmail.com
-# Comments     : Hostname is changed in both /etc/hostname and /etc/hosts.
-# Hostname length limited to 15 characters for NETBIOS compatibility.
+# Author       : Copyright (C) 2019, Richard B. Romig, 06 Nov 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Changes the hostname in both /etc/hostname and /etc/hosts.
+#              : antiX/MX Linux: /etc/hosts - 127.0.0.1      hostname
+#              : Rules based on hostname(7) man page
+#              : Hostname length limited to 15 characters for NETBIOS compatibility.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
 #############################################################################
-# Copyright (C) 2020, Richard B. Romig
+
+# Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-#
+# 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
 ## Variables ##
 
-readonly SCRIPT=$(basename "$0")
-readonly VERSION="2.1.3"
-readonly UPDATED="24 Dec 2020"
-readonly OLDHOST=$HOSTNAME
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.3"
+readonly _updated="23 May 2023"
+readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
-leave() {
-  local MSG="$1"
-
-  if [ -z "$MSG" ]; then
-    echo "Exiting the script."
-  else
-    echo "$MSG"
-  fi
-  exit
-}
-
 name_rules() {
-  echo -e "\e[31mHostname Rules\e[0m"
-  echo -e "\e[33m*\e[0m 5-15 characters"
-  echo -e "\e[33m*\e[0m a-z, 0-9, - (hyphen)"
-  echo -e "\e[33m*\e[0m lowercase (uppercase will be converted)"
-  echo -e "\e[33m*\e[0m no special characters"
-  echo -e "\e[33m*\e[0m first character cannot be a hyphen or a digit"
-  echo -e "\e[33m*\e[0m last character cannot be a hyphen"
+  cat << EOF
+${red}Hostname Rules${normal}
+  ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
+  ${orange}*${normal} a-z, 0-9, - (hyphen)
+  ${orange}*${normal} lowercase (uppercase will be converted)
+  ${orange}*${normal} no special characters
+  ${orange}*${normal} first character cannot be a hyphen or a digit
+  ${orange}*${normal} last character cannot be a hyphen
+EOF
 }
 
 ## Execution ##
 
 # Enter new hostname and check rules
 
-while true
-do
+while true; do
   clear
-  echo "$SCRIPT v$VERSION (Updated: $UPDATED)"
-  echo "Licensed under the GNU General Public License, version 2.0"
+  echo "$_script v$_version ($_updated)"
   echo "Renames the system hostname."
   name_rules
-  echo -e "\nCurrent hostname is $OLDHOST\n"
+  echo -e "\nCurrent hostname is $old_host\n"
 
-  read -rp "Enter new hostname: " NEWHOST
-  STRLEN=${#NEWHOST}
-  if [ "$STRLEN" -lt 5 ] || [ "$STRLEN" -gt 15 ]; then
-    echo $'\n'$"Invalid length" >&2
+  read -rp "Enter new hostname: " new_host
+  strlen=${#new_host}
+  if [[ "$strlen" -lt 5 || "$strlen" -gt 15 ]]; then
+    echo $'\n'$"${lightred}Invalid length${normal}" >&2
     name_rules
     continue
   fi
-  case $NEWHOST in
+  # Check new hostname against the rules
+  case "$new_host" in
     -* )
-      echo $'\n'$"Cannot start with a hypen" >&2
+      echo $'\n'$"${lightred}Cannot start with a hypen${normal}" >&2
       name_rules
       continue
-      ;;
+    ;;
     *- )
-      echo $'\n'$"Cannot end with a hyphen" >&2
+      echo $'\n'$"${lightred}Cannot end with a hyphen${normal}" >&2
       name_rules
-      continue ;;
+      continue
+    ;;
     [0-9]* )
-      echo $'\n'$"Cannot start with a digit" >&2
-      name_rules;
+      echo $'\n'$"${lightred}Cannot start with a digit${normal}" >&2
+      name_rules
       continue
-      ;;
+    ;;
     *[^a-zA-Z0-9-]* )
-      echo $'\n'$"Cannot contain special characters" >&2
-      name_rules;
+      echo $'\n'$"${lightred}Cannot contain special characters${normal}" >&2
+      name_rules
       continue
-      ;;
+    ;;
     * )
-      ;;
+      echo $'\n'$"${green}New hostname is valid.$(normal)"
   esac
-  NEWHOST=$(echo "$NEWHOST" | awk '{print tolower($0)}')
-  if [ "$NEWHOST" == "$OLDHOST" ]; then
-    echo "Hostnames are the same." >&2
+  # Compare new hostname with the old hostname
+  new_host="${new_host,,}"
+  if [[ "$new_host" == "$old_host" ]]; then
+    echo "${lightred}Hostnames are the same.${normal}" >&2
     name_rules
     continue
   else
@@ -108,24 +118,30 @@ do
   fi
 done
 
-# Make backups of old files and change hostnames
+# Checking for sudo privileges...
+user_in_sudo
 
-sudo ls > /dev/null 2>&1
-echo $'\n'$"Changing the hostname from $OLDHOST to $NEWHOST ..."
-cp -p /etc/hostname /etc/hostname.old > /dev/null 2>&1
-cp -p /etc/hosts /etc/hosts.old > /dev/null 2>&1
-sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hostname
-sudo sed -i "s/$OLDHOST/$NEWHOST/" /etc/hosts
+echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
+# Make backup copies of the original files and replace old hostname with new hostname
+sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
+sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
 # Confirm changes
 
-HOST1=$(cat /etc/hostname)
-HOST2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
-[ -z "$HOST2" ] && HOST2=$(grep -m2 '127.0.0.1' /etc/hosts | tail -n1 | awk '{print $2}')
-echo -e "/etc/hostname = $HOST1\t/etc/hosts = $HOST2"
-if [ "$HOST1" == "$NEWHOST" ] && [ "$HOST2" == "$NEWHOST" ]; then
-  leave "Hostname successfully changed."
+host1=$(cat /etc/hostname)
+host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
+if [[ -z "$host2" ]]; then
+# Change address for hostname from 127.0.0.1 to 127.0.1.1
+  host2=$(awk '/127.0.0.1/ {print $2}' /etc/hosts | tail -n1)
+  sudo sed -i '0,/127.0.0.1/! {0,/127.0.0.1/ s/127.0.0.1/127.0.1.1/}' /etc/hosts
+fi
+echo -e "/etc/hostname = $host1\t/etc/hosts = $host2"
+if [[ "$host1" == "$new_host" && "$host2" == "$new_host" ]]; then
+  # Remove the original hostname and hosts files
+  sudo rm /etc/hostname.old /etc/hosts.old
+  leave "Hostname successfully changed. Reboot to ensure the change takes effect."
 else
+  # Revert to the hold hostname
   sudo mv /etc/hostname.old /etc/hostname > /dev/null 2>&1
   sudo mv /etc/hosts.old /etc/hosts > /dev/null 2>&1
   leave "Hostname change was unsuccessful. Reverted to the original hostname."
