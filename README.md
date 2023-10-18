@@ -14,14 +14,14 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
 - **functionlib** - A library of useful functions that can be sourced by a script.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
-- **locale-fix.sh**
+- **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
 - **ren-ext** - Rename capitalized, mixed capitalization, and non-standard file extensions.
 - **ren-space** - Replaces spaces in a file name with underscores.
 - **set-resume** - Sets the RESUME environment variable with the UUID of the swap partition.
 - **system-info** - Displays system information in an easy-to-read format.
-- upper2lower** - Changes filenames to all lowercase.
+- **upper2lower** - Changes filenames to all lowercase.
 
 ### Feedback:
 
