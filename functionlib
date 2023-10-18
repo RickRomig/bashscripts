@@ -461,10 +461,9 @@ edit_view_quit() {
 ###############################################################################
 viewtext() {
   local file="$1"
-  trows=$(/usr/bin/tput lines)
-  cat_limit=$(( trows*87/100 ))
-  num_lines=$(wc -l "$file" | cut -d " " -f1)
-  if [[ "$num_lines" -gt "$cat_limit" ]]; then less "$file"; else cat "$file"; fi
+  catmax=$(( $(tput lines)*87/100 ))
+  filesize=$(wc -l "$file" | cut -d " " -f1)
+  if [[ "$filesize" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
 }
 
 ###############################################################################
@@ -542,6 +541,26 @@ under_line() {
   line=$(echo "$title" | sed "s/./$char/g")
   echo "$title"
   echo "$line"
+}
+
+###############################################################################
+# over_line
+# Purpose: Displays a line of hyphen/dashes over a line of text.
+# Argument:
+#   $1 -> A single line of text to be displayed.
+#   $2 -> Optional character to form the line. Default is `-`
+# The line of text cannot contain any special characters.
+# Character argument, if present, needs to be in double quotes, i.e., "-".
+# Character argument, if present, is limited to the first character entered.
+###############################################################################
+over_line() {
+  local title="$1"
+  local char="${2:--}"
+  local len=${#char}
+  (( len > 1 )) && char=${char::1}
+  line=$(echo "$title" | sed "s/./$char/g")
+  echo "$line"
+  echo "$title"
 }
 
 ###############################################################################
