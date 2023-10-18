@@ -1,0 +1,112 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : cinnkeys
+# Description  : Backup/Restore Cinnamon keybindings to/from a file.
+# Dependencies : none
+# Arguments    : none
+# Author       : Copyright (C) 2021, Richard B. Romig, 12 May 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Comments     : Backup of Cinnamon keybindings in ~/.config
+#              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2
+##########################################################################
+ 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.0"
+readonly _updated="18 Oct 2023"
+readonly kb_bu="keybindings-backup.dconf"
+
+## Functions ##
+
+usage() {
+  local errcode="${1:-1}"
+  cat << _END_HELP_
+Creates a backup file of Cinnamon keybindings and restores from a backup.
+
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -b  Creates a backup of Cinnamon keybindings in ~/.config.
+  -h  Displays help.
+  -r  Restores the Cinnamon keybindings from the backup.
+  -v  Enable verbose mode
+$_script v$_version, updated: $_updated
+_END_HELP_
+  exit "$errcode"
+}
+
+showme() {
+	local message="$1"
+	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
+}
+
+## Execution ##
+
+if is_cinnamon; then
+  noOpt=1
+  optstr=":bhrv"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      b )
+        showme "Dumping keybindings to backup file."
+        dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu"
+        echo "Cinnamon Keybindings backed up to $HOME/.config/$kb_bu."
+      ;;
+      h )
+        usage 0
+      ;;
+      r )
+        if [[ -f "$HOME/.config/$kb_bu" ]]; then
+          showme "loading keybindings from backup file."
+          dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
+          echo "Cinnamon Keybindings restored from $HOME/.config/$kb_bu."
+        else
+          echo "$kb_bu does not exist. Run $_script -b to create it." >&2
+        fi
+      ;;
+      v )
+        verbose_mode="$TRUE"
+        showme "Verbose mode enabled."
+      ;;
+      ? )
+        echo "$red_error Invalid option: -${OPTARG}" >&2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { echo "$red_error No argument passed." >&2; usage 1; }
+  shift "$(( OPTIND - 1 ))"
+else
+  echo "The desktop environment is not Cinnamon."
+fi
+leave "$_script v$_version (updated: $_updated)"

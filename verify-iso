@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : verify-iso
+# Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
+# Dependencies : None
+# Arguments    : None, user is prompted to enter the filenames.
+# Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Checksum file must be one line only for ISO being checked.
+#              : Each ISO file must have its own checksum file.
+#              : Checksum files must have one of the following extensions:
+#              : .md5, .sha256, or .sha512
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+ 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.6"
+readonly _updated="06 Oct 2023"
+
+## Functions ##
+
+exit_msg() {
+  local errcode="${1:-0}"
+  if [[ "$errcode" -eq 0 ]]; then
+  	printf "%sThe checksums match.%s\n" "$green" "$normal"
+  else
+  	printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
+  	printf "Verify checksum with the ISO download site.\n"
+  fi
+  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+check_sha256() {
+	local iso_file="$1"
+	local sha_file="$2"
+  dots "."
+	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
+	src_sha=$(awk '{print $1}' "$sha_file")
+  kill "$!"; tput cnorm
+  printf "done\nISO: %s\n" "$iso_file"
+	printf "ISO checksum: %s\n" "$iso_sha"
+	printf "SHA checksum: %s\n" "$src_sha"
+	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_sha512() {
+  local iso_file="$1"
+	local sha_file="$2"
+  dots "."
+	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
+	src_sha=$(awk '{print $1}' "$sha_file")
+  kill "$!"; tput cnorm
+  printf "done\nISO: %s\n" "$iso_file"
+	printf "ISO checksum: %s\n" "$iso_sha"
+	printf "SHA checksum: %s\n" "$src_sha"
+	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_md5() {
+  local iso_file="$1"
+  local md5_file="$2"
+  dots "."
+  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
+  src_md5=$(awk '{print $1}' "$md5_file")
+  kill "$!"; tput cnorm
+  printf "done\nISO: %s\n" "$iso_file"
+  printf "ISO checksum: %s\n" "$iso_md5"
+  printf "MD5 checksum: %s\n" "$src_md5"
+  [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_checksum() {
+  local file="$1"
+  lines=$(wc -l "$file" | cut -d' ' -f1)
+  [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
+}
+
+## Execution ##
+
+printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n"
+
+# Select ISO file to be checked
+
+num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
+printf "Available ISO files:\n"
+find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///' | sort
+read -rp "ISO file to check: " isofile
+
+# Select the checksum file
+
+num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
+[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
+printf "\nAvailable checksum files:\n"
+find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort
+read -rp "Checksum file: " checksum
+
+check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
+
+# Compare the ISO with the checksum
+
+ext="${checksum##*.}"
+printf "\nComparing checksums.\nThis may take a while."
+case "$ext" in
+  "md5" )
+    check_md5 "$isofile" "$checksum"
+    exit_msg "$?"
+  ;;
+  "sha256" )
+    check_sha256 "$isofile" "$checksum"
+    exit_msg "$?"
+  ;;
+  "sha512" )
+    check_sha512 "$isofile" "$checksum"
+    exit_msg "$?"
+  ;;
+  * )
+    printf "\n"
+    diehard "Invalid extension" "Checksum must be one of the following:" "md5 sha256 sha512" "$_script $_version ($_updated)"
+esac

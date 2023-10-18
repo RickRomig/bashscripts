@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : write-iso
+# Description  : Copies an ISO file to a USB drive using dd
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2023, Richard B. Romig, 18 Feb 2023
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Run script from a directory containing the ISO file.
+#              : Testing indicates USB drive should be mounted.
+# TODO (Rick)  :
+##########################################################################
+ 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.2.12"
+readonly _updated="13 Sep 2023"
+
+## Functions ##
+
+write_dd() {
+	local iso="$1"
+	local usb="$2"
+  # Assumes no other removable media is mounted to /media/$USER
+ 	printf "\nWriting %s to /dev/%s...\n" "$iso_file" "$usb_drive"
+	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
+	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
+  else
+    diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version ($_updated)"
+  fi
+}
+
+## Execution ##
+
+printf "Writes ISO to a USB drive.\n\n"
+
+# Check if a USB drive is connected and mounted
+
+[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
+mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
+
+# List available ISO files and select file to write
+
+printf "Available ISO files in %s:\n" "$PWD"
+num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be written." "$_script $_version ($_updated)"
+find ./ -maxdepth 1 -type f -name "*.iso" -exec du -h {} + | sed 's/\.\///'
+read -rp "ISO file to write: " iso_file
+
+# List removable devices and select device to write to
+
+printf "\nAvailable USB drives. Choose one:\n"
+lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
+read -rp "USB device to write to: " usb_drive
+printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
+printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n" "$bold" "$orange" "$normal"
+
+# Confirm action or cancel
+
+if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
+  user_in_sudo
+  write_dd "$iso_file" "$usb_drive"
+else
+  printf "Operation canceled. No action taken.\n"
+fi
+
+leave "$_script v$_version ($_updated)"

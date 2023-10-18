@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : show-cron
+# Description  : Shows when anacron jobs were last run and displays
+#              : crontabs for all normal and root users.
+# Dependencies : none
+# Arguments    : None
+# Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
+# Email        : rick.romig@gmail.com
+# Comments     : Requires sudo privileges
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#####################################################################
+ 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Functions ##
+
+show_anacron() {
+  local daily="/var/spool/anacron/cron.daily"
+  local weekly="/var/spool/anacron/cron.weekly"
+  local monthly="/var/spool/anacron/cron.monthly"
+
+  echo $'\n'$"${orange}Anacron Daily: ${normal}Last run on $(sudo cat "$daily" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.daily
+  [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
+
+  echo $'\n'$"${orange}Anacron Weekly: ${normal}Last run on $(sudo cat "$weekly" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.weekly
+  [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
+
+  echo $'\n'$"${orange}Anacron Monthly: ${normal}Last run on $(sudo cat "$monthly" 2>/dev/null)"
+  echo -n "${orange}Jobs: ${normal}"
+  ls /etc/cron.monthly
+  [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
+}
+
+show_user_cron() {
+  local passwd_file="/etc/passwd"
+  num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' "$passwd_file")
+  i=1000
+  max=$(( num_users + i ))
+
+  while [[ "$i" -le "$max" ]]; do
+    norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
+    if [[ -n "$norm_user" ]]; then
+      echo $'\n'$"${orange}Cron jobs for ${norm_user^}:${normal}"
+      sudo crontab -l -u "$norm_user" | grep -v '#'
+    fi
+    (( i++ ))
+  done
+}
+
+show_root_cron() {
+  echo $'\n'$"${orange}Cron jobs for root:${normal}"
+  sudo crontab -l | grep -v '#'
+  printf "\n"
+}
+
+main() {
+  local _script; _script=$(basename "$0")
+  local _version="0.4.3"
+  local _updated="18 Oct 2023"
+
+  clear
+  echo $'\n'$"${bold}${green}Jobs for $(uname -n)"
+  show_anacron
+  show_user_cron
+  show_root_cron
+  under_line "$_script v$_version ($_updated)" "-"
+  exit
+}
+
+## Execution ##
+
+user_in_sudo
+main
