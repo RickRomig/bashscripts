@@ -1,0 +1,129 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : check-status
+# Description  : Displays a snapshot of system resources
+# Dependencies : jq, lm-sensors, sensors
+# Arguments    : none
+# Author       : Copyright (C) 2018,Richard Romig, 17 November 2018
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
+#              : and Luke Smith <https://lukesmith.xyz>
+# 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
+#              : df: /run/user/1000/doc: Operation not permitted
+# License      : GNU General Public License, version 2.0
+#####################################################################
+
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.8"
+readonly _updated="28 Aug 2023"
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( jq lm-sensors )
+  check_packages "${packages[@]}"
+  # Check for drivetemp modules for SATA drives.
+  if [[ -b /dev/sda ]]; then
+    sensors | grep -qw drivetemp || sudo modprobe drivetemp
+    grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
+    printf "drivetemp module - OK\n"
+    sleep 2
+  fi
+}
+
+nvme_temperature() {
+  echo "$json" | grep -q 'nvme-pci-0300' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "NVME temperature:" "$normal" "$(echo "$json" | jq -r '."nvme-pci-0300"."Composite"."temp1_input"')"
+}
+
+sata_temperature() {
+	echo "$json" | grep -q 'drivetemp-scsi-0-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-0-0"."temp1"."temp1_input"')"
+	echo "$json" | grep -q 'drivetemp-scsi-1-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-1-0"."temp1"."temp1_input"')"
+	echo "$json" | grep -q 'drivetemp-scsi-2-0' && printf "%s%-21s%s%2.1f\U2103 \n" "$orange" "SSD/HDD temperature:" "$normal" "$(echo "$json" | jq -r '."drivetemp-scsi-2-0"."temp1"."temp1_input"')"
+}
+
+cpu_temperature(){
+	if echo "$json" | grep -q 'k10temp-pci-00c3'; then
+		printf "\n%s%-21s%s%2.1f\U2103 \n" "$orange" "CPU temperature:" "$normal" "$(echo "$json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')"
+	elif echo "$json" | grep -q 'dell_smm-virtual-0'; then
+		printf "\n%s%-21s%s%2.1f\U2103 \n" "$orange" "CPU temperature:" "$normal" "$(echo "$json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')"
+	elif echo "$json" | grep -q 'Package id 0'; then
+		printf "\n%s%-21s%s%2.1f\U2103 \n" "$orange" "CPU temperature:" "$normal" "$(echo "$json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')"
+	else
+		printf "\n%s%-21s%s%2.1f\U2103 \n" "$orange" "CPU temperature:" "$normal" "$(echo "$json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')"
+	fi
+}
+
+memory_usage() {
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
+  printf "Process\t\tPercentage\n"
+  ps axch -o cmd:15,%mem --sort=-%mem | head -n 10
+}
+
+cpu_usage() {
+  # cpu_use=$(echo "$[100-$(vmstat 1 2 | tail -1 | awk '{print $15}')]")
+  cores="$(grep -c "^processor" /proc/cpuinfo)"
+  cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
+  cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
+	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
+  printf "Process\t\tPercentage\n"
+  ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 10
+}
+
+disk_usage() {
+	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
+  df -hT -x fuse.portal | sed -n '1p;/^\//p'
+}
+
+main() {
+  printf "%sSystem Status%s\n" "$lightyellow" "$normal"
+  printf "%s%-16s%s\n" "$orange" "Computer name:" "$(uname -n)"
+  printf "%-16s%s\n" "Distribution:" "$(get_distribution)"
+  printf "%-16s%s%s\n" "Kernel Version:" "$(uname -sr)" "$normal"
+  memory_usage
+  cpu_usage
+  cpu_temperature
+  [[ -c /dev/nvme0 ]] && nvme_temperature
+  [[ -b /dev/sda ]] && sata_temperature
+  disk_usage
+  printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
+  printf "\n%s %s (%s)\n" "$_script" "$_version" "$_updated"
+  exit
+}
+
+## Execution ##
+
+check_dependencies
+json="$(sensors -j)"
+clear
+main
