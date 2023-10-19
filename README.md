@@ -16,6 +16,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
 - **functionlib** - A library of useful functions that can be sourced by a script.
+- **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
