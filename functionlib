@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 13 Oct 2023
+# Last updated : 19 Oct 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 
@@ -219,8 +219,7 @@ is_debian() {
 # Returns: True or False
 ###############################################################################
 is_focal() {
-  ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
-  [[ "$ubuntu_code" == "focal" ]] && return "$TRUE" || return "$FALSE"
+  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "focal" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -229,8 +228,7 @@ is_focal() {
 # Returns: True or False
 ###############################################################################
 is_jammy() {
-  ubuntu_code=$(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release)
-  [[ "$ubuntu_code" == "jammy" ]] && return "$TRUE" || return "$FALSE"
+  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "jammy" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -265,8 +263,7 @@ antix_mx() {
 # Returns: True or False
 ###############################################################################
 bunsenlabs() {
-  distro=$(/usr/bin/lsb_release --id --short)
-  [[ "$distro" == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+	[[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -284,8 +281,7 @@ is_arch() {
 # Returns: True or False
 ###############################################################################
 is_systemd() {
- init_sys=$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')
- [[ "$init_sys" == systemd ]] && return "$TRUE" || return "$FALSE"
+  [[ "$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')" == "systemd" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -294,8 +290,7 @@ is_systemd() {
 # Returns: True or False
 ###############################################################################
 is_sysv() {
- init_sys=$(/sbin/init --version 2>/dev/null | awk '{print $1}')
- [[ "$init_sys" == "SysV" ]]  && return "$TRUE" || return "$FALSE"
+  [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
