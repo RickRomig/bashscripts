@@ -25,6 +25,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **show-cron** - Displays anacron jobs and crontabs for users and root.
 - **set-resume** - Sets the RESUME environment variable with the UUID of the swap partition.
 - **system-info** - Displays system information in an easy-to-read format.
+- **system-status** - Displays a snapshot of CPU, memory, & disk usage, as well as temperatures and uptime.
 - **upper2lower** - Changes filenames to all lowercase.
 - **verify-iso** - Verifies checksums for downloaded ISO files.
 - **write-iso** - Writes ISO files to USB drive using `dd`. Lists available ISO files in the current directory and attached USB drives.
@@ -40,7 +41,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-18 October 2023
+19 October 2023
 
 ### DISCLAIMER
 
