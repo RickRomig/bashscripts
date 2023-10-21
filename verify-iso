@@ -46,8 +46,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="06 Oct 2023"
+readonly _version="0.6.0"
+readonly _updated="20 Oct 2023"
 
 ## Functions ##
 
@@ -116,18 +116,31 @@ printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n"
 
 num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 [[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-printf "Available ISO files:\n"
-find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///' | sort
-read -rp "ISO file to check: " isofile
+
+if exists fzf; then
+  printf "Select the ISO file to check:\n"
+	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf)
+else
+  printf "Available ISO files:\n"
+  find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///' | sort
+  read -rp "ISO file to check: " isofile
+fi
+printf "Selected ISO: %s\n\n" "$isofile"
 
 # Select the checksum file
 
 num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 [[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
-printf "\nAvailable checksum files:\n"
-find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort
-read -rp "Checksum file: " checksum
 
+if exists fzf; then
+	printf "Select the checksum file:\n"
+	checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf)
+else
+  printf "\nAvailable checksum files:\n"
+  find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort
+  read -rp "Checksum file: " checksum
+fi
+printf "Selected Checksum: %s\n\n" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 
 # Compare the ISO with the checksum
