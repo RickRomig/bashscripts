@@ -43,8 +43,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.0"
-readonly _updated="20 Oct 2023"
+readonly _version="0.3.1"
+readonly _updated="21 Oct 2023"
 
 ## Functions ##
 
@@ -72,8 +72,7 @@ mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file m
 # List available ISO files and select file to write
 
 if exists fzf; then
-	printf "Select the ISO file to write:\n"
-	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf)
+	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to write: ")
 else
   printf "Available ISO files in %s:\n" "$PWD"
   find ./ -maxdepth 1 -type f -name "*.iso" -exec du -h {} + | sed 's/\.\///'
@@ -84,8 +83,7 @@ printf "Selected ISO: %s\n\n" "$isofile"
 # List removable devices and select device to write to
 
 if exists fzf; then
-	printf "Select the USB drive to write to:\n"
-	usb_drive=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf)
+	usb_drive=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
 	usb_drive=$(echo "$usb_drive" | awk '{print $3}')
 else
   printf "\nAvailable USB drives. Choose one:\n"
@@ -94,11 +92,12 @@ else
 fi
 
 printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
-printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n" "$bold" "$orange" "$normal"
+printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
 
 # Confirm action or cancel
 
 if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
+  # printf "Simulated writing ISO to USB drive....\n"
   user_in_sudo
   write_dd "$iso_file" "$usb_drive"
 else
