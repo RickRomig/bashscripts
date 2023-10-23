@@ -43,21 +43,48 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.1"
-readonly _updated="21 Oct 2023"
+readonly _version="0.3.2"
+readonly _updated="22 Oct 2023"
+user=$(whoami)
 
 ## Functions ##
 
 write_dd() {
 	local iso="$1"
 	local usb="$2"
-  # Assumes no other removable media is mounted to /media/$USER
- 	printf "\nWriting %s to /dev/%s...\n" "$iso_file" "$usb_drive"
+ 	printf "\nWriting %s to /dev/%s...\n" "$isofile" "$usb_device"
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
+    printf "\nContents of /dev/%s\n\n" "$usb_device"
+    ls "/media/$user'$mount_name"
   else
     diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version ($_updated)"
   fi
+}
+
+simulate_dd() {
+  local iso="$1"
+	local usb="$2"
+  printf "\nSimulating writing %s to /dev/%s ...\n" "$isofile" "$usb_device"
+  spin
+  sleep 10
+  kill "$!"
+  tput cnorm
+  printf "\n%s written to /dev/%s (SIMULATED)\n"  "$isofile" "$usb_device"
+  printf "\nContents of /dev/%s\n\n" "$usb_device"
+  ls "/media/$user/$mount_name"
+}
+
+mount_usb() {
+  [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
+	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
+  printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
+}
+
+unmount_usb() {
+	sudo umount "/dev/$usbpart"	&& printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
+	[[ -d "/media/$user/$mount_name" ]] && sudo rmdir "/media/$user/$mount_name"
+	printf "It's now safe to remove the USB drive.\n"
 }
 
 ## Execution ##
@@ -67,7 +94,7 @@ printf "Writes ISO to a USB drive.\n\n"
 # Check if a USB drive is connected and mounted
 
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
-mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
+# mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
 
 # List available ISO files and select file to write
 
@@ -76,32 +103,44 @@ if exists fzf; then
 else
   printf "Available ISO files in %s:\n" "$PWD"
   find ./ -maxdepth 1 -type f -name "*.iso" -exec du -h {} + | sed 's/\.\///'
-  read -rp "ISO file to write: " iso_file
+  read -rp "ISO file to write: " isofile
 fi
 printf "Selected ISO: %s\n\n" "$isofile"
 
 # List removable devices and select device to write to
 
 if exists fzf; then
-	usb_drive=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
-	usb_drive=$(echo "$usb_drive" | awk '{print $3}')
+	usb_device=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
+	usb_device=$(echo "$usb_device" | awk '{print $3}')
 else
   printf "\nAvailable USB drives. Choose one:\n"
   lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
-  read -rp "USB device to write to: " usb_drive
+  read -rp "USB device to write to: " usb_device
 fi
 
-printf "Selected device: /dev/%s.\nIf you continue, ALL data will be erased from this device.\n\n" "$usb_drive"
+printf "Selected device: /dev/%s.\n%sIf you continue, ALL data will be erased from this device.%s\n\n" "$usb_device" "$orange" "$normal"
 printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
+
+usbpart="${usb_device}1"
+if mount | grep -q "$usbpart" > /dev/null 2>&1; then
+	mount_name=$(lsblk | grep "/media/$user/" | cut -d'/' -f4- )
+else
+	mount_name="$(date +%y%b%d)"
+	mount_usb "/dev/$usbpart"
+fi
 
 # Confirm action or cancel
 
-if yes_or_no "Write $iso_file to /dev/$usb_drive?"; then
-  # printf "Simulated writing ISO to USB drive....\n"
-  user_in_sudo
-  write_dd "$iso_file" "$usb_drive"
+if yes_or_no "Write $isofile to /dev/$usb_device?"; then
+  # simulate_dd "$isofile" "$usb_device"
+  write_dd "$isofile" "$usb_device"
 else
   printf "Operation canceled. No action taken.\n"
 fi
+
+# unmount the USB Drive
+
+printf "Unmounting the USB Drive from /dev/%s/%s...\n" "$user"  "$mount_name"
+mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
 
 leave "$_script v$_version ($_updated)"
