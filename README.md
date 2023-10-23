@@ -18,6 +18,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **functionlib** - A library of useful functions that can be sourced by a script.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
+- **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
@@ -42,7 +43,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-19 October 2023
+23 October 2023
 
 ### DISCLAIMER
 
