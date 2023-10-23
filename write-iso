@@ -140,7 +140,7 @@ fi
 
 # unmount the USB Drive
 
-printf "Unmounting the USB Drive from /dev/%s/%s...\n" "$user"  "$mount_name"
+printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
 mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
 
 leave "$_script v$_version ($_updated)"
