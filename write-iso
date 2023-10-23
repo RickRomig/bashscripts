@@ -43,8 +43,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.2"
-readonly _updated="22 Oct 2023"
+readonly _version="0.3.3"
+readonly _updated="23 Oct 2023"
 user=$(whoami)
 
 ## Functions ##
@@ -56,7 +56,7 @@ write_dd() {
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
     printf "\nContents of /dev/%s\n\n" "$usb_device"
-    ls "/media/$user'$mount_name"
+    ls "/media/$user/$mount_name"
   else
     diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version ($_updated)"
   fi
