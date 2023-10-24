@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+#####################################################################
+# Script Name  : laptop-utils
+# Description  : Installs laptop-specific utilities
+# Dependencies : None
+# Args         : None
+# Author       : Copyright (C) 2023, Richard Romig, 23 Mar 2023
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Based on a script by Joe Collins at EzeeLinux.com
+# TODO (rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2; exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.5.6"
+readonly _updated="24 Oct 2023"
+
+## Funtions ##
+
+intro() {
+  cat << END_INTRO
+Installs laptop-specific utilities:
+ * Thermald - monitors and controls temperature.
+ * ACPI - checks the state of ACPI devices.
+ * TLP - advanced power management to maximize battery life.
+ * Touchpad Indicator - utility to enable/disable the touchpad.
+
+END_INTRO
+}
+
+help() {
+  errcode="${1:-2}"
+  intro
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -h  Display help.
+  -i  Install laptop utilities.
+  -l  Display installed utilities.
+  -s  Start TLP service
+END_HELP
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+main() {
+  install_thermald
+  install_acpi
+  install_tlp
+  install_touchpad_indicator
+  util_status
+}
+
+installed() {
+  local package="$1"
+  dpkg -l | grep -qw "$package" && return "$TRUE" || return "$FALSE"
+}
+
+install_thermald() {
+  if installed thermald; then
+    printf "Thermald is already installed.\n"
+  elif in_repos thermald; then
+    sudo apt-get install thermald -yy
+    printf "Thermald installed.\n"
+  else
+    printf "Thermald was not installed.\n"
+  fi
+}
+
+install_acpi() {
+  if installed acpi; then
+    printf "ACPI is already installed.\n"
+  elif in_repos acpi; then
+    sudo apt-get install acpi -yy
+    printf "ACPI installed.\n"
+  else
+    printf "ACPI was not installed.\n"
+  fi
+}
+
+install_touchpad_indicator() {
+  if installed touchpad-indicator; then
+    printf "Touchpad Indicator is already installed.\n"
+   elif in_repos touchpad-indicator; then
+    sudo apt-get install touchpad-indicator -yy
+    printf "Touchpad Indicator installed.\n"
+  else
+    printf "Touchpad Indicator was not available.\n"
+  fi
+}
+
+start_tlp() {
+  if is_systemd; then
+    systemctl status tlp | grep -qw active && printt "The tlp service is active.\n"
+  elif is_sysv; then
+    tlp-stat -s | grep -qw enabled && printf "The tlp service is running.\n"
+  else
+    tlp_service
+  fi
+}
+
+tlp_service() {
+  if is_systemd; then
+    user_in_sudo
+    sudo systemctl enable tlp.service
+    sudo systemctl start tlp.service
+    sudo systemctl mask systemd-rfkill.service
+    sudo systemctl mask systemd-rfkill.socket
+    printf "The tlp service is enabled and started.\n"
+  elif is_sysv; then
+    sudo tlp start
+    printf "The tlp service is started.\n"
+  else
+    printf "Init system is not Systemd or SysV.\n"
+    printf "Manually start the TLP service.\n"
+  fi
+}
+
+util_status() {
+  printf "Installed utilities:\n"
+  installed thermald && printf "    Thermald\n"
+  installed acpi && printf "    ACPI\n"
+  installed tlp && printf "    TLP\n"
+  installed tlp-rdw && printf "    TLP-RDW\n"
+  installed touchpad-indicator && printf "    Touchpad Indicator\n"
+}
+
+## Execution ##
+
+is_laptop || die "System is not a laptop." 1
+noOpt=1
+optstr=":hils"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0
+    ;;
+    i )
+      user_in_sudo
+      intro
+      main
+    ;;
+    l )
+      util_status
+    ;;
+    s )
+      user_in_sudo
+      start_tlp
+    ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"
