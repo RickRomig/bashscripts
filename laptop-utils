@@ -184,6 +184,5 @@ while getopts "$optstr" opt; do
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 shift "$(( OPTIND - 1 ))"
 leave "$_script v$_version (Updated: $_updated)"
