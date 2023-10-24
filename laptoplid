@@ -42,6 +42,6 @@ printf "Allows a laptop lid to be closed without going into suspend mode.\n\n"
 
 is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
 user_in_sudo
-sed -e '/HandleSuspendKey/s/^#//;s/suspend$/ignore/;/HandleLidSwitch/s/^#//;s/suspend$/ignore/;/LidSwitchIgnoreInhibited/s/^#//;s/yes$/no/' "$logind_conf"
+sed -i.bak '/HandleSuspendKey/s/^#//;s/suspend$/ignore/;/HandleLidSwitch/s/^#//;s/suspend$/ignore/;/LidSwitchIgnoreInhibited/s/^#//;s/yes$/no/' "$logind_conf"
 sudo systemctl restart systemd-logind.service
 leave "$logind_conf modified. Backup file (${logind_conf}.bak) created."
