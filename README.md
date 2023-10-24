@@ -19,6 +19,8 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
+- **laptop-utils** - Installs utilities for power-management and other services on a laptop.
+- **laptoplid** - Modifies `/etc/systemd/logind` to allow a laptop's lid to be closed without going into suspend mode.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
