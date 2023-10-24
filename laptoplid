@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : laptoplid
+# Description  : Settings to close laptop lid without suspend
+# Dependencies : laptoplid.sed
+# Arguments    : None
+# Author       : Copyright (C) 2020, Richard B. Romig, 22 Oct 2020
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+
+
+
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.0"
+readonly _updated="24 Oct 2023"
+readonly logind_conf="/etc/systemd/logind.conf"
+
+## Execution ##
+
+clear
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "Allows a laptop lid to be closed without going into suspend mode.\n\n"
+
+is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
+user_in_sudo
+sed -e '/HandleSuspendKey/s/^#//;s/suspend$/ignore/;/HandleLidSwitch/s/^#//;s/suspend$/ignore/;/LidSwitchIgnoreInhibited/s/^#//;s/yes$/no/' "$logind_conf"
+sudo systemctl restart systemd-logind.service
+leave "$logind_conf modified. Backup file (${logind_conf}.bak) created."
