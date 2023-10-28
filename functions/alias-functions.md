@@ -11,7 +11,7 @@
   ```
 2. Check if a program is installed
   ```bash
-  exists() {
+  exist() {
     command -v "$1" > /dev/null && echo "$1 installed" || echo "$1 not installed"
   }
   ```
