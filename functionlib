@@ -9,25 +9,9 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 19 Oct 2023
+# Last updated : 28 Oct 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
-
-# Copyright © 2023, Richard B. Romig
-# Email: rick.romig@gmail.com
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
 ## Shellcheck Directives ##
 # shellcheck disable=SC2034,SC2154,SC1003
 
@@ -263,7 +247,7 @@ antix_mx() {
 # Returns: True or False
 ###############################################################################
 bunsenlabs() {
-	[[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
+  [[ $(/usr/bin/lsb_release --id --short) == "BunsenLabs" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -777,7 +761,7 @@ spin() {
 ###############################################################################
 y_or_n() {
   while true; do
-    read -rp "$* [y/n]: " yn
+    read -rp "$1 [y/n]: " yn
     case "$yn" in
       [Yy]* )
         return "$TRUE"
@@ -803,7 +787,7 @@ y_or_n() {
 ###############################################################################
 yes_or_no() {
   while true; do
-    read -rp "$* [yes/no]: " yesno
+    read -rp "$1 [yes/no]: " yesno
     case "${yesno,,}" in
       yes )
         return "$TRUE"
@@ -822,14 +806,14 @@ yes_or_no() {
 
 ###############################################################################
 # default_yes
-# Purpose: Displays a yes or no prompt (Y|n), defaulsts to yes if pressing Enter. 
+# Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter. 
 # Arguement: A string requiring a yes or no response.
 # Returns: True or False
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
 default_yes() {
   while true; do
-    read -rp "$* [Y/n]: " yn
+    read -rp "$1 [Y/n]: " yn
     case "$yn" in
       [Yy]*|'' )
         return "$TRUE"
@@ -852,7 +836,7 @@ default_yes() {
 ###############################################################################
 default_no() {
   while true; do
-    read -rp "$* [y/N]: " yn
+    read -rp "$1 [y/N]: " yn
     case "$yn" in
       [Yy]* )
         return "$TRUE"
