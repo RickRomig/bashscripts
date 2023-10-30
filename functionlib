@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 28 Oct 2023
+# Last updated : 30 Oct 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -584,11 +584,12 @@ check_package() {
   local package="$1"
   if dpkg -l | grep -qw "$package"; then
     printf "%s - OK\n" "$package"
+    sleep 2
+    printf '\e[A\e[K'
   else
     printf "%s - installing...\n" "$package"
     sudo apt-get install "$package" -yyq
   fi
-  sleep 2
 }
 
 ###############################################################################
@@ -604,12 +605,13 @@ check_packages() {
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s - OK\n" "$pkg"
+      sleep 2
+      printf '\e[A\e[K'
 		else
 			printf "%s - installing...\n" "$pkg"
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
-  sleep 2
 }
 
 ###############################################################################
