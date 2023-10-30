@@ -9,8 +9,8 @@ I maintain a small home network of about a dozen desktops and laptops. Most of t
 All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to download and use them if you find them useful. Modify them to fit your own use cases. I don't ask that you send me any changes you make, but if you find a way to make them better, I'd appreciate you sharing them with me.
 
 ### The Scripts
-**Note:** Many of these scripts source `functionlib` which should be available in your ~/bin directory.
-- **battery-check** - Displays charge and health status of a laptop battery. Pulls its data from files in /sys/class/power_supply/BAT?.
+**Note:** Many of these scripts source `functionlib` which should be available in your ~/bin directory or in your path.
+- **battery-check** - Displays charge and health status of a laptop battery. Pulls its data from files in `/sys/class/power_supply/BAT?`.
 - **catless** - Displays a text file using either cat or less, depending on the size of the file and the number of lines in the current display.
 - **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
