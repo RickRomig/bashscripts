@@ -10,29 +10,14 @@
 #              : Each ISO file must have its own checksum file.
 #              : Checksum files must have one of the following extensions:
 #              : .md5, .sha256, or .sha512
+#              : Works with fuzzy finder (fzf), if installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
- 
-# Copyright © 2023, Richard B. Romig
-# Email: rick.romig@gmail.com
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC1091,SC2034,SC2207
 
 ## Source function library ##
 
@@ -46,8 +31,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.1"
-readonly _updated="21 Oct 2023"
+readonly _version="0.7.0"
+readonly _updated="02 Nov 2023"
 
 ## Functions ##
 
@@ -63,6 +48,52 @@ exit_msg() {
   exit "$errcode"
 }
 
+select_iso() {
+	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
+	
+	if exists fzf; then
+		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
+	else
+		PS3="Please select an ISO file: "
+		options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///'))
+		select opt in "${options[@]}" "Quit"; do
+			if (( REPLY == 1 + ${#options[@]} )); then
+				printf "No ISO file selected. Operation canceled. Exiting the script."
+				leave "$_script $_version (updated: $_updated)"
+			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+				isofile="$opt"
+				break
+			else
+				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
+			fi
+		done
+	fi
+}
+
+select_checksum() {
+	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
+	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
+	
+	if exists fzf; then
+		checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --prompt "Select the checksum file: ")
+	else
+		PS3="Please select a checksum file: "
+		options=($(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///'))
+		select opt in "${options[@]}" "Quit"; do
+			if (( REPLY == 1 + ${#options[@]} )); then
+				printf "No checksum file selected. Operation canceled. Exiting the script."
+				leave "$_script $_version (updated: $_updated)"
+			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+				checksum="$opt"
+				break
+			else
+				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
+			fi
+		done
+	fi
+}
+
 check_sha256() {
 	local iso_file="$1"
 	local sha_file="$2"
@@ -70,7 +101,7 @@ check_sha256() {
 	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
   kill "$!"; tput cnorm
-  printf "done\n\nISO: %s\n" "$iso_file"
+  printf "done\n\nSelected ISO: %s\n" "$iso_file"
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
@@ -83,7 +114,7 @@ check_sha512() {
 	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
   kill "$!"; tput cnorm
-  printf "done\n\nISO: %s\n" "$iso_file"
+  printf "done\n\nSelected ISO: %s\n" "$iso_file"
 	printf "ISO checksum: %s\n" "$iso_sha"
 	printf "SHA checksum: %s\n" "$src_sha"
 	[[ "$iso_sha" == "$src_sha" ]] && return "$TRUE" || return "$FALSE"
@@ -96,7 +127,7 @@ check_md5() {
   iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
   src_md5=$(awk '{print $1}' "$md5_file")
   kill "$!"; tput cnorm
-  printf "done\n\nISO: %s\n" "$iso_file"
+  printf "done\n\nSelected ISO: %s\n" "$iso_file"
   printf "ISO checksum: %s\n" "$iso_md5"
   printf "MD5 checksum: %s\n" "$src_md5"
   [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
@@ -110,38 +141,20 @@ check_checksum() {
 
 ## Execution ##
 
-printf "Verifies SHA256/SHA512/MD5 checksums of ISO files.\n\n"
+printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n\n"
 
 # Select ISO file to be checked
 
-num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
-[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-
-if exists fzf; then
-	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
-else
-  printf "Available ISO files:\n"
-  find ./ -maxdepth 1 -type f -name "*.iso" -print | sed 's/\.\///' | sort
-  read -rp "ISO file to check: " isofile
-fi
+select_iso
 printf "Selected ISO: %s\n\n" "$isofile"
 
-# Select the checksum file
+# Select and check the checksum file
 
-num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
-[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
-
-if exists fzf; then
-	checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --prompt "Select the checksum file: ")
-else
-  printf "\nAvailable checksum files:\n"
-  find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort
-  read -rp "Checksum file: " checksum
-fi
+select_checksum
 printf "Selected Checksum: %s\n\n" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 
-# Compare the ISO with the checksum
+# Compare checksuma
 
 ext="${checksum##*.}"
 printf "Comparing checksums.\nThis may take a while."
