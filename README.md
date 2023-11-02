@@ -14,6 +14,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **catless** - Displays a text file using either cat or less, depending on the size of the file and the number of lines in the current display.
 - **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
+- **checkinit** - Reports the init system being used, Systemd, SysV, Runit, OpenRC.
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
 - **functionlib** - A library of useful functions that can be sourced by a script.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
