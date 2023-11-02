@@ -8,28 +8,14 @@
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Run script from a directory containing the ISO file.
 #              : Testing indicates USB drive should be mounted.
+#              : Works with fuzzy finder (fzf), if installed.
+#              : To test without writing to USB drive, comment call to write-dd and uncomment call to simulate_dd
 # TODO (Rick)  :
 ##########################################################################
- 
-# Copyright © 2023, Richard B. Romig
-# Email: rick.romig@gmail.com
-# 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC1091,SC2034,SC2207
 
 ## Load function library ##
 
@@ -43,11 +29,58 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.3"
-readonly _updated="23 Oct 2023"
+readonly _version="0.4.0"
+readonly _updated="02 Nov 2023"
 user=$(whoami)
 
 ## Functions ##
+
+select_iso() {
+	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
+	
+	if exists fzf; then
+		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
+	else
+		PS3="Please select an ISO file: "
+		options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///'))
+		select opt in "${options[@]}" "Quit"; do
+			if (( REPLY == 1 + ${#options[@]} )); then
+				printf "No ISO file selected. Operation canceled. Exiting the script."
+				leave "$_script $_version (updated: $_updated)"
+			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+				isofile="$opt"
+				break
+			else
+				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
+			fi
+		done
+	fi
+}
+
+select_usb() {
+	if exists fzf; then
+		usb_device=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
+		usb_device=$(echo "$usb_device" | awk '{print $3}')
+	else
+		printf "Available drives:\n"
+		lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
+		print_line "-" 20
+		PS3="Please select an available USB drive: "
+		options=($(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $1}'))
+		select opt in "${options[@]}" "Quit"; do
+			if (( REPLY == 1 + ${#options[@]} )); then
+				printf "No USB device selected. Operation canceled. Exiting the script.\n"
+				leave "$_script v$_version ($_updated)"
+			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+				usb_device="$opt"
+				break
+			else
+				echo "Not a valid options Please try again."
+			fi
+		done
+	fi
+}
 
 write_dd() {
 	local iso="$1"
@@ -57,7 +90,7 @@ write_dd() {
 	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
     printf "\nContents of /dev/%s\n\n" "$usb_device"
     ls "/media/$user/$mount_name"
-  else
+else
     diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version ($_updated)"
   fi
 }
@@ -78,7 +111,6 @@ simulate_dd() {
 mount_usb() {
   [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
 	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
-  printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
 }
 
 unmount_usb() {
@@ -89,45 +121,35 @@ unmount_usb() {
 
 ## Execution ##
 
+user_in_sudo
+
 printf "Writes ISO to a USB drive.\n\n"
 
-# Check if a USB drive is connected and mounted
+# Check if a USB drive is connected
 
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
 # mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
 
 # List available ISO files and select file to write
-
-if exists fzf; then
-	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to write: ")
-else
-  printf "Available ISO files in %s:\n" "$PWD"
-  find ./ -maxdepth 1 -type f -name "*.iso" -exec du -h {} + | sed 's/\.\///'
-  read -rp "ISO file to write: " isofile
-fi
+select_iso
 printf "Selected ISO: %s\n\n" "$isofile"
 
 # List removable devices and select device to write to
 
-if exists fzf; then
-	usb_device=$(lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}' | fzf --prompt "Select the USB drive to write to: ")
-	usb_device=$(echo "$usb_device" | awk '{print $3}')
-else
-  printf "\nAvailable USB drives. Choose one:\n"
-  lsblk -o NAME,SIZE,TYPE,HOTPLUG | awk '$3 == "disk" && $4 == "1" {print $3"\t"$2"\t"$1}'
-  read -rp "USB device to write to: " usb_device
-fi
-
-printf "Selected device: /dev/%s.\n%sIf you continue, ALL data will be erased from this device.%s\n\n" "$usb_device" "$orange" "$normal"
+select_usb
+printf "Selected device: /dev/%s\n%sIf you continue, ALL data will be erased from this device.%s\n\n" "$usb_device" "$orange" "$normal"
 printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
+
+# Mount selected USB drive if not already mounted.
 
 usbpart="${usb_device}1"
 if mount | grep -q "$usbpart" > /dev/null 2>&1; then
 	mount_name=$(lsblk | grep "/media/$user/" | cut -d'/' -f4- )
 else
 	mount_name="$(date +%y%b%d)"
-	mount_usb "/dev/$usbpart"
+	mount_usb #"/dev/$usbpart"
 fi
+printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
 
 # Confirm action or cancel
 
@@ -143,4 +165,4 @@ fi
 printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
 mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
 
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version (Updated: $_updated)"
