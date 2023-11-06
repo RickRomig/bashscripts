@@ -278,6 +278,24 @@ is_sysv() {
 }
 
 ###############################################################################
+# is_openrc
+# Purpose: Returns true is the init system is OpenRC
+# Returns: True or False
+###############################################################################
+is_openrc() {
+  [[ -f /sbin/openrc ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_openrc
+# Purpose: Returns true is the init system is OpenRC
+# Returns: True or False
+###############################################################################
+is_runit() {
+  [[ $(cat /proc/1/comm) == "runit" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
 # is_cinnamon
 # Purpose: Returns true is the desktop environment is Cinnamon
 # Returns: True or False
