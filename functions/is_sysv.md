@@ -1,6 +1,6 @@
 # is_sysv
 
-1. **Purpose:** Returns true is the init system is SysV.
+1. **Purpose:** Returns true if the init system is SysV.
 
 2. **Arguments**: none
 

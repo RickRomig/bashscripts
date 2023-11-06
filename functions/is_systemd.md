@@ -1,6 +1,6 @@
 # is_systemd
 
-1. **Purpose:** Returns true is the init system is systemd.
+1. **Purpose:** Returns true if the init system is systemd.
 
 2. **Arguments:** None
 
