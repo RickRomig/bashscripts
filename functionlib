@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 30 Oct 2023
+# Last updated : 06 Nov 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -287,8 +287,8 @@ is_openrc() {
 }
 
 ###############################################################################
-# is_openrc
-# Purpose: Returns true is the init system is OpenRC
+# is_runit
+# Purpose: Returns true is the init system is Runit
 # Returns: True or False
 ###############################################################################
 is_runit() {
