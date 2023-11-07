@@ -67,7 +67,7 @@ END_HELP
 ## Execution ##
 
 # Check arguments
-if [[ $# -eq 0 ]]; then
+if [[$# -eq 0]]; then
   printf "%s No argument passed.\n" "$red_error" >&2
   usage 2
 elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
