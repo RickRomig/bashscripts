@@ -43,7 +43,7 @@ fi
 ## Functions ##
 
 req_sudo() {
-  lhost="${HOSTNAME:-$(hostname)}"
+  local lhost="${HOSTNAME:-$(hostname)}"
   case "$lhost" in
     hp-2560p )
       return "$TRUE" 
