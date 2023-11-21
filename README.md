@@ -16,6 +16,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
 - **checkinit** - Reports the init system being used, Systemd, SysV, Runit, OpenRC.
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
+- **empty-trash.sh** - Run as a cron job to empty the Trash directory in a user's home folder. Tested on Linux Mint, LMDE, MX Linux, BunsenLabs, Debian Cinnamon, Debian i3.
 - **functionlib** - A library of useful functions that can be sourced by a script.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
@@ -46,7 +47,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-04 November 2023
+21 November 2023
 
 ### DISCLAIMER
 
