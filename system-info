@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.0"
-readonly _updated="05 Oct 2023"
+readonly _version="3.4.1"
+readonly _updated="26 Nov 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -153,14 +153,15 @@ os_info() {
 }
 
 cpu_info() {
-  model=$(lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
-  arch=$(lscpu | awk '/Architecture:/ {print $NF}')
-  threads=$(lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
+  # model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
+  model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
+  arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
+  threads=$(/usr/bin/lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
 memory_info() {
-	phys_mem=$(sudo lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
+	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
 	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
@@ -223,7 +224,7 @@ nvme_info() {
 
 partition_info() {
 	printf "\nPartition Information:\n"
-	lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
+	/usr/bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
 }
 
 battery_info() {
