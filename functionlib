@@ -142,6 +142,8 @@ user_exists() {
 user_in_sudo() {
   if id -nG "$USER" | grep -qw sudo; then
     sudo ls > /dev/null 2>&1
+    sleep 2
+    printf '\e[A\e[K'
   else
     die "$USER is not a member of the sudo group. Access denied." 1
   fi
