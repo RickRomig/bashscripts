@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 06 Nov 2023
+# Last updated : 29 Nov 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -142,8 +142,6 @@ user_exists() {
 user_in_sudo() {
   if id -nG "$USER" | grep -qw sudo; then
     sudo ls > /dev/null 2>&1
-    sleep 2
-    printf '\e[A\e[K'
   else
     die "$USER is not a member of the sudo group. Access denied." 1
   fi
