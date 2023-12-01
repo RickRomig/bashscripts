@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : cinnkeys
 # Description  : Backup/Restore Cinnamon keybindings to/from a file.
-# Dependencies : none
+# Dependencies : functionlib
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, 12 May 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
@@ -57,9 +57,9 @@ Creates a backup file of Cinnamon keybindings and restores from a backup.
 
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-  -b  Creates a backup of Cinnamon keybindings in ~/.config.
+  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
   -h  Displays help.
-  -r  Restores the Cinnamon keybindings from the backup.
+  -l  Load Cinnamon keybindings from the backup file.
   -v  Enable verbose mode
 $_script v$_version, updated: $_updated
 _END_HELP_
@@ -75,24 +75,24 @@ showme() {
 
 if is_cinnamon; then
   noOpt=1
-  optstr=":bhrv"
+  optstr=":dhlv"
   while getopts "$optstr" opt; do
     case "$opt" in
-      b )
+      d )
         showme "Dumping keybindings to backup file."
         dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu"
-        echo "Cinnamon Keybindings backed up to $HOME/.config/$kb_bu."
+        echo "Cinnamon Keybindings dumped to $HOME/.config/$kb_bu."
       ;;
       h )
         usage 0
       ;;
-      r )
+      l )
         if [[ -f "$HOME/.config/$kb_bu" ]]; then
           showme "loading keybindings from backup file."
           dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
-          echo "Cinnamon Keybindings restored from $HOME/.config/$kb_bu."
+          echo "Cinnamon Keybindings loaded from $HOME/.config/$kb_bu."
         else
-          echo "$kb_bu does not exist. Run $_script -b to create it." >&2
+          echo "$kb_bu does not exist. Run $_script -d to create it." >&2
         fi
       ;;
       v )
