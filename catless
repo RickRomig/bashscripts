@@ -42,8 +42,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="29 Nov 2023"
+readonly _version="0.4.2"
+readonly _updated="03 Dec 2023"
 
 ## Functions ##
 
@@ -57,13 +57,9 @@ help() {
   is used when the number of lines is greater than the 87% of the rows, otherwise
   cat is used.
 
-"$_script v$_version (updated $_updated)"
+$_script v$_version (updated $_updated)
 END_HELP
   exit "$errcode"
-}
-
-is_text() {
-  file -bL --mime "$1" | grep -q '^text' && return "$TRUE" || return "$FALSE"
 }
 
 main() {
@@ -94,7 +90,10 @@ elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
 elif [[ ! -f "$1" ]]; then
   printf "%s %s not found.\n" "$red_error" "$1" >&2
   help 2
-elif is_text "$1"; then
+elif [[ ! -s "$1" ]]; then
+  printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
+  exit 1
+elif file -bL --mime "$1" | grep -q '^text'; then
   filename="$1"
   main "$filename"
 else
