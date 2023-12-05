@@ -1,11 +1,18 @@
 # BASH Scripts
 
-I've been writing script for quite a while, mostly for my own edification and amusement. Often a script will come into being as a solution to a particular problem or to automate a task. I started out with DOS batch files and more recently Bash scripts. I've dabbled in several programming languages, but I haven't done much actual programming since my college days. I'm not a scripting expert or guru by any means. I'm always learning, and I'm always looking for ways to improve my scripts. To paraphrase Paul Valéry, the French poet, "A script is never finished, only abandoned."
+### Introduction
+I've been writing script for quite a while, mostly for my own edification and amusement. Often a script will come into being as a solution to a particular problem or to automate a task. I started out with DOS batch files and more recently Bash scripts. I've dabbled in several programming languages, but I haven't done much actual programming since my college days. I'm not a scripting expert or guru by any means. I'm always learning, and I'm always looking for ways to improve my scripts. To paraphrase the French poet, Paul Valéry, "*A script is never finished, only abandoned.*"
 
-I have a git server on my home network where I keep my scripts and other source code, but I'm sharing certian scripts that I feel might be useful to others on my GitHub account.
+I have a git server on my home network where I maintain my scripts and other source code. Most of those scripts are specific to my network but I'm sharing many of the general purpose scripts that I feel might be useful to others on my GitHub account. In the future, I plan to add some of my instalallation scripts for various applications once I adapt them for general use.
 
 I maintain a small home network of about a dozen desktops and laptops. Most of them are older machines, some more than 10 years old. I generally don't get rid of a computer if I can get some use out of it. All of them are running Debian or Ubuntu based operating systems (Debian, Linux Mint, and LMDE). Most of the scripts in this repository should run under other distributions, but may require a few modifications.
 
+### Function library
+Many of the scripts in this repository source the `functionlib` script which contains various functions and global variables. I recommend having this script in your `~/bin` directory or in your user path. If you place in a directory other than `~/bin`, you need to change the scripts with the new path to the library. Another alternative would be to cut and paste the necessary functions and global variables into the scripts as required.
+
+The `functions` directory contains markdown files explaining each of the function in `functionlib`.
+
+### License
 All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to download and use them if you find them useful. Modify them to fit your own use cases. I don't ask that you send me any changes you make, but if you find a way to make them better, I'd appreciate you sharing them with me.
 
 ### The Scripts
@@ -13,11 +20,11 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **battery-check** - Displays charge and health status of a laptop battery. Pulls its data from files in `/sys/class/power_supply/BAT?`.
 - **catless** - Displays a text file using either cat or less, depending on the size of the file and the number of lines in the current display.
 - **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
-- **check-updates** - Check for updates using apt-get or nala. With apt-get, provides a menu to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, updates flatpak apps.
-- **checkinit** - Reports the init system being used, Systemd, SysV, Runit, OpenRC.
+- **check-updates** - Check for updates using apt-get or nala. With apt-get, a menu offers options to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, it updates flatpak apps.
+- **checkinit** - Reports the init system being used (Systemd, SysV, Runit, or OpenRC).
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
 - **empty-trash.sh** - Run as a cron job to empty the Trash directory in a user's home folder. Tested on Linux Mint, LMDE, MX Linux, BunsenLabs, Debian Cinnamon, Debian i3.
-- **functionlib** - A library of useful functions that can be sourced by a script.
+- **functionlib** - A library of useful functions and global variables that can be sourced by a script.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
@@ -47,7 +54,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-21 November 2023
+04 December 2023
 
 ### DISCLAIMER
 
