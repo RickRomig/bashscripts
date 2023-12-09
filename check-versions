@@ -1,0 +1,219 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : check-versions
+# Description  : Checks GitHub for latest versions of select programs and
+#              : displays latest versions with currently installed versions.
+# Dependencies : curl
+# Arguments    : none
+# Author       : Copyright (C) 2021, Richard B. Romig, 24 Aug 2021
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
+#              : Chromium browser does not create config directory until opened.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2021, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Functions ##
+
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+github_versions() {
+  local github_url="https://github.com"
+  local new_ver="Not found"
+  local packages=( bat marktext micro vSCodium )
+
+  printf "%-15s%-16s%s\n" "Package" "Latest version" "Installed version"
+  for package in "${packages[@]}"; do
+    # Set URL of GitHub repoository and currently installed version of package.
+    case "$package" in
+      "bat" )
+        local release_path="sharkdp/bat/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "bat" {print $3}' | sed 's/[+-].*//')
+      ;;
+      "micro" )
+        local release_path="zyedidia/micro/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "micro" {print $3}' | sed 's/[+-].*//')
+      ;;
+      "marktext" )
+        local release_path="marktext/marktext/releases"
+        cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//')
+      ;;
+		  "vSCodium" )
+			  local release_path="VSCodium/vscodium/releases"
+			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//')
+      ;;
+      * )
+        printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
+    esac
+
+    # Download package's GitHub release page to a temporary file.
+    curl -s -o "$tmp_file" "$github_url/$release_path"
+    # Extract newest version number, ignoring beta and release candidate releases.
+    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+    # Print capitalized package name
+    printf "%s%-15s" "${darkgray}" "${package^}"
+    # Print newest version
+    if [[ -z "$new_ver" ]]; then
+      printf "%s%-16s" "${red}" "No release"
+    else
+      printf "%s%-16s" "${gray}" "$new_ver"
+    fi
+    # Print current installed version.
+    if [[ -z "$cur_ver" ]]; then
+      printf "%s%s\n" "${gray}" "not installed"
+    elif [[ "$new_ver" == "$cur_ver" ]]; then
+      printf "%s%s\n" "${gray}" "$cur_ver"
+    else
+      printf "%s%s\n" "${orange}" "$cur_ver"  # new version available
+    fi
+  done
+  printf "%s\n" "${normal}"
+}
+
+apt_tools() {
+	local packages=( bluefish geany git glow nano shellcheck xed )
+	printf "%-15s%s\n" "Package" "Version"
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+		  printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
+        bluefish )
+          printf "%s\n" "$(bluefish --version | awk '/^Bluefish/ {print $NF}')"
+        ;;
+				geany )
+					printf "%s\n" "$(geany --version | cut -d' ' -f2)"
+        ;;
+        git )
+          printf "%s\n" "$(git --version | cut -d' ' -f3)"
+        ;;
+				glow )
+					printf "%s\n" "$(glow --version | cut -d' ' -f3 | sed 's/^v//')"
+        ;;
+				nano )
+					printf "%s\n" "$(nano --version | awk '/version/ {print $NF}')"
+        ;;
+        xed )
+          printf "%s\n" "$(xed --version | cut -d' ' -f4)"
+        ;;
+        shellcheck )
+          printf "%s\n" "$(shellcheck --version | awk '/version:/ {print $NF}')"
+        ;;
+				* )
+          printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
+			esac
+		fi
+	done
+	printf "%s\n" "${normal}"
+}
+
+terminals() {
+	local packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+	printf "%-15s%s\n" "Terminal" "Version"
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+			printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
+        kitty )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "kitty" {print $3}' | sed 's/[+-].*//')"
+        ;;
+        terminator )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "terminator" {print $3}' | sed 's/[+-].*//')"
+        ;;
+        gnome-terminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "gnome-terminal" {print $3}' | sed 's/[+-].*//')"
+        ;;
+        lxterminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "lxterminal" {print $3}' | sed 's/[+-].*//')"
+        ;;
+        xfce4-terminal )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "xfce4-terminal" {print $3}' | sed 's/[+-].*//')"
+        ;;
+        xterm )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "xterm" {print $3}' | sed 's/[+-].*//')"
+        ;;
+				* )
+					printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
+			esac
+		fi
+	done
+	printf "%s\n" "${normal}"
+}
+
+browsers() {
+	local packages=( brave-browser chromium firefox google-chrome )
+	printf "%-15s%s\n" "Browser" "Version"
+	for pkg in "${packages[@]}"; do
+		if exists "$pkg"; then
+			printf "%s%-15s%s" "${darkgray}" "${pkg^}" "${gray}"
+			case "$pkg" in
+				brave-browser )
+					printf "%s\n" "$(brave-browser --version | cut -d' ' -f3)"
+        ;;
+				chromium )
+          printf "%s\n" "$(chromium --version | awk '/Chromium/ {print $2}')"
+        ;;
+				firefox )
+					printf "%s\n" "$(firefox --version | cut -d' ' -f3 | sed 's/esr/ ESR/')"
+        ;;
+				google-chrome )
+					printf "%s\n" "$(google-chrome --version | cut -d' ' -f3)"
+        ;;
+				* )
+					printf "%s Invalid package name - %s\n" "$red_error" "${pkg^}" >&2
+			esac
+		fi
+	done
+	printf "%s\n" "${normal}"
+}
+
+main() {
+  local _script; _script=$(basename "$0")
+  local _version="0.11.6"
+  local _updated="23 Sep 2023"
+  clear
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "Newest & installed versions of select programs.\n\n"
+  github_versions
+  apt_tools
+  browsers
+  terminals
+  exit
+}
+
+## Execution ##
+
+check_package curl
+tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+trap cleanup EXIT
+main

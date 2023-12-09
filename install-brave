@@ -1,0 +1,154 @@
+#!/usr/bin/env bash
+#############################################################################
+# Script Name  : install-brave
+# Description  : installs the Brave broswer
+# Dependencies : apt-transport-https, curl, libu2f-udev
+# Arguments    : Ssee help function
+# Author       : Copyright (C) 2019, Richard B. Romig, 12 Dec 2019
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
+#              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+#############################################################################
+# 
+# Copyright © 2019, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.6"
+readonly _updated="16 Oct 2023"
+readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
+readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
+
+## Functions ##
+
+brave_ver() {
+  brave-browser --version
+}
+
+install_brave() {
+  local key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+  local list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
+  # Install curl, apt-transport-https, libu2f-udev, if not installed
+  check_dependencies
+  printf "Installing the Brave Browser ...\n"
+  # Import the public key for verification of the APT repository
+  sudo curl -fsSLo "$brave_key" "$key_url"
+  # Add the repository
+  echo "deb [signed-by=$brave_key arch=amd64] $list_url" | sudo tee "$brave_list" > /dev/null
+  # Install Brave
+  sudo apt-get update -qq
+  sudo apt-get install brave-browser brave-keyring -yy
+  printf "%s successfully installed.\n" "$(brave_ver)"
+}
+
+remove_brave() {
+	local apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
+  printf "Uninstalling %s...\n" "$(brave_ver)"
+  sudo apt-get remove brave-browser brave-keyring -yy
+  # Remove trusted keys
+  if [[ -f "$apt_key" ]]; then
+    sudo rm "$apt_key"
+    sudo apt-key del C3D4E821 2>/dev/null #apt-key deprecated
+  elif [[ -f "$brave_key" ]]; then
+    sudo rm "$brave_key"
+  fi
+  # Remove brave-browser-release.list
+  [[ -f "$brave_list" ]] && sudo rm "$brave_list"
+  printf "Brave browser has been uninstalled.\n"
+}
+
+remove_configs() {
+  local brave_cfg_dir="${HOME}/.config/BraveSoftware"
+  local brave_cache_dir="${HOME}/.cache/BraveSoftware"
+  printf "Removing local configuration and cache files...\n"
+  [[ -d "$brave_cfg_dir" ]] && rm -rf "$brave_cfg_dir"
+  [[ -d "$brave_cache_dir" ]] && rm -rf "$brave_cache_dir"
+  printf "Brave local configuration and cache files have been removed.\n"
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << END_HELP
+${orange}Usage:${normal} $_script [OPTION]
+Options:
+  -h   help
+  -i   Install the Brave Browser.
+  -p   Purge the Brave Browser & configuration files.
+  -r   Remove the Brave Browser & leave configuration files.
+END_HELP
+  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+check_dependencies() {
+  local packages=( apt-transport-https curl libu2f-udev )
+  check_packages "${packages[@]}"
+}
+
+## Execution ##
+
+printf "Installs/Removes the Brave browser.\n\n"
+
+noOpt=1
+optstr=":hipr"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0
+    ;;
+    i )
+      exists brave-browser && leave "$(brave_ver) is already installed."
+      user_in_sudo
+      install_brave
+    ;;
+    p )
+      exists brave-browser || leave "Brave browser is not installed."
+      user_in_sudo
+      remove_brave
+      remove_configs
+    ;;
+    r )
+      exists brave-browser || leave "Brave browser is not installed."
+      user_in_sudo
+      remove_brave
+    ;;
+    ? )
+      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+  noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+exit
