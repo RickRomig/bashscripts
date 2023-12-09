@@ -22,9 +22,11 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, a menu offers options to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, it updates flatpak apps.
 - **checkinit** - Reports the init system being used (Systemd, SysV, Runit, or OpenRC).
+- **check-versions** - Displays current and installed versions of certain packages from GitHub and installed versions of packages installed via `apt`. Can be edited for specific packages. GitHub packages generally follow the same format on their releases page. Gitlab may have a different format.
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
 - **empty-trash.sh** - Run as a cron job to empty the Trash directory in a user's home folder. Tested on Linux Mint, LMDE, MX Linux, BunsenLabs, Debian Cinnamon, Debian i3.
 - **functionlib** - A library of useful functions and global variables that can be sourced by a script.
+- **install-brave** - Installs/Removes the Brave browser.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
@@ -54,7 +56,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-04 December 2023
+08 December 2023
 
 ### DISCLAIMER
 
