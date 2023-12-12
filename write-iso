@@ -137,7 +137,7 @@ unmount_usb() {
 
 ## Execution ##
 
-user_in_sudo
+sudo_login
 
 printf "Writes ISO to a USB drive.\n\n"
 

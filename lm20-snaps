@@ -132,11 +132,11 @@ if lm20_plus; then
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        user_in_sudo
+        sudo_login
         disable_snaps
       ;;
       e )
-        user_in_sudo
+        sudo_login
         enable_snaps
       ;;
       h )

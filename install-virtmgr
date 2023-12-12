@@ -39,7 +39,7 @@ is_systemd() {
  [[ "$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')" == "systemd" ]] && return 0 || return 1
 }
 
-user_in_sudo() {
+sudo_login() {
   if id -nG "$USER" | grep -qw sudo; then
     sudo ls > /dev/null 2>&1
   else
@@ -164,7 +164,7 @@ printf "Installs Virt-Manager and KVM/QEMU...\n\n"
 
 is_systemd || { echo "Systemd is required to run background services." exit 1; }
 check_cpu
-user_in_sudo
+sudo_login
 install_packages
 # Start Default Network for Networking
 start_networking

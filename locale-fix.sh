@@ -59,7 +59,7 @@ purge_update() {
 
 ## Execution ##
 
-user_in_sudo
+sudo_login
 show_intro
 purge_update
 exit

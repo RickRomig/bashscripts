@@ -83,7 +83,7 @@ update_initramfs() {
 
 ## Execution ##
 
-user_in_sudo
+sudo_login
 
 printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
 print_message

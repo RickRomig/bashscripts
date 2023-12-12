@@ -119,7 +119,7 @@ while true; do
 done
 
 # Checking for sudo privileges...
-user_in_sudo
+sudo_login
 
 echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
 # Make backup copies of the original files and replace old hostname with new hostname

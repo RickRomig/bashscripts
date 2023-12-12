@@ -114,18 +114,18 @@ optstr=":edhs"
 while getopts "$optstr" opt; do
   case "$opt" in
     e )
-      user_in_sudo
+      sudo_login
       enable_pwfeedback
     ;;
     d )
-      user_in_sudo
+      sudo_login
       disable_pwfeedback
     ;;
     h )
       help 0
     ;;
     s )
-      user_in_sudo
+      sudo_login
       pwfeedback_status
     ;;
     ? )

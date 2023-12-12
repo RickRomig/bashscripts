@@ -135,11 +135,11 @@ user_exists() {
 }
 
 ###############################################################################
-# user_in_sudo
+# sudo_login
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
 ###############################################################################
-user_in_sudo() {
+sudo_login() {
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
       sudo ls > /dev/null 2>&1
