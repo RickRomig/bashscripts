@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 29 Nov 2023
+# Last updated : 12 Dec 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -18,11 +18,11 @@
 ## Global variables ##
 declare -r TRUE=0
 declare -r FALSE=1
-red_error=$(printf "\e[91mERROR:\e[0m")
-red_warning=$(printf "\e[91mWARNING!\e[0m")
-Gitea_URL="http://192.168.0.16:3000/Nullifidian"
+declare -r Gitea_URL="http://192.168.0.16:3000/Nullifidian"
 localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 # First three octets of the local network. Assumes a /24 private network.
+red_error=$(printf "\e[91mERROR:\e[0m")
+red_warning=$(printf "\e[91mWARNING!\e[0m")
 
 ## Colors ##
 # Text attributes
@@ -141,7 +141,11 @@ user_exists() {
 ###############################################################################
 user_in_sudo() {
   if id -nG "$USER" | grep -qw sudo; then
-    sudo ls > /dev/null 2>&1
+    if ! sudo -vn 2>/dev/null; then
+      sudo ls > /dev/null 2>&1
+      sleep 2
+      printf '\e[A\e[K'
+    fi
   else
     die "$USER is not a member of the sudo group. Access denied." 1
   fi
