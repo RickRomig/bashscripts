@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-codium
+# Description  : installs vscodium from a repo using apt-get
+# Dependencies : wget
+# Arguments    : see help function for options
+# Author       : Copyright © 2023 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 04 Aug 2023
+# Comments     : Alternative to downloading directly from GitHub repo.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.7"
+readonly _updated="15 Dec 2023"
+readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
+readonly src_list="/etc/apt/sources.list.d/vscodium.list"
+
+## Functions ##
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-a	Set apt gpg key and source list
+	-h	Display help
+	-i	Install VSCodium
+	-r	Remove VSCodium
+	-s	Apply VSCodium settings
+  -v  Enable verbose mode
+END_HELP
+	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  exit "$errcode"
+}
+
+codium_version() {
+	codium --version | head -n 1
+}
+
+apply_settings() {
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
+  printf "Applying VSCodium settings...\n"
+  settings
+  printf "VSCodium settings applied.\n"
+}
+
+settings() {
+  local vsc_cfg_d="${HOME}/.config/VSCodium/User"
+  cat << EOL > "$vsc_cfg_d/settings.json"
+{
+  "workbench.colorTheme": "Default High Contrast",
+  "editor.tabSize": 2,
+  "editor.fontFamily": "'Fira Code', 'Cascadia Code', 'Droid Sans Mono', 'monospace'",
+  "editor.fontLigatures": true,
+  "terminal.integrated.fontFamily": "'JetBrainsMono Nerd Font'",
+  "editor.wordWrap": "on",
+  "editor.fontSize": 16,
+  "window.restoreFullscreen": true,
+  "editor.insertSpaces": false,
+  "editor.autoClosingQuotes": "always"
+}
+EOL
+}
+
+set_key() {
+	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+	sudo mv pub.gpg "$key_file"
+}
+
+set_src() {
+	local src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
+	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list" > /dev/null
+}
+
+install_vscodium() {
+	sudo_login
+	show_me "Installing VSCodium..."
+	set_key
+	set_src
+	sudo apt-get update
+	sudo apt-get install codium
+	apply_settings
+	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
+}
+
+remove_vscodium() {
+	local vsc_cfg_d="${HOME}/.config/VSCodium"
+	sudo_login
+	show_me "Removing VSCodium..."
+	sudo apt-get remove codium
+	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
+	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
+  [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
+	printf "VSCodium has been removed.\n"
+}
+
+show_me() {
+  local message="$1"
+  [[ "$verbose_mode" = 0 ]] && echo "$message"
+}
+
+## Execution ##
+
+check_package wget
+noOpt=1
+optstr=":ahirsv"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		a)
+			exists codium || leave "VSCodium is not installed."
+			printf "Setting the GPG key and creating the source list file.\n"
+			set_key
+			set_src
+		;;
+		h )
+			help 0
+		;;
+		i )
+			exists codium && leave "VSCodium $(codium_version) is already installed."
+			install_vscodium
+		;;
+		r )
+			exists codium || leave "VSCodium is not installed."
+			remove_vscodium
+		;;
+		s )
+		  exists codium || leave "VSCodium is not installed."
+    	apply_settings
+		;;
+		v )
+      verbose_mode=0
+      show_me "Verbose mode enabled."
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version ($_updated)"
