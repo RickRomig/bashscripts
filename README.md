@@ -27,8 +27,10 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **empty-trash.sh** - Run as a cron job to empty the Trash directory in a user's home folder. Tested on Linux Mint, LMDE, MX Linux, BunsenLabs, Debian Cinnamon, Debian i3.
 - **functionlib** - A library of useful functions and global variables that can be sourced by a script.
 - **install-brave** - Installs/Removes the Brave browser.
+- **install-codium** - Installs/Removes VSCodium.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
+- **iru-micro** - Installs, removes, updates the Micro CLI text editor. Includes basic settings and an additional keybinding.
 - **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
 - **laptoplid** - Modifies `/etc/systemd/logind` to allow a laptop's lid to be closed without going into suspend mode.
@@ -56,7 +58,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-08 December 2023
+15 December 2023
 
 ### DISCLAIMER
 
