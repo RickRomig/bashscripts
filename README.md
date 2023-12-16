@@ -35,6 +35,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
 - **laptoplid** - Modifies `/etc/systemd/logind` to allow a laptop's lid to be closed without going into suspend mode.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
+- **purge-image-rc** - Purges obsolete packages (Linux headers and images) in the remove/deinstall state with only configuration files installed.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
 - **ren-ext** - Rename capitalized, mixed capitalization, and non-standard file extensions.
@@ -58,7 +59,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-15 December 2023
+16 December 2023
 
 ### DISCLAIMER
 
