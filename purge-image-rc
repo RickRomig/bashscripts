@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : purge-image-rc
+# Description  : Purges config files from removed kernels in the 'rc' state
+# Dependencies : None
+# Arguments    : None
+# Author       : Copyright (C) 2020, Richard B. Romig, 27 Sep 2020
+# Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.1"
+readonly _updated="16 Dec 2023"
+
+## Functions ##
+
+purge_rc_images() {
+  printf "These packages are in the remove/deinstall state with only the config files.\n"
+  if yes_or_no "Are you sure you want to purge the config files for these images?"; then
+    printf "%sPurging obsolete linux kernel configuration files...%s\n" "$green" "$normal"
+    for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
+  else
+    printf "No action taken. No packages were purged.\n"
+  fi
+}
+
+list_rc_images() {
+  printf "Packages in the 'rc' state:\n"
+  printf "%s\n" "${rc_img[@]}"   # an array? ${rc_img[@]}
+}
+
+list_headers() {
+  printf "Installed linux headers and images:\n"
+  dpkg --list | grep -Ei --color 'linux-image|linux-headers'
+}
+
+## Execution ##
+
+# clear
+box "$_script v$_version ($_updated)"
+rc_img=$(dpkg --list | awk '/linux-image/ && /^rc/ {print $2}')
+if [[ -n "$rc_img" ]]; then
+  list_rc_images
+  purge_rc_images
+else
+  printf "No packages in the 'rc' state to be purged.\n"
+fi
+list_headers
+exit
