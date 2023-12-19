@@ -42,8 +42,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="03 Dec 2023"
+readonly _version="0.4.3"
+readonly _updated="18 Dec 2023"
 
 ## Functions ##
 
@@ -93,7 +93,7 @@ elif [[ ! -f "$1" ]]; then
 elif [[ ! -s "$1" ]]; then
   printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
   exit 1
-elif file -bL --mime "$1" | grep -q '^text'; then
+elif file -bL --mime "$1" | grep -qEi "text|json"; then
   filename="$1"
   main "$filename"
 else
