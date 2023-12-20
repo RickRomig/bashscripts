@@ -3,7 +3,7 @@
 # Script Name  : iru-micro
 # Description  : Installs, updates, and removes the Micro CLI text editor.
 # Dependencies : gdebi, wget
-# Arguments    : See help function for options
+# Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : -u option updates installed version only. Does not do initial install.
@@ -44,12 +44,14 @@ fi
 
 _script=$(basename "$0"); readonly _script
 readonly _version="0.5.4"
-readonly _updated="15 Dec 2023"
+readonly _updated="20 Dec 2023"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
