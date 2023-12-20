@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.1"
-readonly _updated="26 Nov 2023"
+readonly _version="3.4.2"
+readonly _updated="20 Dec 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -57,6 +57,8 @@ check_dependencies() {
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
   [[ -f "$hd_data" ]] && rm -f "$hd_data"
