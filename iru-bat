@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-bat
+# Description  : Installs, updates, and removes the Bat utillity program.
+# Dependencies : gdebi, wget
+# Arguments    : -c -h -i -r -u (See the help function for details.)
+# Author       : Copyright (C) 2022, Richard B. Romig, 09 Jan 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.5.5"
+readonly _updated="21 Dec 2023"
+readonly gh_url="https://github.com/sharkdp/bat/releases"
+readonly bat_cfg_d=$HOME"/.config/bat"
+
+## Functions ##
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+check_distro() {
+  codename=$(lsb_release -c -s)
+  case "$codename" in
+    bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
+    * ) return "$FALSE" ;;
+  esac
+}
+
+bat_ver() {
+  bat --version | awk '{print $2}'
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$gh_url"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+  check_distro || new_ver="0.19.0"
+  echo "$new_ver"
+}
+
+compare_versions() {
+  cur_ver="$(bat_ver)"
+  if [[ "$cur_ver" == "$new_ver" ]]; then
+    echo "${lightyellow}Bat $cur_ver is the current version. No update required.${normal}"
+    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+  else
+    echo "${lightyellow}Installed version of Bat is $cur_ver, updating to $new_ver...${normal}"
+    check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+    install_bat
+  fi
+}
+
+install_bat() {
+  local new_pkg="bat_${new_ver}_amd64.deb"
+  printf "Downloading Bat %s from the sharkdp GitHub repository..." "$new_ver"
+  dots "."
+  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
+  kill "$!"; tput cnorm
+  printf "done\nInstalling Bat %s...\n" "$new_ver"
+  sudo gdebi -n "$tmp_dir/$new_pkg"
+  printf "Bat %s installed.\n" "$(bat_ver)"
+}
+
+remove_bat() {
+  printf "Removing Bat %s...\n" "$(bat_ver)"
+  sudo dpkg --remove bat
+  [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
+  printf "Bat and its configuration files have been removed.\n"
+}
+
+apply_config() {
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  printf "Applying Bat configuration...\n"
+  cat << END_CONFIG > "$bat_cfg_d"/config
+# Set the theme to "OneHalfDark"
+--theme="OneHalfDark"
+
+# Show line numbers, Git modifications and file header (but no grid)
+--style="numbers,changes,header,grid"
+
+# Use italic text on the terminal (not supported on all terminals)
+# --italic-text=always
+
+# Add mouse scrolling support in less (does not work with older
+# versions of "less")
+# --pager="less -FR"
+
+# paging option - *auto*, always, never
+--paging=always
+
+# Use C++ syntax (instead of C) for .h header files
+# --map-syntax h:cpp
+
+# Use "gitignore" highlighting for ".ignore" files
+# --map-syntax .ignore:.gitignore
+--map-syntax ".ignore:Git Ignore"
+END_CONFIG
+  printf "Bat configuration created and applied.\n"
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOF
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -c    Installs/updates Bat configuration file.
+  -h    Displays help.
+  -i    Installs the Bat utility.
+  -r    Removes the Bat utility from the system.
+  -u    Updates the Bat utility to the latest version.
+EOF
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "Installs, updates, or removes the Bat utililty.\n"
+
+noOpt=1
+optstr=":chiru"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    c )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      apply_config
+    ;;
+    h )
+      help 0
+    ;;
+    i )
+      exists bat && leave "Bat $(bat_ver) is already installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login
+      check_dependencies
+      new_ver="$(newest_version)"
+      echo "${lightyellow}Installing Bat version $new_ver...${normal}"
+      check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+      install_bat
+      apply_config
+    ;;
+    r )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      remove_bat
+    ;;
+    u )
+      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login
+      check_dependencies
+      new_ver="$(newest_version)"
+      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      compare_versions
+    ;;
+    ? )
+      echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
+      help 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version ($_updated)"
