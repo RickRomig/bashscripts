@@ -30,6 +30,8 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **install-codium** - Installs/Removes VSCodium.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
+- **iru-bat** - Installs, removes, updates the Bat utility.
+- **iru-marktext** - Installs, removes, updates the Mark Text markdown editor.
 - **iru-micro** - Installs, removes, updates the Micro CLI text editor. Includes basic settings and an additional keybinding.
 - **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
@@ -59,7 +61,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-16 December 2023
+21 December 2023
 
 ### DISCLAIMER
 
