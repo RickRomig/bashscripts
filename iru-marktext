@@ -1,0 +1,245 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : iru-marktext
+# Description  : Installs, updates, and removes the Mark Text markdown editor.
+# Dependencies : gdebi, wget
+# Arguments    : [-h] [-i] [-r] [-u] (See help function)
+# Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091,SC2034
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.4.4"
+readonly _updated="20 Dec 2023"
+readonly gh_url="https://github.com/marktext/marktext/releases"
+readonly mt_cfg_dir="$HOME/.config/marktext"
+
+## Functions ##
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+  [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+  [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
+}
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+marktext_version() {
+  # dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//'
+  marktext --version | awk '/MarkText/ {print $2}' | sed 's/^v//'
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$gh_url"
+  # curl -s -o "$tmp_file" "$url"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+  echo "$new_ver"
+}
+
+compare_versions() {
+  cur_ver=$(marktext_version)
+  if [[ "$cur_ver" == "$new_ver" ]]; then
+    echo "${lightyellow}Marktext $cur_ver is the current version. No update required.${normal}"
+  else
+    echo "${lightyellow}Installed version of MarkText is $cur_ver, updating to $new_ver...${normal}"
+    install_marktext
+  fi
+}
+
+install_marktext() {
+  new_pkg="marktext-amd64.deb"
+  printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
+  dots "."
+  wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
+  kill "$!";printf "done\n";tput cnorm
+  printf "Installing Mark Text %s...\n" "$new_ver"
+  sudo gdebi -n "$tmp_dir/$new_pkg"
+  apply_preferences
+  printf "Mark Text %s installed.\n" "$(marktext_version)"
+}
+
+remove_marktext() {
+  echo "Removing the Mark Text markdown editor..."
+  sudo apt-get remove --purge marktext -yy
+  [[ -d "$mt_cfg_dir" ]] && rm -rf "$mt_cfg_dir"
+  echo "Mark Text markdown editor has been removed."
+}
+
+apply_preferences() {
+	local json_file="preferences.json"
+	[[ -d "$mt_cfg_dir" ]] && mkdir -p "$mt_cfg_dir"
+	printf "Applying %s...\n" "$json_file"
+	cat << END_PREFS > "$mt_cfg_dir/$json_file"
+{
+	"autoSave": true,
+	"autoSaveDelay": 5000,
+	"titleBarStyle": "custom",
+	"openFilesInNewWindow": false,
+	"openFolderInNewWindow": false,
+	"hideScrollbar": false,
+	"wordWrapInToc": false,
+	"fileSortBy": "created",
+	"startUpAction": "blank",
+	"language": "en",
+	"editorFontFamily": "Open Sans",
+	"fontSize": 14,
+	"lineHeight": 1.6,
+	"editorLineWidth": "",
+	"codeFontSize": 14,
+	"codeFontFamily": "Cascadia Code",
+	"codeBlockLineNumbers": true,
+	"trimUnnecessaryCodeBlockEmptyLines": true,
+	"autoPairBracket": true,
+	"autoPairMarkdownSyntax": true,
+	"autoPairQuote": true,
+	"endOfLine": "default",
+	"defaultEncoding": "utf8",
+	"autoGuessEncoding": true,
+	"trimTrailingNewline": 2,
+	"textDirection": "ltr",
+	"hideQuickInsertHint": false,
+	"hideLinkPopup": false,
+	"autoCheck": false,
+	"preferLooseListItem": true,
+	"bulletListMarker": "-",
+	"orderListDelimiter": ".",
+	"preferHeadingStyle": "atx",
+	"tabSize": 4,
+	"listIndentation": 1,
+	"frontmatterType": "-",
+	"superSubScript": false,
+	"footnote": false,
+	"isHtmlEnabled": true,
+	"isGitlabCompatibilityEnabled": false,
+	"sequenceTheme": "hand",
+	"theme": "dark",
+	"autoSwitchTheme": 2,
+	"spellcheckerEnabled": true,
+	"spellcheckerIsHunspell": false,
+	"spellcheckerNoUnderline": false,
+	"spellcheckerAutoDetectLanguage": false,
+	"spellcheckerLanguage": "en-US",
+	"imageInsertAction": "path",
+	"imagePreferRelativeDirectory": false,
+	"imageRelativeDirectoryName": "assets",
+	"sideBarVisibility": false,
+	"tabBarVisibility": false,
+	"sourceCodeModeEnabled": false,
+	"searchExclusions": [],
+	"searchMaxFileSize": "",
+	"searchIncludeHidden": false,
+	"searchNoIgnore": false,
+	"searchFollowSymlinks": true,
+	"watcherUsePolling": false,
+	"defaultDirectoryToOpen": "",
+	"zoom": 1.25
+}	
+END_PREFS
+  printf "MarkText %s applied.\n" "$json_file"
+}
+
+help() {
+  local errcode="${1:-2}"
+  cat << EOF
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -h    Displays help.
+  -i    Installs the Marktext markdown editor.
+  -p    Applies Marktext preferences.
+  -r    Removes the Marktext markdown editor from the system.
+  -u    Updates the Marktext markdown editor to the latest version.
+$_script v$_version (Updated: $_updated)
+EOF
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "Installs, updates, or removes the Mark Text markdown editor.\n"
+
+noOpt=1
+optstr=":hipru"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    h )
+      help 0
+    ;;
+    i )
+      exists marktext && leave "Marktext $(marktext_version) is already installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login
+      check_dependencies
+      new_ver="$(newest_version)"
+      echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
+      sudo_login
+      install_marktext
+    ;;
+    p )
+      exists marktext || leave "Marktext is not installed."
+      apply_preferences
+    ;;
+    r )
+      exists marktext || leave "Marktext is not installed."
+      sudo_login
+      remove_marktext
+    ;;
+    u )
+      exists marktext || leave "Marktext is not installed."
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login
+      check_dependencies
+      new_ver="$(newest_version)"
+      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      compare_versions
+    ;;
+    ? )
+      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      help 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"
