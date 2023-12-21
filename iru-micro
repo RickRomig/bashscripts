@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.4"
-readonly _updated="20 Dec 2023"
+readonly _version="0.5.5"
+readonly _updated="21 Dec 2023"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -176,6 +176,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
+      sudo_login
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing Micro version $new_ver...${normal}"
@@ -198,6 +199,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
+      sudo_login
       check_dependencies
       new_ver="$(newest_version)"
       [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
