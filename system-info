@@ -6,12 +6,12 @@
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Rewrite of version 2.5.0
+# Comments     : 
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2022, Richard B. Romig
 # Email: rick.romig@gmail.com
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.2"
-readonly _updated="20 Dec 2023"
+readonly _version="3.4.3"
+readonly _updated="22 Dec 2023"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -58,7 +58,7 @@ check_dependencies() {
 }
 
 # shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by a variable name or in a trap.
 cleanup() {
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
   [[ -f "$hd_data" ]] && rm -f "$hd_data"
@@ -129,7 +129,7 @@ ff_fix() {
         break
       ;;
       * )
-        printf "%s Invalid choice!$ Choose 1, 2, 3, or 4\n1" >&2 "$red_error"
+        printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$red_error"
     esac
   done
 }
@@ -155,7 +155,6 @@ os_info() {
 }
 
 cpu_info() {
-  # model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | awk '{$1=$1}1' | sed 's/([^)]*)//g')
   model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
   arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
   threads=$(/usr/bin/lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
@@ -201,14 +200,17 @@ ssd_hd_info() {
     printf "%s\n" "$(grep -w dev "$hd_data")"
     printf "   %-15s%s\n" "Model Number:" "$(awk -F: '/Model/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
-    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | sed 's/[)(]//g')"
+    printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
     [[ -z "$hd_ff" ]] && ff_fix
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
-    	[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm" ;;
-    	* ) printf " %s\n" "$hd_rpm" ;;
+    	[0-9]* )
+    		printf " %s-rpm Hard Disk Drive\n" "$hd_rpm"
+    	;;
+    	* )
+    		printf " %s\n" "$hd_rpm"
     esac
 	done
 }
