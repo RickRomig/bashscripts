@@ -53,7 +53,7 @@ github_versions() {
   local new_ver="Not found"
   local packages=( bat marktext micro vSCodium )
 
-  printf "%-15s%-16s%s\n" "Package" "Latest version" "Installed version"
+  printf "%-15s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
     # Set URL of GitHub repoository and currently installed version of package.
     case "$package" in
@@ -199,8 +199,8 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.6"
-  local _updated="23 Sep 2023"
+  local _version="0.11.7"
+  local _updated="23 Dec 2023"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
