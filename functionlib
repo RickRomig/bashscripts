@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 16 Dec 2023
+# Last updated : 24 Dec 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 ## Shellcheck Directives ##
@@ -779,7 +779,7 @@ spin() {
 ###############################################################################
 # y_or_n
 # Purpose: Displays a yes or no prompt (y|n).
-# Arguement: A string requiring a yes or no response.
+# Argument: A string requiring a yes or no response.
 # Returns: True or False
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
@@ -805,7 +805,7 @@ y_or_n() {
 ###############################################################################
 # yes_or_no
 # Purpose: Displays a yes or no prompt (yes|no). 
-# Arguement: A string requiring a yes or no response.
+# Argument: A string requiring a yes or no response.
 # Returns: True or False
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -831,9 +831,9 @@ yes_or_no() {
 ###############################################################################
 # default_yes
 # Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter. 
-# Arguement: A string requiring a yes or no response.
+# Argument: A string requiring a yes or no response.
 # Returns: True or False
-# Example: yes_or_no "Question" && do_something || do_something_else
+# Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
 default_yes() {
   while true; do
@@ -854,9 +854,9 @@ default_yes() {
 ###############################################################################
 # default_no
 # Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter. 
-# Arguement: A string requiring a yes or no response.
+# Argument: A string requiring a yes or no response.
 # Returns: True or False
-# Example: yes_or_no "Question" && do_something || do_something_else
+# Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
 default_no() {
   while true; do
