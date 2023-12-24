@@ -47,8 +47,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.8"
-readonly _updated="13 Oct 2023"
+readonly _version="2.1.0"
+readonly _updated="24 Dec 2023"
 
 ## Functions ##
 
@@ -71,13 +71,15 @@ purge_configs() {
   local rcpkgs
   local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}' | wc -l)
-  if [[ "$rcpkgs" -gt 0 ]]; then
-    for rcpkg in $(dpkg -l | awk '/^rc/ {print $2}'); do
+  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}')
+  if [[ -n "$rcpkgs" ]]; then
+    printf "Packages in the 'rc' state:\n"
+    printf "%s\n" "${rcpkgs[@]}"
+    for rcpkg in "${rcpkgs[@]}"; do
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
-    printf "No files to be purged found.\n"
+    printf "No packages in the 'rc' state to be purged.\n"
   fi
 }
 
@@ -106,10 +108,12 @@ update_flatpak() {
 
 nala_update() {
   sudo nala upgrade
-  printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-  sudo nala autoremove
-  printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  sudo nala autopurge
+  if default_no "Run autoremove/autopurge?"; then
+    printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
+    sudo nala autoremove
+    printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
+    sudo nala autopurge --config
+  fi
   printf "\n"
 }
 
