@@ -609,7 +609,7 @@ check_package() {
     sleep 2
     printf '\e[A\e[K'
   else
-    printf "%s - installing...\n" "$package"
+    printf "Installing %s ...\n" "$package"
     sudo apt-get install "$package" -yyq
   fi
 }
@@ -630,7 +630,7 @@ check_packages() {
       sleep 2
       printf '\e[A\e[K'
 		else
-			printf "%s - installing...\n" "$pkg"
+			printf "Installing %s ...\n" "$pkg"
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
