@@ -9,9 +9,25 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 24 Dec 2023
+# Last updated : 28 Dec 2023
 # License      : GNU General Public License, version 2.0
 ###############################################################################
+# 
+# Copyright © 2023, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
 ## Shellcheck Directives ##
 # shellcheck disable=SC2034,SC2154,SC1003
 
@@ -136,15 +152,17 @@ user_exists() {
 
 ###############################################################################
 # sudo_login
+# Arguments:
+#   $1 -> number or seconds to sleep before blanking the prompt line. If delay is 0, blanking line is skippped.
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
 ###############################################################################
 sudo_login() {
+  local delay="${1:-2}"
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
-      sudo ls > /dev/null 2>&1
-      sleep 2
-      printf '\e[A\e[K'
+			sudo ls > /dev/null 2>&1
+			[[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
     fi
   else
     die "$USER is not a member of the sudo group. Access denied." 1
