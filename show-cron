@@ -102,5 +102,5 @@ main() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 0
 main
