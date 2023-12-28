@@ -178,7 +178,7 @@ apt_update() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 0
 
 SECONDS=0
 
