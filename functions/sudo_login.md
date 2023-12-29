@@ -10,7 +10,10 @@ sudo_login() {
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
       sudo ls > /dev/null 2>&1
-      [[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
+      if [[ "$delay" -gt 0 ]]; then
+        sleep "$delay"
+        printf '\e[A\e[K'
+      fi
     fi
   else
     die "$USER is not a member of the sudo group. Access denied."
