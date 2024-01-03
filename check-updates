@@ -74,7 +74,7 @@ purge_configs() {
   rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}')
   if [[ -n "$rcpkgs" ]]; then
     printf "Packages in the 'rc' state:\n"
-    printf "%s\n" "${rcpkgs[@]}"
+    printf "\t%s\n" "${rcpkgs[@]}"
     for rcpkg in "${rcpkgs[@]}"; do
       sudo apt-get remove --purge "$rcpkg" -yy
     done
