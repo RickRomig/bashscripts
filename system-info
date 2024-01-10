@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.3"
-readonly _updated="22 Dec 2023"
+readonly _version="3.4.4"
+readonly _updated="10 Jan 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -220,8 +220,8 @@ nvme_info() {
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
     printf "%s\n" "$(echo "$devline" | awk '/dev/ {print $1}' | cut -d'/' -f3)"
-    printf "   %-15s%s\n" "Model Number:" "$(echo "$devline" | awk '/dev/ {print $3,$4}' | sed 's/ [0-9].*$//')"
-    printf "   %-15s%s\n" "Serial Number:" "$(echo "$devline" | awk '/dev/ {print $2}')"
+    printf "   %-15s%s\n" "Model Number:" "$(echo "$devline" | awk '/dev/ {print $4,$5}' | sed 's/ [0-9].*$//')"
+    printf "   %-15s%s\n" "Serial Number:" "$(echo "$devline" | awk '/dev/ {print $3}')"
     printf "   %-15s%s\n" "Capacity:" "$(echo "$devline" | awk '/dev/ {print $(NF-7),$(NF-6)}')"
   done
 }
@@ -253,7 +253,7 @@ battery_info() {
 
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
-sudo_login
+sudo_login 2
 check_dependencies
 clear
 {
