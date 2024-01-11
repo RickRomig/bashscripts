@@ -142,7 +142,7 @@ root_user() {
 # user_exists
 # Purpose: Return true if user exists in /etc/passwd
 # Arguments:
-#   $1 (username) -> Username to check in /etc/passwd
+#   $1 -> username to check in /etc/passwd
 # Returns: True or False
 ###############################################################################
 user_exists() {
@@ -152,7 +152,7 @@ user_exists() {
 
 ###############################################################################
 # sudo_login
-# Arguments:
+# Argument:
 #   $1 -> number or seconds to sleep before blanking the prompt line. If delay is 0, blanking line is skippped.
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
@@ -175,6 +175,7 @@ sudo_login() {
 ###############################################################################
 # bin_in_path
 # Purpose: Return true if $HOME/bin is in the PATH
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 bin_in_path() {
@@ -184,7 +185,7 @@ bin_in_path() {
 ###############################################################################
 # exists
 # Purpose: Returns true if command/program is installed.
-# Arguments:
+# Argument:
 #   $1 -> command/program to be checked.
 # Returns: True or False
 ###############################################################################
@@ -195,6 +196,7 @@ exists() {
 ###############################################################################
 # get_distribution
 # Purpose: Sets global variable 'distro' to the full name of the current distribution.
+# Arguments: none
 ###############################################################################
 get_distribution() {
   if [[ -f /etc/lsb-release ]]; then
@@ -208,6 +210,7 @@ get_distribution() {
 ###############################################################################
 # is_debian
 # Purpose: Returns true if the distribution is based on Debian.
+# Arguments: none
 # Returns: True or False
 # Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
 ###############################################################################
@@ -225,6 +228,7 @@ is_debian() {
 ###############################################################################
 # is_focal
 # Purpose: Returns true if distribution is based on Ubuntu 20.04 (i.e., Mint 20.x)
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_focal() {
@@ -234,6 +238,7 @@ is_focal() {
 ###############################################################################
 # is_jammy
 # Purpose: Returns true if distribution is based on Ubuntu 22.04 (i.e., Mint 21.x)
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_jammy() {
@@ -243,6 +248,7 @@ is_jammy() {
 ###############################################################################
 # support_ppa
 # Purpose: Returns true if the distribution supports Ubuntu PPA.
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 support_ppa() {
@@ -259,6 +265,7 @@ support_ppa() {
 ###############################################################################
 # antix_mx
 # Purpose: Returns true if distribution is antiX or MX Linux
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 antix_mx() {
@@ -269,6 +276,7 @@ antix_mx() {
 ###############################################################################
 # bunsenlabs
 # Purpose: Returns true if distribution is BunsenLabs
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 bunsenlabs() {
@@ -278,6 +286,7 @@ bunsenlabs() {
 ###############################################################################
 # is_arch
 # Purpose: Return true if distribution is based on Arch Linux
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_arch() {
@@ -287,6 +296,7 @@ is_arch() {
 ###############################################################################
 # is_systemd
 # Purpose: Returns true is the init system is systemd
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_systemd() {
@@ -296,6 +306,7 @@ is_systemd() {
 ###############################################################################
 # is_sysv
 # Purpose: Returns true is the init system is SysV
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_sysv() {
@@ -305,6 +316,7 @@ is_sysv() {
 ###############################################################################
 # is_openrc
 # Purpose: Returns true is the init system is OpenRC
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_openrc() {
@@ -314,6 +326,7 @@ is_openrc() {
 ###############################################################################
 # is_runit
 # Purpose: Returns true is the init system is Runit
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_runit() {
@@ -323,6 +336,7 @@ is_runit() {
 ###############################################################################
 # is_cinnamon
 # Purpose: Returns true is the desktop environment is Cinnamon
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_cinnamon() {
@@ -332,6 +346,7 @@ is_cinnamon() {
 ###############################################################################
 # is_laptop
 # Purpose: Returns true is the system is a laptop
+# Arguments: none
 # Returns: True or False
 ###############################################################################
 is_laptop() {
@@ -341,7 +356,7 @@ is_laptop() {
 ###############################################################################
 # leapyear
 # Purpose: Returns true if the current year is a leap year.
-# Arguments:
+# Argument:
 #   $1 -> 4-digit year to be checked
 # Returns: True or False (0 or 1)
 ###############################################################################
@@ -357,6 +372,7 @@ leapyear() {
 # Purpose: Extract the last octet of the local IP address
 # Assumes a Class C /24 network, last octet of 1 - 254
 # Priority is wired connection, then wireless.
+# Arguments: none
 ###############################################################################
 local_ip() {
   en_ip=$(/usr/bin/ip route show | awk '/en/ && /src/ {print $9}')
@@ -380,7 +396,7 @@ local_ip() {
 # Purpose: Return a valid and reachable IP address
 # Assumes a Class C /24 network, last octet of 1 - 254
 # Network identifier and broadcast addresses are excluded
-# Arguments:
+# Argument:
 #   $1 -> last octet of the IP address to be validated.
 # Returns 0 if the argument is a valid and reachable IP address.
 # Exits with exit code of 1 if the argument is an empty string.
@@ -439,7 +455,7 @@ valid_ip() {
 ###############################################################################
 # edit_view_quit
 # Purpose: Edit or view a file after it's been created by a script.
-# Arguments:
+# Argument:
 #   $1 -> file to be edited or reviewed.
 ###############################################################################
 edit_view_quit() {
@@ -478,7 +494,7 @@ edit_view_quit() {
 ###############################################################################
 # viewtext
 # Purpose: View a text file with less or cat
-# Arguments:
+# Argument:
 #   $1 -> file to be viewed
 ###############################################################################
 viewtext() {
@@ -491,6 +507,7 @@ viewtext() {
 ###############################################################################
 # remove_tilde
 # Purpose: Removes backup files ending with a tilde '~' in the current directory
+# Arguments: none
 ###############################################################################
 remove_tilde() {
   nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
@@ -500,6 +517,7 @@ remove_tilde() {
 ###############################################################################
 # anykey
 # Purpose: Press any key to continue
+# Arguments: none
 ###############################################################################
 anykey() {
   read -rsn1 -p "Press any key to continue"; echo
@@ -548,7 +566,7 @@ box() {
 ###############################################################################
 # under_line
 # Purpose: Displays a line of hyphen/dashes under a line of text.
-# Argument:
+# Arguments:
 #   $1 -> A single line of text to be displayed.
 #   $2 -> Optional character to form the line. Default is `-`
 # The line of text cannot contain any special characters.
@@ -568,7 +586,7 @@ under_line() {
 ###############################################################################
 # over_line
 # Purpose: Displays a line of hyphen/dashes over a line of text.
-# Argument:
+# Arguments:
 #   $1 -> A single line of text to be displayed.
 #   $2 -> Optional character to form the line. Default is `-`
 # The line of text cannot contain any special characters.
@@ -589,7 +607,7 @@ over_line() {
 # leave
 # Purpose: Display either a random message from a file or a message string passed
 # as an argument before exiting the script.
-# Arguments:
+# Argument:
 #   $1 -> Exit message (Optional)
 ###############################################################################
 leave() {
@@ -603,7 +621,7 @@ leave() {
 ###############################################################################
 # format_time
 # Purpose: Displays the elasped time for a script to run
-# Arguments:
+# Argument:
 #   $1 -> $SECONDS
 # Place SECONDS=0 ahead of task to be timed.
 # SECONDS and ((...)) are undefined in POSIX.
@@ -619,7 +637,7 @@ format_time() {
 ###############################################################################
 # check_package
 # Purpose: Check if a package is installed, and install if not.
-# Argurments:
+# Argurment:
 #   $1 -> name of package to check and install
 # Example: check_package "$package"
 ###############################################################################
@@ -638,7 +656,7 @@ check_package() {
 ###############################################################################
 # check_packages
 # Purpose: Check if a group of packages are installed, and install if not.
-# Argurments:
+# Argurment:
 #   $@ -> array of packages to check and install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
 ###############################################################################
@@ -661,7 +679,7 @@ check_packages() {
 # in_repos
 # Purpose: Returns true if a package is in the repositories, including PPAs and
 # other added software sources in /etc/apt/sources.list.d.
-# Arguments:
+# Argument:
 #   $1 -> package to be checked
 # Returns: True or False
 ###############################################################################
@@ -675,6 +693,7 @@ in_repos() {
 # mount_server
 # Purpose: Mounts a sshfs server on the local network using sshfs in user's home directory.
 # $tmp_dir, $tmp_file must be global variables in the calling script.
+# Arguments: none
 ###############################################################################
 mount_server() {
   local server_ip="11"
@@ -701,6 +720,7 @@ mount_server() {
 # Purpose: Unmounts a sshfs server on the local network.
 # Removes temp directory and temp file, if present.
 # $tmp_dir, $tmp_file must be global variables in the calling script.
+# Arguments: none
 ###############################################################################
 unmount_server() {
   local share="HP-6005"
@@ -719,6 +739,7 @@ unmount_server() {
 # mount_nas
 # Purpose: Mount the NAS on the local network using sshfs.
 # $tmp_dir, $tmp_file must be global variables in the calling script.
+# Arguments: none
 ###############################################################################
 mount_nas() {
   local server_ip="4"
@@ -744,6 +765,7 @@ mount_nas() {
 # Purpose: Unmounts the NAS (sshfs server) on local network
 # Removes temp directory and temp file, if present.
 # $tmp_dir, $tmp_file must be global variables in the calling script.
+# Arguments: none
 ###############################################################################
 unmount_nas() {
   local share="NASD97167"
@@ -761,7 +783,7 @@ unmount_nas() {
 ###############################################################################
 # clone_repo
 # Purpose: Clone a git repository on the Gitea server to ~/Downloads
-# Arguments:
+# Argument:
 #   $1 -> name of the repository to clone
 ###############################################################################
 clone_repo() {
@@ -773,7 +795,7 @@ clone_repo() {
 ###############################################################################
 # dots
 # Purpose: Display a series of dots to indicate a running process.
-# Arguments:
+# Argument:
 #   $1 -> optional character to be repeated. Default is '.' (period)
 # Character argument, if present, needs to be in double quotes, i.e., "-".
 # Character argument, if present, is limited to the first character entered.
@@ -791,6 +813,7 @@ dots() {
 # spin
 # Purpose: Display a spinning character to indicate a running process.
 # Refer to ~/bin/functions/dots-spin.md for ussage instructions.
+# Arguments: none
 ###############################################################################
 spin() {
   local spinner=( '|' '/' '-' '\' )
@@ -800,7 +823,8 @@ spin() {
 ###############################################################################
 # y_or_n
 # Purpose: Displays a yes or no prompt (y|n).
-# Argument: A string requiring a yes or no response.
+# Argument:
+# 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
@@ -826,7 +850,8 @@ y_or_n() {
 ###############################################################################
 # yes_or_no
 # Purpose: Displays a yes or no prompt (yes|no). 
-# Argument: A string requiring a yes or no response.
+# Argument:
+# 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -852,7 +877,8 @@ yes_or_no() {
 ###############################################################################
 # default_yes
 # Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter. 
-# Argument: A string requiring a yes or no response.
+# Argument:
+# 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
@@ -875,7 +901,8 @@ default_yes() {
 ###############################################################################
 # default_no
 # Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter. 
-# Argument: A string requiring a yes or no response.
+# Argument:
+# 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
