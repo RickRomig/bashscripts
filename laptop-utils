@@ -42,8 +42,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.6"
-readonly _updated="24 Oct 2023"
+readonly _version="1.5.7"
+readonly _updated="10 Jan 2024"
 
 ## Funtions ##
 
@@ -166,7 +166,7 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
-      sudo_login
+      sudo_login 2
       intro
       main
     ;;
@@ -174,7 +174,7 @@ while getopts "$optstr" opt; do
       util_status
     ;;
     s )
-      sudo_login
+      sudo_login 2
       start_tlp
     ;;
     ? )

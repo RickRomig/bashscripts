@@ -190,10 +190,10 @@ check_dependencies() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="2.6.7"
-  local _updated="12 Nov 2023"
+  local _version="2.6.8"
+  local _updated="10 Jan 2024"
 
-  req_sudo && sudo_login
+  req_sudo && sudo_login 2
 
   check_dependencies
 

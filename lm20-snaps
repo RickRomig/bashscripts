@@ -44,8 +44,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.9"
-readonly _updated="23 Oct 2023"
+readonly _version="0.2.10"
+readonly _updated="10 Jan 2024"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
@@ -132,11 +132,11 @@ if lm20_plus; then
   while getopts "$optstr" opt; do
     case "$opt" in
       d )
-        sudo_login
+        sudo_login 2
         disable_snaps
       ;;
       e )
-        sudo_login
+        sudo_login 2
         enable_snaps
       ;;
       h )

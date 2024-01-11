@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="20 Dec 2023"
+readonly _version="0.4.5"
+readonly _updated="10 Jan 2024"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly mt_cfg_dir="$HOME/.config/marktext"
 
@@ -207,7 +207,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
-      sudo_login
+      sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
@@ -220,7 +220,7 @@ while getopts "$optstr" opt; do
     ;;
     r )
       exists marktext || leave "Marktext is not installed."
-      sudo_login
+      sudo_login 2
       remove_marktext
     ;;
     u )
@@ -228,7 +228,7 @@ while getopts "$optstr" opt; do
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
-      sudo_login
+      sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
       [[ -z "$new_ver" ]] && die "No download available. Try again later." 1

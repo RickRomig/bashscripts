@@ -29,8 +29,8 @@
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="30 Mar 2023"
+readonly _version="0.2.4"
+readonly _updated="10 Jan 2024"
 
 ## Functions ##
 
@@ -59,7 +59,7 @@ purge_update() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 2
 show_intro
 purge_update
 exit

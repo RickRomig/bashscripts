@@ -44,8 +44,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="16 Oct 2023"
+readonly _version="0.4.5"
+readonly _updated="10 Jan 2024"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -114,18 +114,18 @@ optstr=":edhs"
 while getopts "$optstr" opt; do
   case "$opt" in
     e )
-      sudo_login
+      sudo_login 2
       enable_pwfeedback
     ;;
     d )
-      sudo_login
+      sudo_login 2
       disable_pwfeedback
     ;;
     h )
       help 0
     ;;
     s )
-      sudo_login
+      sudo_login 2
       pwfeedback_status
     ;;
     ? )

@@ -43,8 +43,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.3"
-readonly _updated="15 Oct 2023"
+readonly _version="0.5.4"
+readonly _updated="10 Jan 2024"
 
 ## Functions ##
 
@@ -83,7 +83,7 @@ update_initramfs() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 2
 
 printf "%s v%s (%s)\n\n" "$_script" "$_version" "$_updated"
 print_message

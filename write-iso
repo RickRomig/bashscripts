@@ -44,8 +44,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="02 Nov 2023"
+readonly _version="0.4.2"
+readonly _updated="10 Jan 2024"
 user=$(whoami)
 
 ## Functions ##
@@ -137,7 +137,7 @@ unmount_usb() {
 
 ## Execution ##
 
-sudo_login
+sudo_login 2
 
 printf "Writes ISO to a USB drive.\n\n"
 

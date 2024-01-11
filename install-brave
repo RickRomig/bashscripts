@@ -44,8 +44,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.6"
-readonly _updated="16 Oct 2023"
+readonly _version="0.4.7"
+readonly _updated="10 Jan 2024"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -128,18 +128,18 @@ while getopts "$optstr" opt; do
     ;;
     i )
       exists brave-browser && leave "$(brave_ver) is already installed."
-      sudo_login
+      sudo_login 2
       install_brave
     ;;
     p )
       exists brave-browser || leave "Brave browser is not installed."
-      sudo_login
+      sudo_login 2
       remove_brave
       remove_configs
     ;;
     r )
       exists brave-browser || leave "Brave browser is not installed."
-      sudo_login
+      sudo_login 2
       remove_brave
     ;;
     ? )

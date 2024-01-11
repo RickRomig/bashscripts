@@ -44,8 +44,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.7"
-readonly _updated="15 Dec 2023"
+readonly _version="0.1.8"
+readonly _updated="10 Jan 2024"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 
@@ -108,7 +108,7 @@ set_src() {
 }
 
 install_vscodium() {
-	sudo_login
+	sudo_login 2
 	show_me "Installing VSCodium..."
 	set_key
 	set_src
@@ -120,7 +120,7 @@ install_vscodium() {
 
 remove_vscodium() {
 	local vsc_cfg_d="${HOME}/.config/VSCodium"
-	sudo_login
+	sudo_login 2
 	show_me "Removing VSCodium..."
 	sudo apt-get remove codium
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
