@@ -30,8 +30,8 @@
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.3"
-readonly _updated="11 Oct 2023"
+readonly _version="0.2.4"
+readonly _updated="10 Jan 2024"
 
 ## Functions ##
 
@@ -40,8 +40,15 @@ is_systemd() {
 }
 
 sudo_login() {
+  local delay="${1:-2}"
   if id -nG "$USER" | grep -qw sudo; then
-    sudo ls > /dev/null 2>&1
+    if ! sudo -vn 2>/dev/null; then
+      sudo ls > /dev/null 2>&1
+      if [[ "$delay" -gt 0 ]]; then
+        sleep "$delay"
+        printf '\e[A\e[K'
+      fi
+    fi
   else
     printf "%s is not a member of the sudo group. Access denied." "$USER "
     exit 1
@@ -164,7 +171,7 @@ printf "Installs Virt-Manager and KVM/QEMU...\n\n"
 
 is_systemd || { echo "Systemd is required to run background services." exit 1; }
 check_cpu
-sudo_login
+sudo_login 2
 install_packages
 # Start Default Network for Networking
 start_networking
