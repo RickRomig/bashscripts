@@ -43,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="10 Jan 2024"
+readonly _version="0.5.7"
+readonly _updated="16 Jan 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly micro_cfg_d=$HOME"/.config/micro"
 
@@ -68,7 +68,6 @@ micro_ver() {
 
 newest_version() {
   wget -qO "$tmp_file" "$gh_url"
-  # curl -s -o "$tmp_file" "$gh_url"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
   echo "$new_ver"
 }
@@ -135,7 +134,9 @@ bindings() {
 {
   "Alt-/": "lua:comment.comment",
   "CtrlUnderscore": "lua:comment.comment",
-  "Alt-s": "Save,Quit"
+  "Alt-s": "Save,Quit",
+  "Ctrl-Alt-v": "VSplit",
+  "Ctrl-Alt-z": "HSplit"
 }
 EOF
   echo "micro bindings.json created."
