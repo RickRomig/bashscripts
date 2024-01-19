@@ -85,7 +85,7 @@ show_user_cron() {
   while [[ "$i" -le "$max" ]]; do
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
-      printf "\n%sCron jobs for %s:%s\n" "$orange" "$norm_user^"  "$normal"
+      printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
       sudo crontab -l -u "$norm_user" | grep -v '#'
     fi
     (( i++ ))
@@ -100,8 +100,8 @@ show_root_cron() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.5.0"
-  local _updated="18 Jan 2024"
+  local _version="0.5.1"
+  local _updated="19 Jan 2024"
   local lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
