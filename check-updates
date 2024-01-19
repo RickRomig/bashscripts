@@ -57,6 +57,7 @@ update_apt_cache() {
   local current_time; current_time=$(date +%s)
   local updated_time; updated_time=$(stat -c%Y "$cache_file")
   local time_diff; time_diff=$(( current_time - updated_time ))
+  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours
   local threshold=86400
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
