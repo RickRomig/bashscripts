@@ -12,7 +12,7 @@
 # License      : GNU General Public License, version 2.0
 #####################################################################
  
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2018, Richard B. Romig
 # Email: rick.romig@gmail.com
 # 
 # This program is free software; you can redistribute it and/or modify
@@ -43,25 +43,37 @@ fi
 
 ## Functions ##
 
-show_anacron() {
+show_daily() {
   local daily="/var/spool/anacron/cron.daily"
+  printf "\n%sAnacron Daily:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$daily" 2>/dev/null)"
+  printf "%sJobs:%s\n"  "$orange" "$normal"
+  if [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
+    printf "No jobs scheduled.\n"
+  else
+    ls -1 /etc/cron.daily
+  fi
+}
+
+show_weekly() {
   local weekly="/var/spool/anacron/cron.weekly"
+  printf "\n%sAnacron Weekly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$weekly" 2>/dev/null)"
+  printf "%sJobs:%s\n"  "$orange" "$normal"
+  if [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
+    printf "No jobs scheduled.\n"
+  else
+    ls -1 /etc/cron.weekly
+  fi
+}
+
+show_monthly() {
   local monthly="/var/spool/anacron/cron.monthly"
-
-  echo $'\n'$"${orange}Anacron Daily: ${normal}Last run on $(sudo cat "$daily" 2>/dev/null)"
-  echo -n "${orange}Jobs: ${normal}"
-  ls /etc/cron.daily
-  [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
-
-  echo $'\n'$"${orange}Anacron Weekly: ${normal}Last run on $(sudo cat "$weekly" 2>/dev/null)"
-  echo -n "${orange}Jobs: ${normal}"
-  ls /etc/cron.weekly
-  [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
-
-  echo $'\n'$"${orange}Anacron Monthly: ${normal}Last run on $(sudo cat "$monthly" 2>/dev/null)"
-  echo -n "${orange}Jobs: ${normal}"
-  ls /etc/cron.monthly
-  [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]] && echo "No jobs scheduled."
+  printf "\n%sAnacron Monthly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$monthly" 2>/dev/null)"
+  printf "%sJobs:%s\n"  "$orange" "$normal"
+  if [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
+    printf "No jobs scheduled.\n"
+  else
+    ls -1 /etc/cron.monthly
+  fi
 }
 
 show_user_cron() {
@@ -73,7 +85,7 @@ show_user_cron() {
   while [[ "$i" -le "$max" ]]; do
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
-      echo $'\n'$"${orange}Cron jobs for ${norm_user^}:${normal}"
+      printf "\n%sCron jobs for %s:%s\n" "$orange" "$norm_user^"  "$normal"
       sudo crontab -l -u "$norm_user" | grep -v '#'
     fi
     (( i++ ))
@@ -81,19 +93,23 @@ show_user_cron() {
 }
 
 show_root_cron() {
-  echo $'\n'$"${orange}Cron jobs for root:${normal}"
+  printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
   sudo crontab -l | grep -v '#'
   printf "\n"
 }
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.4.3"
-  local _updated="18 Oct 2023"
+  local _version="0.5.0"
+  local _updated="18 Jan 2024"
+  local lhost="${HOSTNAME:-$(hostname)}"
 
+  sudo_login 0
   clear
-  echo $'\n'$"${bold}${green}Jobs for $(uname -n)"
-  show_anacron
+  printf "%s%sJobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
+  show_daily
+  show_weekly
+  show_monthly
   show_user_cron
   show_root_cron
   under_line "$_script v$_version ($_updated)" "-"
@@ -102,5 +118,4 @@ main() {
 
 ## Execution ##
 
-sudo_login 0
 main
