@@ -9,7 +9,7 @@
 # Comments     : Run script from a directory containing the ISO file.
 #              : Testing indicates USB drive should be mounted.
 #              : Works with fuzzy finder (fzf), if installed.
-#              : To test without writing to USB drive, comment call to write-dd and uncomment call to simulate_dd
+#              : To test without writing to USB drive, comment call to write_dd and uncomment call to simulate_dd
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
@@ -44,8 +44,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.2"
-readonly _updated="10 Jan 2024"
+readonly _version="0.4.3"
+readonly _updated="20 Jan 2024"
 user=$(whoami)
 
 ## Functions ##
@@ -121,13 +121,13 @@ simulate_dd() {
   printf "\n%s written to /dev/%s (SIMULATED)\n"  "$isofile" "$usb_device"
   printf "\nContents of /dev/%s\n\n" "$usb_device"
   ls "/media/$user/$mount_name"
-
+}
 
 mount_usb() {
   [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
 	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
 	printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
-}}
+}
 
 unmount_usb() {
 	sudo umount "/dev/$usbpart"	&& printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
@@ -142,22 +142,18 @@ sudo_login 2
 printf "Writes ISO to a USB drive.\n\n"
 
 # Check if a USB drive is connected
-
 [[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
-# mount | grep -qw media || diehard "No USB drive mounted." "Check with GUI file manager." "$_script v$_version ($_updated)"
 
 # List available ISO files and select file to write
 select_iso
 printf "Selected ISO: %s\n\n" "$isofile"
 
 # List removable devices and select device to write to
-
 select_usb
 printf "Selected device: /dev/%s\n%sIf you continue, ALL data will be erased from this device.%s\n\n" "$usb_device" "$orange" "$normal"
 printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
 
 # Mount selected USB drive if not already mounted.
-
 usbpart="${usb_device}1"
 if mount | grep -q "$usbpart" > /dev/null 2>&1; then
 	mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
@@ -167,7 +163,6 @@ else
 fi
 
 # Confirm action or cancel
-
 if yes_or_no "Write $isofile to /dev/$usb_device?"; then
   # simulate_dd "$isofile" "$usb_device"
   write_dd "$isofile" "$usb_device"
@@ -176,7 +171,6 @@ else
 fi
 
 # unmount the USB Drive
-
 printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
 mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
 
