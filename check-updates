@@ -47,8 +47,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.0"
-readonly _updated="19 Jan 2024"
+readonly _version="2.2.1"
+readonly _updated="25 Jan 2024"
 
 ## Functions ##
 
@@ -86,11 +86,10 @@ purge_configs() {
   local rcpkgs
   local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  rcpkgs=$(dpkg -l | awk '/^rc/ {print $2}')
+  rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
   if [[ -n "$rcpkgs" ]]; then
-    printf "Packages in the 'rc' state:\n"
-    printf "\t%s\n" "${rcpkgs[@]}"
-    for rcpkg in "${rcpkgs[@]}"; do
+    printf "%s\n" "$rcpkgs"
+    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
