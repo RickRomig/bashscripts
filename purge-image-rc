@@ -42,39 +42,42 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="16 Dec 2023"
+readonly _version="0.4.2"
+readonly _updated="25 Jan 2024"
 
 ## Functions ##
 
-purge_rc_images() {
+purge_rc_packages() {
   printf "These packages are in the remove/deinstall state with only the config files.\n"
   if yes_or_no "Are you sure you want to purge the config files for these images?"; then
     printf "%sPurging obsolete linux kernel configuration files...%s\n" "$green" "$normal"
-    for i in $(dpkg -l | grep "^rc" | awk '{print $2}'); do sudo apt remove --purge "$i" -yy; done
+    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+      sudo apt remove --purge "$rcpkg" -yy
+    done
   else
     printf "No action taken. No packages were purged.\n"
   fi
 }
 
-list_rc_images() {
+list_rc_packages() {
   printf "Packages in the 'rc' state:\n"
-  printf "%s\n" "${rc_img[@]}"   # an array? ${rc_img[@]}
+  printf "%s\n" "$rcpkgs"
 }
 
 list_headers() {
   printf "Installed linux headers and images:\n"
-  dpkg --list | grep -Ei --color 'linux-image|linux-headers'
+  dpkg --list | grep -Ei --color 'linux-image|linux-headers' | cut -d' ' -f1,3
 }
 
 ## Execution ##
 
 # clear
 box "$_script v$_version ($_updated)"
-rc_img=$(dpkg --list | awk '/linux-image/ && /^rc/ {print $2}')
+rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
 if [[ -n "$rc_img" ]]; then
-  list_rc_images
-  purge_rc_images
+  sudo_login 2
+  list_rc_packages
+  purge_rc_packages
 else
   printf "No packages in the 'rc' state to be purged.\n"
 fi
