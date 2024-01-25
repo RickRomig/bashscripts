@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-firefox-deb
+# Description  : install Firefox .deb package from Mozilla repos
+# Dependencies : wget, ~/bin/functionlib
+# Arguments    : none
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 24 Jan 2024
+# Last updated : 24 Jan 2024
+# Comments     : For Debian systems with Firefox ESR, Flatpack, or Snap installed.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+# 
+# Copyright © 2024, Richard B. Romig
+# Email: rick.romig@gmail.com
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -euo pipefail
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.1"
+readonly _updated="25 Jan 2024"
+readonly key2="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
+
+## Functions ##
+
+show_intro() {
+	box "Firefox .deb Installer" "*"
+	cat << END_INTRO
+	Installs the latest version Mozilla Firefox from the Mozilla repositories in place
+	of the default version from the Debian or Ubuntu based distribution and prioritizes
+	this installation over the distribution default.
+	
+	Before continuing, be sure you have completely uninstalled the previous version of 
+	Firefox. If you use a utility such as Timeshift, you may want to create a system 
+	snaphot before continuing.
+	
+END_INTRO
+	yes_or_no "Do you wish to continue?" || leave "Installation canceled. No action taken."
+}
+
+## Execution ##
+
+show_intro
+
+sudo_login 2
+check_package wget
+sudo apt update
+
+clear
+
+# Import Mozilla APT repository keys
+[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
+wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
+
+# Verify keys
+key1=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}')
+printf "%s\n" "$key1"
+printf "%s\n" "$key2"
+[[ "$key1" == "$key2" ]] || die "GPG keys do not match." 1
+
+# Add Mozilla APT repository to sources list
+echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
+
+# Preference file to prioritize packages from Mozilla repository
+echo '
+Package: *
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+' | sudo tee /etc/apt/preferences.d/mozilla
+
+# Update package list and isntall Firefox .deb package
+sudo apt-get update && sudo apt-get install firefox
+printf "%s installed.\n" "$(firefox --version)"
+
+leave "$_script $_version (Updated $_updated)"
