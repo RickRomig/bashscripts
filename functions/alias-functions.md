@@ -1,77 +1,108 @@
 #Alias functions
 ##~/.bash_aliases
 
-1. Software installation
-  ```bash
-  install() {
-    sudo apt update
-    sudo apt install $*
-    [[ "$?" -eq 0 ]] && echo "Success" || echo "Operation failed"
-  }
-  ```
-2. Check if a program is installed
+1. Check if a program is installed
   ```bash
   exist() {
     command -v "$1" > /dev/null && echo "$1 installed" || echo "$1 not installed"
   }
+  exist <program>
   ```
-3. Get a future date a given number of days from the current date
+2. Get a future date a given number of days from the current date
   ```bash
   future() {
     echo "$1 days from now will be $(date -d "$(date +%y-%m-%d) + $1 days" +"%d %b %Y")"
   }
+  future 90
   ```
-4. Kill jobs
+3. Kill stopped jobs
   ```bash
   killjobs() {
     kill -9 $(jobs -ps)
   }
+  killjobs
   ```
-5. Remove files ending with a tilde in the current directory
+4. Remove files ending with a tilde in the current directory
   ```bash
   rm~() {
     find ./ -maxdepth 1 -type f -regex '\./.*~$' -print -exec rm {} \;
   }
+  rm~
   ```
-6. Change directories and list its contents in one command
+5. Change directories and list its contents in one command
   ```bash
   cdls() {
-    local dir="$1"
-    local dir="${dir:=$HOME}"
-    if [[ -d "$dir" ]]; then
-      cd "$dir" >/dev/null; ls --color=auto
-    else
-      echo "bash: cdls: $dir: Directory not found"
-    fi
+  local dir="${1:-$HOME}"
+  if [[ -d "$dir" ]]; then
+     cd "$dir" >/dev/null; ls -CF --group-directories-first --color=auto
+  else
+     echo "bash: cdls: $dir: Directory not found"
+  fi
   }
+  cdls .config
   ```
-7. Copy a file to another directory and change to that directory in one command
+6. Copy a file to another directory and change to that directory in one command
   ```bash
   cpcd (){
-    if [ -d "$2" ];then
+    if [ -d "$2" ]; then
       cp $1 $2 && cd $2
     else
       cp $1 $2
     fi
   }
+  cpcd foo /bar
   ```
-8. Move a file to another directory and change to that directory in one command
+7. Move a file to another directory and change to that directory in one command
   ```bash
   mvcd (){
-    if [ -d "$2" ];then
+    if [ -d "$2" ]; then
       mv $1 $2 && cd $2
     else
       mv $1 $2
     fi
   }
+  mvcd foo /bar
   ```
-9. Create a directory and cd into it
+8. Create a directory and cd into it
   ```bash
   mkcd() {
     mkdir -p -- "$1" && cd -P -- "$1"
   }
+  mkcd foobar
   ```
-10. Extract compressed files using various compression utilitiesl.
+9. Copy a text file to multiple systems using DSH
+  ```bash
+  dcp() {
+	  cat "$1" | dsh -g "$2" -i -c "tee $3/$(basename "$1")"
+  }
+  dcp foo group path/on/remote/systems
+  ```
+10. Decrypt an encrytped pdf file
+  ```bash
+  decryptpdf() {
+	  qpdf --password="$1" --decrypt "$2".pdf --replace-input
+  }
+  decryptpdf 3287 foobar.pdf
+  ```
+11. Add a file to be staged in git and create a commit for it
+  ```bash
+  gcommit() {
+	  git status
+	  git add $1
+	  git commit -m "$1 - $2"
+  }
+  gcommit foo.bar "Made some changes to foo.bar"
+  ```
+12. Add all new or modified files to be staged in git and create a commit
+  ```bash
+  gcommitall() {
+	  git status
+	  git add -A
+	  git commit -m "$1"
+  }
+  gcommitall "Changed some files."
+  ```
+13. Extract compressed files using various compression utilitiesl.
   ```bash
   ex () {
     if [ -f $1 ]; then
@@ -96,19 +127,15 @@
       echo "'$1' is not a valid file."
     fi
   }
+  gcommitall foobar.tar.gz
   ```
-11. Change directories upwards X number of directories.
+14. Parse git branch, identifies git branch in bash prompt (~/.bashrc)
   ```bash
-  cdup() {
-	  local d=""
-	  local limit="$1"
-	  # Default to limit of 1
-	  if [[ -z "$limit" || "$limit" -le 0 ]]; then limit=1; fi
-
-	  for (( i=1;i<=limit;i++ )); do d="../$d"; done
-
-	  # Perform cd. Show error if cd fails.
-	  if ! cd "$d"; then echo "Couldn't go up $limit directories."; fi
-    # Won't go past root (/) no matter how many levels are passed to the function.
+  parse_git_branch() {
+    git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
   }
+```
+15. Alias for ssh if terminal is kitty
+  ```bash
+  [[ "$TERM" = "xterm-kitty" ]] && alias ssh="kitty +kitten ssh"
   ```
