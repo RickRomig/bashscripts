@@ -2,8 +2,8 @@
 ##########################################################################
 # Script Name  : verify-iso
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
-# Dependencies : None
-# Arguments    : None, user is prompted to enter the filenames.
+# Dependencies : fzf (optional), zenity (optional)
+# Arguments    : see help function
 # Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Checksum file must be one line only for ISO being checked.
@@ -46,67 +46,133 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.7.0"
-readonly _updated="02 Nov 2023"
+readonly _version="0.8.0"
+readonly _updated="06 Feb 2024"
 
 ## Functions ##
 
-exit_msg() {
-  local errcode="${1:-0}"
-  if [[ "$errcode" -eq 0 ]]; then
+help() {
+	local errcode="${1:-2}"
+	cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+	-f	Select with Fuzzy Finder (fzf)
+	-h	Display help
+	-s	Select with Select Menu
+	-z	Select with Zenity dialog
+$_script $_version (Updated $_updated)
+END_HELP
+  exit "$errcode"
+}
+
+display_introduction() {
+	cat << END_INTRO
+	$_script verifies SHA256/SHA512/MD5 checksums with ISO files.
+	The script offers three options for selecting ISO and checksum files - fzf
+	(Fuzzy Finder), Zenity dialog boxes, or a menu using select. Zenity and fzf
+	need to be installed prior to using those options.
+
+	You should already be in the directory containing the ISO and Checksum files
+	you wish to check, especially if you are using Fuzzy Finder or the select menu.
+
+	Checksum files must be a single line specifically for the ISO file you wish to
+	check with a file extension of .md5, .sha256. or .sha512. For ease of identifying
+	them, the basename should match the name of the ISO.
+
+END_INTRO
+}
+
+status_msg() {
+  local status="${1:-0}"
+  if [[ "$status" -eq 0 ]]; then
   	printf "%sThe checksums match.%s\n" "$green" "$normal"
   else
   	printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
   	printf "Verify checksum with the ISO download site.\n"
   fi
   printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
-  exit "$errcode"
 }
 
 select_iso() {
+	local num_iso
+	local opt
+	local options
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-	
-	if exists fzf; then
-		isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
-	else
-		PS3="Please select an ISO file: "
-		options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///'))
-		select opt in "${options[@]}" "Quit"; do
-			if (( REPLY == 1 + ${#options[@]} )); then
-				printf "No ISO file selected. Operation canceled. Exiting the script."
-				leave "$_script $_version (updated: $_updated)"
-			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-				isofile="$opt"
-				break
-			else
-				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
-			fi
-		done
-	fi
+
+	under_line "ISO files:" "*"
+	PS3="Please select an ISO file: "
+	options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///' | sort -u))
+	select opt in "${options[@]}" "Quit"; do
+		if (( REPLY == 1 + ${#options[@]} )); then
+			printf "No ISO file selected. Operation canceled. Exiting the script."
+			leave "$_script $_version (updated: $_updated)"
+		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+			isofile="$opt"
+			break
+		else
+			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		fi
+	done
+	printf "\n"
+}
+
+fzf_select_iso() {
+	local num_iso
+	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
+	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
+	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --height 40% --reverse --prompt "Select the ISO file to check: ")
+}
+
+zen_select_iso() {
+	local file
+	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
+	case "$?" in
+		0 ) isofile="$(basename "$file")" ;;
+		1 ) echo "$file not selected." ;;
+		-1 ) echo "$file not selected"
+	esac
 }
 
 select_checksum() {
+	local num_files
+	local opt
+	local options
 	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
-	
-	if exists fzf; then
-		checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --prompt "Select the checksum file: ")
-	else
-		PS3="Please select a checksum file: "
-		options=($(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///'))
-		select opt in "${options[@]}" "Quit"; do
-			if (( REPLY == 1 + ${#options[@]} )); then
-				printf "No checksum file selected. Operation canceled. Exiting the script."
-				leave "$_script $_version (updated: $_updated)"
-			elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-				checksum="$opt"
-				break
-			else
-				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}" 
-			fi
-		done
-	fi
+
+	under_line "Checksum files:" "*"
+	PS3="Please select a checksum file: "
+	options=($(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort -u))
+	select opt in "${options[@]}" "Quit"; do
+		if (( REPLY == 1 + ${#options[@]} )); then
+			printf "No checksum file selected. Operation canceled. Exiting the script."
+			leave "$_script $_version (updated: $_updated)"
+		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
+			checksum="$opt"
+			break
+		else
+			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		fi
+	done
+	printf "\n"
+}
+
+fzf_select_checksum() {
+	local num_files
+	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
+	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
+	checksum=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | fzf --height 40% --reverse --prompt "Select the checksum file: ")
+}
+
+zen_select_checksum() {
+	local file
+	file=$(zenity --file-selection --file-filter='checksum files (md5,sha256,sha512) | *.md5 *.sha256 *.sha512' --file-filter='All files | *' --title="Select a checksum file.")
+	case "$?" in
+		0 ) checksum="$(basename "$file")" ;;
+		1 ) echo "$file not selected." ;;
+		-1 ) echo "$file not selected"
+	esac
 }
 
 check_sha256() {
@@ -154,39 +220,73 @@ check_checksum() {
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
+compare_checksums() {
+	local ext
+	ext="${checksum##*.}"
+	printf "Comparing checksums."
+	case "$ext" in
+	  "md5" )
+	    check_md5 "$isofile" "$checksum"
+	    status_msg "$?"
+	  ;;
+	  "sha256" )
+	    check_sha256 "$isofile" "$checksum"
+	    status_msg "$?"
+	  ;;
+	  "sha512" )
+	    check_sha512 "$isofile" "$checksum"
+	    status_msg "$?"
+	  ;;
+	  * )
+	    printf "\n"
+	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$_script $_version ($_updated)"
+	esac
+}
+
 ## Execution ##
 
-printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n\n"
-
-# Select ISO file to be checked
-
-select_iso
-printf "Selected ISO: %s\n\n" "$isofile"
-
-# Select and check the checksum file
-
-select_checksum
-printf "Selected Checksum: %s\n\n" "$checksum"
+display_introduction
+noOpt=1
+optstr=":fhsz"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		f )
+			if exists fzf; then
+				select_iso_directory
+				fzf_select_iso
+				fzf_select_checksum
+			else
+				leave "fzf (Fuzzy Finder) is not installed on this system."
+			fi
+		;;
+		h )
+			help 0
+		;;
+		s )
+			select_iso_directory
+			select_iso
+			select_checksum
+		;;
+		z )
+			if exists zenity; then
+				select_iso_directory
+				zen_select_iso
+				zen_select_checksum
+			else
+				leave "Zenity is not installed on this system."
+			fi
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+printf "%-18s %s\n" "Selected ISO:" "$isofile"
+printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
-
-# Compare checksuma
-
-ext="${checksum##*.}"
-printf "Comparing checksums.\nThis may take a while."
-case "$ext" in
-  "md5" )
-    check_md5 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  "sha256" )
-    check_sha256 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  "sha512" )
-    check_sha512 "$isofile" "$checksum"
-    exit_msg "$?"
-  ;;
-  * )
-    printf "\n"
-    diehard "Invalid extension" "Checksum must be one of the following:" "md5 sha256 sha512" "$_script $_version ($_updated)"
-esac
+compare_checksums
+popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
+exit
