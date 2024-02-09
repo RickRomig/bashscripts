@@ -28,6 +28,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **functionlib** - A library of useful functions and global variables that can be sourced by a script.
 - **install-brave** - Installs/Removes the Brave browser.
 - **install-codium** - Installs/Removes VSCodium.
+- **install-firefox-deb - Installs Firefox from the Mozilla DEB repository.
 - **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **iru-bat** - Installs, removes, updates the Bat utility.
