@@ -46,9 +46,9 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.1"
-readonly _updated="25 Jan 2024"
-readonly key2="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
+readonly _version="0.1.2"
+readonly _updated="09 Feb 2024"
+readonly ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
 
 ## Functions ##
 
@@ -82,10 +82,10 @@ clear
 wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
 
 # Verify keys
-key1=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print "\n"$0"\n"}')
-printf "%s\n" "$key1"
-printf "%s\n" "$key2"
-[[ "$key1" == "$key2" ]] || die "GPG keys do not match." 1
+gen_key=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+printf "%s\n" "$gen_key"
+printf "%s\n" "$ref_key"
+[[ "$gen_key" == "$ref_key" ]] || die "GPG keys do not match." 1
 
 # Add Mozilla APT repository to sources list
 echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
