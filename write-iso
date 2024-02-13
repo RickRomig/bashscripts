@@ -44,8 +44,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.0"
-readonly _updated="06 Feb 2024"
+readonly _version="0.5.1"
+readonly _updated="13 Feb 2024"
 user=$(whoami)
 
 ## Functions ##
@@ -291,5 +291,4 @@ else
 	printf "Operation canceled. No action taken.\n"
 	fi
 fi
-popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
 leave "$_script v$_version (Updated: $_updated)"
