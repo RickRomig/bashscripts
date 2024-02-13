@@ -46,8 +46,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.0"
-readonly _updated="06 Feb 2024"
+readonly _version="0.8.1"
+readonly _updated="13 Feb 2024"
 
 ## Functions ##
 
@@ -288,5 +288,4 @@ printf "%-18s %s\n" "Selected ISO:" "$isofile"
 printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 compare_checksums
-popd > /dev/null || printf "%s popd failed!" "$red_error" >&2
 exit
