@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : install-firefox-deb
 # Description  : install Firefox .deb package from Mozilla repos
-# Dependencies : wget, ~/bin/functionlib
+# Dependencies : wget, ~/bin/functionlib, ~/.gnupg/pubring.kbx
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -62,6 +62,8 @@ show_intro() {
 	Before continuing, be sure you have completely uninstalled the previous version of 
 	Firefox. If you use a utility such as Timeshift, you may want to create a system 
 	snaphot before continuing.
+
+	Installation of Mozilla DEB package requires ~/.gnupg/pubring.kbx
 	
 END_INTRO
 	yes_or_no "Do you wish to continue?" || leave "Installation canceled. No action taken."
@@ -70,7 +72,7 @@ END_INTRO
 ## Execution ##
 
 show_intro
-
+[[ -f "$HOME/.gnupg/pubring.kbx" ]] || die ".gnupg/pubring.kbx not found.\n" 1
 sudo_login 2
 check_package wget
 sudo apt update
