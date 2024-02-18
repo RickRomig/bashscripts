@@ -2,12 +2,11 @@
 ##########################################################################
 # Script Name  : install-firefox-deb
 # Description  : install Firefox .deb package from Mozilla repos
-# Dependencies : wget, ~/bin/functionlib, ~/.gnupg/pubring.kbx
+# Dependencies : wget, ~/bin/functionlib
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Last updated : 24 Jan 2024
 # Comments     : For Debian systems with Firefox ESR, Flatpack, or Snap installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -46,8 +45,8 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.2"
-readonly _updated="09 Feb 2024"
+readonly _version="0.1.3"
+readonly _updated="18 Feb 2024"
 readonly ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
 
 ## Functions ##
@@ -62,8 +61,6 @@ show_intro() {
 	Before continuing, be sure you have completely uninstalled the previous version of 
 	Firefox. If you use a utility such as Timeshift, you may want to create a system 
 	snaphot before continuing.
-
-	Installation of Mozilla DEB package requires ~/.gnupg/pubring.kbx
 	
 END_INTRO
 	yes_or_no "Do you wish to continue?" || leave "Installation canceled. No action taken."
@@ -72,7 +69,6 @@ END_INTRO
 ## Execution ##
 
 show_intro
-[[ -f "$HOME/.gnupg/pubring.kbx" ]] || die ".gnupg/pubring.kbx not found.\n" 1
 sudo_login 2
 check_package wget
 sudo apt update
@@ -84,10 +80,12 @@ clear
 wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
 
 # Verify keys
-gen_key=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
-printf "%s\n" "$gen_key"
-printf "%s\n" "$ref_key"
-[[ "$gen_key" == "$ref_key" ]] || die "GPG keys do not match." 1
+if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
+	gen_key=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+	printf "%s\n" "$gen_key"
+	printf "%s\n" "$ref_key"
+	[[ "$gen_key" == "$ref_key" ]] || die "GPG keys do not match." 1
+fi
 
 # Add Mozilla APT repository to sources list
 echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
