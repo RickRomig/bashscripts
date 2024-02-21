@@ -2,12 +2,12 @@
 ##########################################################################
 # Script Name  : install-firefox-deb
 # Description  : install Firefox .deb package from Mozilla repos
-# Dependencies : wget, ~/bin/functionlib
+# Dependencies : wget
 # Arguments    : none
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Jan 2024
-# Comments     : For Debian systems with Firefox ESR, Flatpack, or Snap installed.
+# Comments     : For Debian/Ubuntu=based systems with ESR, Flatpak, or Snap versions of Firefox installed.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -27,6 +27,7 @@
 # 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 # shellcheck disable=SC1091
@@ -45,60 +46,116 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.3"
-readonly _updated="18 Feb 2024"
-readonly ref_key="35BAA0B33E9EB396F59CA838C0BA5CE6DC6315A3"
+readonly _version="0.2.0"
+readonly _updated="21 Feb 2024"
 
 ## Functions ##
 
-show_intro() {
-	box "Firefox .deb Installer" "*"
-	cat << END_INTRO
-	Installs the latest version Mozilla Firefox from the Mozilla repositories in place
-	of the default version from the Debian or Ubuntu based distribution and prioritizes
-	this installation over the distribution default.
-	
-	Before continuing, be sure you have completely uninstalled the previous version of 
-	Firefox. If you use a utility such as Timeshift, you may want to create a system 
-	snaphot before continuing.
-	
-END_INTRO
-	yes_or_no "Do you wish to continue?" || leave "Installation canceled. No action taken."
+rm_firefox() {
+	local mozilla_list="/etc/apt/sources.list.d/mozilla.list"
+	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	if yes_or_no "Remove Firefox?"; then
+		sudo apt-get remove firefox -yy
+		dpkg -l | grep -qw firefox-locale-en && sudo apt remove firefox-locale-en -yy
+		[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
+		printf "Firefox browser has been removed.\n"
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
 }
 
-## Execution ##
+rm_firefox_esr() {
+	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
+	if yes_or_no "Remove Firefox ESR?"; then
+		sudo apt-get remove firefox-esr -yy
+		printf "Firefox ESR browser has been removed.\n"
+	else
+		printf "Operation canceled. No action taken.\n"
+	fi
+}
 
-show_intro
-sudo_login 2
-check_package wget
-sudo apt update
+rm_firefox_flatpak() {
+	if flatpak list | grep -qw firefox; then
+		printf "Firefox version installed: %s\n" "$(flatpak list | awk '/Firefox/ {print $3}')"
+		if yes_or_no "Remove Firefox flatpak?"; then
+			flatpak uninstall --noninteractive --assumeyes org.mozilla.firefox
+			printf "Flatpak version of Firefox has been removed.\n"
+		else
+			printf "Operation canceled. No action taken.\n"
+		fi
+	fi
+}
 
-clear
+rm_firefox_snap() {
+	if snap list | grep -qw firefox; then
+		printf "Firefox version installed: %s\n" "$(snap list | awk '/Firefox/ {print $2}')"
+		if yes_or_no "Remove Firefox Snap?"; then
+			snap list | grep -qw firefox & sudo snap remove --purge firefox
+			printf "Snap version of Firefox has been removed.\n"
+		else
+			printf "Operation canceled. No action taken.\n"
+		fi
+	fi
+}
 
-# Import Mozilla APT repository keys
-[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
-wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
+mozilla_deb_install() {
+	# local ref_key="35BAA0B33E9EB3k96F59CA838C0BA5CE6DC6315A3"
+	local list_d="/etc/apt/sources.list.d"
+	local keyrings_d="/etc/apt/keyrings"
+	local asc_file="packages.mozilla.org.asc"
 
-# Verify keys
-if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
-	gen_key=$(gpg -n -q --import --import-options import-show /etc/apt/keyrings/packages.mozilla.org.asc | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
-	printf "%s\n" "$gen_key"
-	printf "%s\n" "$ref_key"
-	[[ "$gen_key" == "$ref_key" ]] || die "GPG keys do not match." 1
-fi
+	printf "Installing Mozilla Firefox DEB package...\n"
+	# Import Mozilla APT repository keys
+	[[ -d /etc/apt/keyrings ]] || sudo install -d -m 0755 /etc/apt/keyrings
+	wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee "$keyrings_d/$asc_file" > /dev/null
 
-# Add Mozilla APT repository to sources list
-echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | sudo tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
+	# Verify keys
+	# if [[ -f "$HOME/.gnupg/pubring.kbx" ]]; then
+	# 	gen_key=$(gpg -n -q --import --import-options import-show "$keyrings_d/$asc_file" | awk '/pub/{getline; gsub(/^ +| +$/,""); print $0}')
+	# 	printf "Generated key: %s\n" "$gen_key"
+	# 	printf "Reference key: %s\n" "$ref_key"
+	# 	[[ "$gen_key" == "$ref_key" ]] || die "Mozilla Firefox GPG keys do not match." 1
+	# fi
 
-# Preference file to prioritize packages from Mozilla repository
-echo '
+	# Add Mozilla APT repository to sources list
+	echo "deb [signed-by=$keyrings_d/$asc_file] https://packages.mozilla.org/apt mozilla main" | sudo tee -a "$list_d"/mozilla.list > /dev/null
+
+	# Preference file to prioritize packages from Mozilla repository
+	echo '
 Package: *
 Pin: origin packages.mozilla.org
 Pin-Priority: 1000
 ' | sudo tee /etc/apt/preferences.d/mozilla
 
-# Update package list and isntall Firefox .deb package
-sudo apt-get update && sudo apt-get install firefox
-printf "%s installed.\n" "$(firefox --version)"
+	# Update package list and install Firefox .deb package
+	sudo apt-get update && sudo apt-get install firefox -yy
+	printf "%s installed.\n" "$(firefox --version)"
+}
+
+## Execution ##
+
+sudo_login 2
+check_package wget
+sudo apt update
+
+# Check if Mozilla package is already installed
+[[ -f /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox DEB package is already installed."
+clear
+
+# Remove other versions of Firefox
+if exists firefox-esr; then
+	rm_firefox_esr
+elif exists firefox; then
+	rm_firefox
+fi
+exists flatpak && rm_firefox_flatpak
+[[ -d /snapd ]] && rm_firefox_snap
+
+# Install Mozilla DEB package
+if yes_or_no "Install Mozilla Firefox DEB package?"; then
+	mozilla_deb_install
+else
+	printf "Operation canceled. No action taken.\n"
+fi
 
 leave "$_script $_version (Updated $_updated)"
