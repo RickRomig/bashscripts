@@ -9,7 +9,7 @@
 # Comments     : source into the current shell environment by entering:
 # . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
 # Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 28 Dec 2023
+# Last updated : 24 Feb 2024
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 # 
@@ -28,6 +28,7 @@
 # 
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+
 ## Shellcheck Directives ##
 # shellcheck disable=SC2034,SC2154,SC1003
 
@@ -375,19 +376,8 @@ leapyear() {
 # Arguments: none
 ###############################################################################
 local_ip() {
-  en_ip=$(/usr/bin/ip route show | awk '/en/ && /src/ {print $9}')
-  wl_ip=$(/usr/bin/ip route show | awk '/wl/ && /src/ {print $9}')
-  et_ip=$(/usr/bin/ip route show | awk '/eth/ && /src/ {print $9}')
-
-  if [[ -n "$en_ip" ]]; then
-    octet="${en_ip##*.}"
-  elif [[ -n "$et_ip" ]]; then
-    octet="${et_ip##*.}"
-  elif [[ -n "$wl_ip" ]]; then
-    octet="${wl_ip##*.}"
-  else
-    die "No IP address. Check network status." 1
-  fi
+  octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
+  [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
   printf "%s" "$octet"
 }
 
