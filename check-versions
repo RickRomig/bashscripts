@@ -44,6 +44,8 @@ fi
 
 ## Functions ##
 
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
 cleanup() {
 	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
@@ -52,6 +54,7 @@ github_versions() {
   local github_url="https://github.com"
   local new_ver="Not found"
   local packages=( bat marktext micro vSCodium )
+  local cur_ver
 
   printf "%-15s%-16s%s\n" "GitHub Package" "Latest version" "Installed version"
   for package in "${packages[@]}"; do
@@ -199,8 +202,8 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.7"
-  local _updated="23 Dec 2023"
+  local _version="0.11.8"
+  local _updated="24 Feb 2024"
   clear
   printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   printf "Newest & installed versions of select programs.\n\n"
