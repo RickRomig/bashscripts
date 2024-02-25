@@ -47,8 +47,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.1"
-readonly _updated="25 Jan 2024"
+readonly _version="2.2.2"
+readonly _updated="25 Feb 2024"
 
 ## Functions ##
 
@@ -112,21 +112,28 @@ defer_updates() {
 }
 
 update_flatpak() {
+  fp_count=$(flatpak list | wc -l)
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
-  printf "User installations...\n"
-  flatpak update --user --noninteractive --force-remove --assumeyes
-  printf "System-wide installations...\n"
-  sudo flatpak update --system --noninteractive --force-remove --assumeyes
-  printf "\n"
+  if [[ "$fp_count" -gt 0 ]]; then
+    printf "User installations...\n"
+    flatpak update --user --noninteractive --force-remove --assumeyes
+    printf "System-wide installations...\n"
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes
+    printf "\n"
+  else
+    printf "No Flatpaks installed.\n\n"
+  fi
 }
 
 nala_update() {
   sudo nala upgrade
-  if default_no "Run autoremove/autopurge?"; then
+  if default_yes "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
     sudo nala autopurge --config
+  else
+    printf "Abort.\n"
   fi
   printf "\n"
 }
