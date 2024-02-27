@@ -3,10 +3,10 @@
 # Script Name  : show-cron
 # Description  : Shows when anacron jobs were last run and displays
 #              : crontabs for all normal and root users.
-# Dependencies : none
+# Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
-# Email        : rick.romig@gmail.com
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,7 +43,7 @@ fi
 
 ## Functions ##
 
-show_daily() {
+show_daily_jobs() {
   local daily="/var/spool/anacron/cron.daily"
   printf "\n%sAnacron Daily:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$daily" 2>/dev/null)"
   printf "%sJobs:%s\n"  "$orange" "$normal"
@@ -54,7 +54,7 @@ show_daily() {
   fi
 }
 
-show_weekly() {
+show_weekly_jobs() {
   local weekly="/var/spool/anacron/cron.weekly"
   printf "\n%sAnacron Weekly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$weekly" 2>/dev/null)"
   printf "%sJobs:%s\n"  "$orange" "$normal"
@@ -65,7 +65,7 @@ show_weekly() {
   fi
 }
 
-show_monthly() {
+show_monthly_jobs() {
   local monthly="/var/spool/anacron/cron.monthly"
   printf "\n%sAnacron Monthly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$monthly" 2>/dev/null)"
   printf "%sJobs:%s\n"  "$orange" "$normal"
@@ -86,7 +86,7 @@ show_user_cron() {
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '#'
+      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
     fi
     (( i++ ))
   done
@@ -94,22 +94,22 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '#'
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
   printf "\n"
 }
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.5.1"
-  local _updated="19 Jan 2024"
+  local _version="0.5.2"
+  local _updated="27 Feb 2024"
   local lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
   clear
   printf "%s%sJobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
-  show_daily
-  show_weekly
-  show_monthly
+  show_daily_jobs
+  show_weekly_jobs
+  show_monthly_jobs
   show_user_cron
   show_root_cron
   under_line "$_script v$_version ($_updated)" "-"
