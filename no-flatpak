@@ -66,7 +66,7 @@ enable_flatpak() {
       printf "\nInstallation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
     fi
   else
-    printf "\n%s does not exist. Installation ofFlatpak and Flatpak packages is enabled by default." "$pref_file"
+    printf "\n%s does not exist. Installation of Flatpak and Flatpak packages is enabled by default." "$pref_file"
   fi
 }
 
