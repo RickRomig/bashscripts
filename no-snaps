@@ -1,30 +1,29 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : lm20-snaps
+# Script Name  : no-snaps
 # Description  : Enables or disables Snaps on Linux Mint 20 and later.
 # Dependencies : None
 # Arguments    : [-d] [-e] [-h] [-s] (See help function)
 # Author       : Copyright (C) 2020, Richard B. Romig, 30 Jun 2020
 # Email        : rick.romig@gmail.com
-# Comments     : See EZNix snapkill script
-#              : /home/rick/Downloads/Utilities/snapkill.d/snapkill
-# TODO (Rick)  : Incorporate elements from snapkill
+# Comments     :
+# TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2020, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -44,31 +43,31 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.10"
-readonly _updated="10 Jan 2024"
+readonly _version="0.3.0"
+readonly _updated="02 Mar 2024"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
 
 snap_status() {
   if [[ -f "$pref_file" ]]; then
-    snap_state=$(grep -q '^# Package:' "$pref_file")
-    [[ -n "$snap_state" ]] && return "$TRUE" || return "$FALSE"
+    grep -q '^# Package:' "$pref_file" && return "$TRUE" || return "$FALSE"
   else
     return "$TRUE"
   fi
 }
 
 enable_snaps() {
+  is_systemd || leave "SystemD is required for Snaps."
   if [[ -f "$pref_file" ]]; then
     if grep -q '^Package:' "$pref_file"; then
       sudo sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
-      printf "\nThe installation of Snapd and Snap packages is now enabled.\n"
+      printf "\nInstallation of Snapd and Snap packages is now enabled.\n"
     else
-      printf "\nSnaps are already enabled by %s.\n" "$pref_file"
+      printf "\nInstallation of Snapd and Snap packages is already enabled by %s.\n" "$pref_file"
     fi
   else
-    printf "\n%s does not exist. Snaps are enabled by default." "$pref_file"
+    printf "\n%s does not exist. Installation of Snapd and Snap packages is enabled by default." "$pref_file"
   fi
 }
 
@@ -76,13 +75,13 @@ disable_snaps() {
   if [[ -f "$pref_file" ]]; then
     if grep -q '^# Package:' "$pref_file"; then
       sudo sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
-      printf "\nThe installation of Snapd and Snap packages is now disabled.\n"
+      printf "\nInstallation of Snapd and Snap packages is now disabled.\n"
     else
-      printf "\nSnaps are already disabled and forbidden.\n"
+      printf "\nInstallation of Snapd and Snap packages is already disabled.\n"
     fi
   else
-    create_nosnap
-    printf "%s has been created. Snaps are now disabled.\n" "$pref_file"
+    create_nosnaps
+    printf "%s has been created. Installation of Snapd and Snap packages is now disabled.\n" "$pref_file"
   fi
 }
 
@@ -96,17 +95,6 @@ Package: snapd
 Pin: release a=*
 Pin-Priority: -10
 NO_SNAPS
-}
-
-lm20_plus() {
-  ver_code=$(awk -F= '/VERSION_CODENAME/ {print $2}' /etc/os-release)
-  case "$ver_code" in
-    ulyana|ulyssa|uma|una|vanessa|vera|victoria )
-      return "$TRUE"
-    ;;
-    * )
-      return "$FALSE"
-  esac
 }
 
 help() {
@@ -124,37 +112,33 @@ END_HELP
 
 ## Execution ##
 
-printf "Enables or disables the installation of snapd and Snap packages in Linux Mint 20 and later.\n"
+printf "Enables or disables the installation of Snapd and Snap packages.\n"
 
-if lm20_plus; then
-  noOpt=1
-  optstr=":dehs"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        sudo_login 2
-        disable_snaps
-      ;;
-      e )
-        sudo_login 2
-        enable_snaps
-      ;;
-      h )
-        help 0
-      ;;
-      s )
-        printf "\nStatus of snapd and snap packages: "
-        snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
-      ;;
-      ? )
-        printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-        help 2
-    esac
-	  noOpt=0
-  done
-  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-  shift "$(( OPTIND - 1 ))"
-  leave "$_script v$_version (Updated: $_updated)"
-else
-  leave "This script is only for use with Linux Mint 20 or later."
-fi
+noOpt=1
+optstr=":dehs"
+while getopts "$optstr" opt; do
+  case "$opt" in
+    d )
+      sudo_login 2
+      disable_snaps
+    ;;
+     e )
+      sudo_login 2
+      enable_snaps
+    ;;
+    h )
+      help 0
+    ;;
+    s )
+      printf "\nStatus of snapd and snap packages: "
+      snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
+    ;;
+    ? )
+      printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+      help 2
+  esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"
