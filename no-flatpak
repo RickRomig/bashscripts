@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : no-flatpak
+# Description  : Enable/disable Flatpak in a Debian or Ubuntu-based system.
+# Dependencies : None
+# Arguments    : [-d] [-e] [-h] [-s] (See help function)
+# Author       : Copyright (C) 2024, Richard B. Romig, 02 Mar 2024
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+#
+# Copyright © 2024, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+# shellcheck disable=SC1091
+
+# Load function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+## Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="0.1.0"
+readonly _updated="02 Mar 2024"
+readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
+
+## Functions ##
+
+flatpak_status() {
+	if [[ -f "$pref_file" ]]; then
+		grep -q '^# Package:' "$pref_file" && return "$TRUE" || return "$FALSE"
+	else
+		return "$TRUE"
+	fi
+}
+
+enable_flatpak() {
+	if [[ -f "$pref_file" ]]; then
+		if grep -q '^Package:' "$pref_file"; then
+			sed -i '/^Package/s/^/# /;/^Pin/s/^/# /' "$pref_file"
+			printf "\nInstallation of Flatpak and Flatpak packages is now enabled.\n"
+		else
+      printf "\nInstallation of Flatpak and Flatpak packages is already enabled by %s.\n" "$pref_file"
+    fi
+  else
+    printf "\n%s does not exist. Installation ofFlatpak and Flatpak packages is enabled by default." "$pref_file"
+  fi
+}
+
+disable_flatpak() {
+  if [[ -f "$pref_file" ]]; then
+    if grep -q '^# Package:' "$pref_file"; then
+      sed -i '/Package/s/^# //;/Pin/s/^# //' "$pref_file"
+      printf "\nInstallation of Flatpak and Flatpak packages is now disabled.\n"
+    else
+      printf "\nInstallation of Flatpak and Flatpak packages is already disabled.\n"
+    fi
+  else
+    create_noflatpak
+    printf "%s has been created. Installation of Flatpak and Flatpak packages is now disabled.\n" "$pref_file"
+  fi
+}
+
+create_noflatpak() {
+  cat << NO_FLATPAK sudo tee "$pref_file" > /dev/null
+# To prevent installation of flatpak packages,
+# this file forbids flatpak from being installed by APT.
+
+Package: flatpak
+Pin: release a=*
+Pin-Priority: -10
+NO_FLATPAK
+}
+
+help() {
+  local errcode="${1:=2}"
+  cat << END_HELP
+${green}Usage:${normal} $_script [OPTION]
+${orange}OPTIONS:${normal}
+  -e    Enable the installation of flatpak and flatpak packages
+  -d    Disable the installation of flatpak and flatpak packages
+  -h    Help
+  -s    Status of flatpak and flatpak package installation
+END_HELP
+  exit "$errcode"
+}
+
+## Execution ##
+
+printf "Enables or disables the installation of flatpak and flatpak packages.\n"
+
+noOpt=1
+optstr=":dehs"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		d )
+			# sudo_login 2
+			disable_flatpak
+		;;
+		e )
+			# sudo_login 2
+			enable_flatpak
+		;;
+		h )
+			help 0
+		;;
+		s )
+			printf "\nStatus of flatpak and flatpak packages: "
+			flatpak_status && printf "Flatpaks are enabled.\n" || printf "Flatpaks are disabled.\n"
+		;;
+		? )
+			printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script v$_version (Updated: $_updated)"
