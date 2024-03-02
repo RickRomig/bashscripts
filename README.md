@@ -34,10 +34,11 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **iru-bat** - Installs, removes, updates the Bat utility.
 - **iru-marktext** - Installs, removes, updates the Mark Text markdown editor.
 - **iru-micro** - Installs, removes, updates the Micro CLI text editor. Includes basic settings and an additional keybinding.
-- **lm20-snaps** - Enables/Disables Snaps in Linux Mint 20 and after.
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
 - **laptoplid** - Modifies `/etc/systemd/logind` to allow a laptop's lid to be closed without going into suspend mode.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
+- **no-flatpak** - Enables/Disables Flatpak in Debian/Ubuntu systems.
+- **no-snaps** - Enables/Disables Snaps in Debian/Ubuntu systems.
 - **purge-image-rc** - Purges obsolete packages (Linux headers and images) in the remove/deinstall state with only configuration files installed.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
@@ -62,7 +63,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-21 December 2023
+02 March 2024
 
 ### DISCLAIMER
 
