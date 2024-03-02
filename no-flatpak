@@ -117,11 +117,11 @@ optstr=":dehs"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		d )
-			# sudo_login 2
+			sudo_login 2
 			disable_flatpak
 		;;
 		e )
-			# sudo_login 2
+			sudo_login 2
 			enable_flatpak
 		;;
 		h )
