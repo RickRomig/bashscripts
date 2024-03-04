@@ -6,24 +6,24 @@
 # Arguments    : none
 # Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : 
+# Comments     : Will not get desktop session info from an SSH connection.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
 # Copyright © 2022, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -32,7 +32,6 @@
 # shellcheck disable=SC1091,SC2034
 
 ## Source function library ##
-
 if [[ -x "$HOME/bin/functionlib" ]]; then
   source "$HOME/bin/functionlib"
 else
@@ -43,8 +42,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.4"
-readonly _updated="10 Jan 2024"
+readonly _version="3.4.5"
+readonly _updated="04 Mar 2024"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -52,7 +51,8 @@ today=$(date +'%d %B %Y'); readonly today
 ## Functions ##
 
 check_dependencies() {
-  check_package "lshw"
+	packages=( lshw wmctrl )
+  check_packages "${packages[@]}"
   [[ -b /dev/sda ]] && check_package hdparm
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
 }
@@ -147,10 +147,13 @@ mfg_info() {
 }
 
 os_info() {
+  local desktop="$DESKTOP_SESSION"
+  [[ "$desktop" == "bunsenlabs" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
 	r_p=$(df -P / | awk '/dev/ {print $1}')
 	created_date=$(sudo /usr/sbin/tune2fs -l "$r_p" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
+  printf "%-19s %s\n" "Desktop:" "$desktop"
 	printf "%-19s %s\n" "Filesystem created:" "$created_date"
 }
 
