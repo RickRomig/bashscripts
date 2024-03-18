@@ -12,25 +12,25 @@
 # Last updated : 24 Feb 2024
 # License      : GNU General Public License, version 2.0
 ###############################################################################
-# 
+#
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
-# shellcheck disable=SC2034,SC2154,SC1003
+# shellcheck disable=SC2034,SC2154,SC1003,SC2001
 
 ## Global variables ##
 declare -r TRUE=0
@@ -106,7 +106,7 @@ die() {
 
 ###############################################################################
 # diehard
-# Purpose: Display an error message of 1 or more lines and exit 
+# Purpose: Display an error message of 1 or more lines and exit
 # Arguments: Any text immediately following the function call.
 # Example: diehard "File not found." "Check directory."
 ###############################################################################
@@ -748,7 +748,7 @@ mount_nas() {
     sshfs -o follow_symlinks rick@"$localnet.$server_ip:" "$HOME/mnt/$share/"
     echo "$share has been created and mounted."
   fi
-} 
+}
 
 ###############################################################################
 # unmount_nas
@@ -839,7 +839,7 @@ y_or_n() {
 
 ###############################################################################
 # yes_or_no
-# Purpose: Displays a yes or no prompt (yes|no). 
+# Purpose: Displays a yes or no prompt (yes|no).
 # Argument:
 # 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
@@ -866,7 +866,7 @@ yes_or_no() {
 
 ###############################################################################
 # default_yes
-# Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter. 
+# Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter.
 # Argument:
 # 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
@@ -890,7 +890,7 @@ default_yes() {
 
 ###############################################################################
 # default_no
-# Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter. 
+# Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter.
 # Argument:
 # 	$1 -> A string requiring a yes or no response.
 # Returns: True or False
