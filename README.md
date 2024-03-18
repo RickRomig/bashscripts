@@ -29,7 +29,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **install-brave** - Installs/Removes the Brave browser.
 - **install-codium** - Installs/Removes VSCodium.
 - **install-firefox-deb** - Installs Firefox from the Mozilla DEB repository.
-- **install-vrtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
+- **install-virtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **iru-bat** - Installs, removes, updates the Bat utility.
 - **iru-marktext** - Installs, removes, updates the Mark Text markdown editor.
@@ -63,7 +63,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-02 March 2024
+18 March 2024
 
 ### DISCLAIMER
 
