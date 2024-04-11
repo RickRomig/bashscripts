@@ -4,33 +4,34 @@
 # Description  : installs the Brave broswer
 # Dependencies : apt-transport-https, curl, libu2f-udev
 # Arguments    : Ssee help function
-# Author       : Copyright (C) 2019, Richard B. Romig, 12 Dec 2019
+# Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 12 Dec 2019
+# Updated      : 11 Apr 2024
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #############################################################################
-# 
+#
 # Copyright © 2019, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -44,8 +45,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.7"
-readonly _updated="10 Jan 2024"
+readonly _version="4.8.24102"
+readonly _updated="11 Apr 2024"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -58,8 +59,6 @@ brave_ver() {
 install_brave() {
   local key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
   local list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
-  # Install curl, apt-transport-https, libu2f-udev, if not installed
-  check_dependencies
   printf "Installing the Brave Browser ...\n"
   # Import the public key for verification of the APT repository
   sudo curl -fsSLo "$brave_key" "$key_url"
@@ -106,13 +105,21 @@ Options:
   -p   Purge the Brave Browser & configuration files.
   -r   Remove the Brave Browser & leave configuration files.
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s\n" "$_script" "$_version"
+  printf "Updated: %s\n" "$_updated"
   exit "$errcode"
 }
 
 check_dependencies() {
   local packages=( apt-transport-https curl libu2f-udev )
-  check_packages "${packages[@]}"
+  if [[ $(uname -m) == "x86_64" ]]; then
+    printf "x86_64 - OK\n"
+    sleep 2
+    printf '\e[A\e[K'
+	  check_packages "${packages[@]}"
+  else
+    die "System architecture is not 64-bit." 1
+  fi
 }
 
 ## Execution ##
@@ -129,6 +136,7 @@ while getopts "$optstr" opt; do
     i )
       exists brave-browser && leave "$(brave_ver) is already installed."
       sudo_login 2
+      check_dependencies
       install_brave
     ;;
     p )
@@ -150,5 +158,5 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 exit
