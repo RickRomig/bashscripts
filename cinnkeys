@@ -4,33 +4,34 @@
 # Description  : Backup/Restore Cinnamon keybindings to/from a file.
 # Dependencies : functionlib
 # Arguments    : none
-# Author       : Copyright (C) 2021, Richard B. Romig, 12 May 2021
+# Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 12 May 2021
+# Updated      : 19 Apr 2024
 # Comments     : Backup of Cinnamon keybindings in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
 ##########################################################################
- 
+
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -44,9 +45,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.1"
-readonly _updated="01 Dec 2023"
+readonly _version="2.2.24110"
+readonly _updated="19 Apr 2024"
 readonly kb_bu="keybindings-backup.dconf"
+readonly cfg_dir="$HOME/.config"
 readonly verbose_mode="$FALSE"
 
 ## Functions ##
@@ -54,7 +56,7 @@ readonly verbose_mode="$FALSE"
 usage() {
   local errcode="${1:-1}"
   cat << _END_HELP_
-Creates a backup file of Cinnamon keybindings and restores from a backup.
+Creates a backup file of Cinnamon keybindings and restores from a backup file.
 
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
@@ -81,8 +83,8 @@ if is_cinnamon; then
     case "$opt" in
       d )
         showme "Dumping keybindings to backup file."
-        dconf dump /org/cinnamon/desktop/keybindings/ > "$HOME/.config/$kb_bu"
-        echo "Cinnamon Keybindings dumped to $HOME/.config/$kb_bu."
+        dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
+        echo "Cinnamon Keybindings dumped to $cfg_dir/$kb_bu."
       ;;
       h )
         usage 0
@@ -90,10 +92,13 @@ if is_cinnamon; then
       l )
         if [[ -f "$HOME/.config/$kb_bu" ]]; then
           showme "loading keybindings from backup file."
-          dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
-          echo "Cinnamon Keybindings loaded from $HOME/.config/$kb_bu."
+          dconf load /org/cinnamon/desktop/keybindings/ < "$cfg_dir/$kb_bu"
+          echo "Cinnamon Keybindings loaded from $cfg_dir/$kb_bu."
         else
-          echo "$kb_bu does not exist. Run $_script -d to create it." >&2
+          echo "$kb_bu does not exist. Creating it..." >&2
+          showme "Dumping keybindings to backup file."
+          dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
+          echo "Cinnamon Keybindings dumped to $cfg_dir/$kb_bu"
         fi
       ;;
       v )
@@ -102,6 +107,7 @@ if is_cinnamon; then
       ;;
       ? )
         echo "$red_error Invalid option: -${OPTARG}" >&2
+        usage 2
     esac
     noOpt=0
   done
@@ -109,5 +115,6 @@ if is_cinnamon; then
   shift "$(( OPTIND - 1 ))"
 else
   echo "The desktop environment is not Cinnamon." >&2
+  exit 1
 fi
-leave "$_script v$_version (updated: $_updated)"
+leave "$_script v$_version"
