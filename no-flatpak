@@ -4,8 +4,10 @@
 # Description  : Enable/disable Flatpak in a Debian or Ubuntu-based system.
 # Dependencies : None
 # Arguments    : [-d] [-e] [-h] [-s] (See help function)
-# Author       : Copyright (C) 2024, Richard B. Romig, 02 Mar 2024
+# Author       : Copyright (C) 2024, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 02 Mar 2024
+# Updated      : 24 Apr 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,7 +31,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 # Load function library ##
 
@@ -43,11 +44,20 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.0"
-readonly _updated="02 Mar 2024"
+readonly _version="1.1.24115"
+readonly _updated="24 Apr 2024"
 readonly pref_file="/etc/apt/preferences.d/noflatpak.pref"
 
 ## Functions ##
+
+check_flatpak_installed() {
+	printf "Flatpak is "
+	if exists flatpak; then
+		printf "installed.\n"
+	else
+		printf "not installed.\n"
+	fi
+}
 
 flatpak_status() {
 	if [[ -f "$pref_file" ]]; then
@@ -104,6 +114,7 @@ ${orange}OPTIONS:${normal}
   -d    Disable the installation of flatpak and flatpak packages
   -h    Help
   -s    Status of flatpak and flatpak package installation
+$_script v$_version, updated $_updated
 END_HELP
   exit "$errcode"
 }
@@ -111,6 +122,7 @@ END_HELP
 ## Execution ##
 
 printf "Enables or disables the installation of flatpak and flatpak packages.\n"
+check_flatpak_installed
 
 noOpt=1
 optstr=":dehs"
@@ -128,8 +140,8 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		s )
-			printf "\nStatus of flatpak and flatpak packages: "
-			flatpak_status && printf "Flatpaks are enabled.\n" || printf "Flatpaks are disabled.\n"
+			printf "Status of flatpak and flatpak packages: Flatpaks are "
+			flatpak_status && printf "enabled.\n" || printf "disabled.\n"
 		;;
 		? )
 			printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
@@ -139,4 +151,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
