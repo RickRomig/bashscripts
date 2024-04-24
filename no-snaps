@@ -4,8 +4,10 @@
 # Description  : Enables or disables Snaps on Linux Mint 20 and later.
 # Dependencies : None
 # Arguments    : [-d] [-e] [-h] [-s] (See help function)
-# Author       : Copyright (C) 2020, Richard B. Romig, 30 Jun 2020
+# Author       : Copyright (C) 2020, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com
+# Created      : 30 Jun 2020
+# Updated      : 24 Apr 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -29,7 +31,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 # Load function library ##
 
@@ -43,11 +44,20 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.3.0"
-readonly _updated="02 Mar 2024"
+readonly _version="3.1.24115"
+readonly _updated="24 Apr 2024"
 readonly pref_file="/etc/apt/preferences.d/nosnap.pref"
 
 ## Functions ##
+
+check_snap_installed() {
+  printf "Snap is "
+  if exists snap; then
+    printf "installed.\n"
+  else
+    printf "not installed.\n"
+  fi
+}
 
 snap_status() {
   if [[ -f "$pref_file" ]]; then
@@ -106,6 +116,7 @@ ${orange}OPTIONS:${normal}
   -d    Disable the installation of snapd and snap packages
   -h    Help
   -s    Status of snapd and snap package installation
+$_script v$_version, updated $_updated
 END_HELP
   exit "$errcode"
 }
@@ -113,6 +124,7 @@ END_HELP
 ## Execution ##
 
 printf "Enables or disables the installation of Snapd and Snap packages.\n"
+check_snap_installed
 
 noOpt=1
 optstr=":dehs"
@@ -130,8 +142,8 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     s )
-      printf "\nStatus of snapd and snap packages: "
-      snap_status && printf "Snaps are enabled.\n" || printf "Snaps are disabled.\n"
+      printf "Status of snapd and snap packages: Snaps are "
+      snap_status && printf "enabled.\n" || printf "disabled.\n"
     ;;
     ? )
       printf "\n%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
@@ -141,4 +153,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
