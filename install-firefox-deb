@@ -11,26 +11,25 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2024, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -46,24 +45,24 @@ set -euo pipefail
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.2.0"
-readonly _updated="21 Feb 2024"
+readonly _version="2.1.24117"
+readonly mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 
 ## Functions ##
 
+# Remove Mint version of Firefox and English locale
 rm_firefox() {
-	local mozilla_list="/etc/apt/sources.list.d/mozilla.list"
 	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
 	if yes_or_no "Remove Firefox?"; then
 		sudo apt-get remove firefox -yy
-		dpkg -l | grep -qw firefox-locale-en && sudo apt remove firefox-locale-en -yy
-		[[ -f "$mozilla_list" ]] && sudo rm "$mozilla_list"
+		dpkg -l | grep -q firefox-locale-en && sudo apt remove firefox-locale-en -yy
 		printf "Firefox browser has been removed.\n"
 	else
 		printf "Operation canceled. No action taken.\n"
 	fi
 }
 
+# Remove Firefox-ESR (Debian, MX, BunsenLabs)
 rm_firefox_esr() {
 	printf "Firefox version installed: %s\n" "$(firefox --version | cut -d' ' -f3)"
 	if yes_or_no "Remove Firefox ESR?"; then
@@ -74,6 +73,7 @@ rm_firefox_esr() {
 	fi
 }
 
+# Remove Firefox from Flatpak Package
 rm_firefox_flatpak() {
 	if flatpak list | grep -qw firefox; then
 		printf "Firefox version installed: %s\n" "$(flatpak list | awk '/Firefox/ {print $3}')"
@@ -83,18 +83,23 @@ rm_firefox_flatpak() {
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
+	else
+			printf "Firefox is not installed as a Flatpak.\n"
 	fi
 }
 
+# Remove Firefox Snap Package (Ubuntu). Consider disabling Snaps since Ubuntu may reinstall Snap packagey.
 rm_firefox_snap() {
 	if snap list | grep -qw firefox; then
 		printf "Firefox version installed: %s\n" "$(snap list | awk '/Firefox/ {print $2}')"
 		if yes_or_no "Remove Firefox Snap?"; then
-			snap list | grep -qw firefox & sudo snap remove --purge firefox
+			sudo snap remove --purge firefox
 			printf "Snap version of Firefox has been removed.\n"
 		else
 			printf "Operation canceled. No action taken.\n"
 		fi
+	else
+		printf "Firefox is not installed as a Snap.\n"
 	fi
 }
 
@@ -139,7 +144,7 @@ check_package wget
 sudo apt update
 
 # Check if Mozilla package is already installed
-[[ -f /etc/apt/sources.list.d/mozilla.list ]] && leave "Mozilla Firefox DEB package is already installed."
+[[ -f "$mozilla_list" ]] && leave "Mozilla Firefox DEB package is already installed."
 clear
 
 # Remove other versions of Firefox
@@ -149,7 +154,7 @@ elif exists firefox; then
 	rm_firefox
 fi
 exists flatpak && rm_firefox_flatpak
-[[ -d /snapd ]] && rm_firefox_snap
+exists snap && rm_firefox_snap
 
 # Install Mozilla DEB package
 if yes_or_no "Install Mozilla Firefox DEB package?"; then
@@ -158,4 +163,4 @@ else
 	printf "Operation canceled. No action taken.\n"
 fi
 
-leave "$_script $_version (Updated $_updated)"
+leave "$_script $_version"
