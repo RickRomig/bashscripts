@@ -2,11 +2,13 @@
 ##########################################################################
 # Script Name  : system-info
 # Description  : Gathers system information and writes to a file in home directory
-# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli
+# Dependencies : dmidecode, hdparm, lshw, tune2fs, nvme-cli, ieee-data, wmctrl
 # Arguments    : none
-# Author       : Copyright (C) 2022, Richard B. Romig, 15 Jul 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : Will not get desktop session info from an SSH connection.
+# Created      : 15 Jul 2022
+# Updated:     : 26 Apr 2024
+# Comments     : Will not get desktop session info from an SSH connection, run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,7 +31,7 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034 # for select loops, opt is not referenced, using $REPLY instead.
 
 ## Source function library ##
 if [[ -x "$HOME/bin/functionlib" ]]; then
@@ -39,7 +41,7 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
 readonly _version="3.4.5"
@@ -51,7 +53,7 @@ today=$(date +'%d %B %Y'); readonly today
 ## Functions ##
 
 check_dependencies() {
-	packages=( lshw wmctrl )
+	local packages=( lshw wmctrl ieee-data )
   check_packages "${packages[@]}"
   [[ -b /dev/sda ]] && check_package hdparm
   [[ -c /dev/nvme0 ]] && check_package nvme-cli
@@ -175,13 +177,28 @@ graphics_info() {
 	printf "%-9s %s\n" "Graphics:" "$(/usr/bin/lspci | awk -F: '/VGA/ {print $NF}' | sed 's/^ //')"
 }
 
+mac_mfgr() {
+  local mac_addr="$1"
+  local oui_file="/usr/share/ieee-data/oui.txt"
+	local oui_addr
+	local mfgr
+	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
+	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
+	if [[ -n "$mfgr" ]]; then
+		echo "$mfgr" | awk '{$1=""; $2=""; gsub("^  ", ""); print $0}'
+	else
+		echo "Not found"
+	fi
+}
+
 wired_info() {
 	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
 	if [[ -n "$eth_int" ]]; then
 		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
 		e_mac=$(cat /sys/class/net/"${eth_int}"/address)
+		e_man=$(mac_mfgr "$e_mac")
 		printf "\nEthernet: %s\n" "$ethernet_dev"
-    printf "%15s %s\n" "Device name:" "$eth_int" "MAC address:" "$e_mac"
+    printf "%15s %s\n" "Device name:" "$eth_int" "MAC address:" "$e_mac" "Manufacturer:" "$e_man"
 	fi
 }
 
@@ -190,14 +207,14 @@ wireless_info() {
 	if [[ -n "$wifi_int" ]]; then
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
 		w_mac=$(cat /sys/class/net/"${wifi_int}"/address)
+		w_man=$(mac_mfgr "$w_mac")
 		printf "\nWireless: %s\n" "$wireless_dev"
-	  printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac"
+	  printf "%15s %s\n" "Device name:" "$wifi_int" "MAC address:" "$w_mac" "Manufacturer:" "$w_man"
 	fi
 }
 
 ssd_hd_info() {
 	printf "\nHard Disk Information:\n"
-	hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
     printf "%s\n" "$(grep -w dev "$hd_data")"
@@ -268,11 +285,14 @@ clear
 	graphics_info
 	wired_info
 	wireless_info
-	[[ -b /dev/sda ]] && ssd_hd_info
+  if [[ -b /dev/sda ]]; then
+    hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
+    ssd_hd_info
+  fi
   [[ -c /dev/nvme0 ]] && nvme_info
 	partition_info
 	is_laptop && battery_info
-	printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+	printf "\n%s v%s\n" "$_script" "$_version"
 } | tee "$tmp_file"
 
 # Change lsblk timeshift mountpoint to normal partition name.
