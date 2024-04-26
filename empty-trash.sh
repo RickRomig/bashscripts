@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Last updated : 17 Mar 2024 Version 0.1.4
+# Last updated : 17 Mar 2024 Version 01.5.24117
 # Comments     : Run as a user cron job daily, weekly, or monthly
 #              : Trash directory does not exist until a file is moved to the trash.
 #              : Tested with Debian 11/12, LMDE 6, Mint 21.x, MX Linux 23.x, BunsenLabs 11.
@@ -36,11 +36,11 @@ readonly log_file="trash.log"
 
 empty_trash() {
 	if [[ $(find "$trash_dir/files" -type f | wc -l) -gt 0 ]]; then
-		printf "Trash contents:\n"
+		printf "\nTrash contents:\n---------------\n"
 		find "$trash_dir/files" -type f -exec basename {} \;
 		rm -rf "$trash_dir"/files/*
 		rm -f "$trash_dir"/info/*
-		printf "Trash emptied.\n"
+		printf "\nTrash emptied.\n"
 	else
 		printf "No trash to empty.\n"
 	fi
@@ -49,11 +49,11 @@ empty_trash() {
 [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
 {
-	printf "Trash log\nDate: %s \n" "$(date '+%F %R')"
+	printf "Date: %s \n" "$(date '+%F %R')"
 	if [[ -d "$trash_dir" ]]; then
 		empty_trash
 	else
-    printf "Trash directory does not exist.\n"
+    printf "\nTrash directory does not exist.\n"
 	fi
 } > "$log_dir/$log_file" 2>&1
 exit
