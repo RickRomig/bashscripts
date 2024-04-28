@@ -4,32 +4,34 @@
 # Description  : Displays IP & network device information
 # Dependencies : curl, iw, network-manager (nmcli)
 # Arguments    : None
-# Author       : Copyright (C) 2019, Richard Romig, 19 February 2019
+# Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : hp-2560p (#23) requires sudo for the following command:
-#              : awk '/wl/ {print $4 " dBm"}' /proc/net/wireless | sed 's/\.//'
-# TODO (rick)  : Work on show_bridge.
+# Created      : 19 Feb 2019
+# Updated      : 28 Apr 2024
+# Comments     : Some systems may require sudo to get ssid & signal strength.
+#              : Add those hostnames to case in req_sudo()
+#              : So far, I've only seen this with MX Linux.
+# TODO         : show_bridge() needs work.
 # License      : GNU General Public License, version 2.0
 #####################################################################
 
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2317
 
 ## Load function library ##
 
@@ -40,13 +42,20 @@ else
   exit 1
 fi
 
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="2.7.24119"
+readonly lhost="${HOSTNAME:-$(hostname)}"
+
 ## Functions ##
 
+# Some systems may require sudo to get ssid & signal strength.
+# Add the hostnames for these systems to the case.
 req_sudo() {
-  local lhost="${HOSTNAME:-$(hostname)}"
   case "$lhost" in
     hp-2560p )
-      return "$TRUE" 
+      return "$TRUE"
     ;;
     * )
       return "$FALSE"
@@ -175,7 +184,7 @@ show_bridge() {
 
 show_gateway() {
   echo "${orange}Default Gateway:${normal}"
-  /sbin/ip route | awk '/default/ {print "\t"$3}' | sort -u
+  /sbin/ip route get 1.2.3.4 | awk '/via/ {print "\t"$3}'
 }
 
 show_dns() {
@@ -189,17 +198,13 @@ check_dependencies() {
 }
 
 main() {
-  local _script; _script=$(basename "$0")
-  local _version="2.6.8"
-  local _updated="10 Jan 2024"
-
-  req_sudo && sudo_login 2
+  # req_sudo && sudo_login 2
 
   check_dependencies
 
   clear
   echo "${lightyellow}"
-  box "IP Information - $(uname -n)" "*"
+  box "IP Information - $lhost" "*"
   echo "${normal}"
   echo "${orange}Public IP:${normal}"
   show_public
@@ -210,7 +215,7 @@ main() {
   show_gateway
   show_dns
   echo ""
-  leave "$_script v$_version ($_updated)"
+  leave "$_script v$_version"
 }
 
 ## Execution ##
