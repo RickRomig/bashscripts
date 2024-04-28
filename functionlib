@@ -36,8 +36,8 @@
 declare -r TRUE=0
 declare -r FALSE=1
 declare -r Gitea_URL="http://192.168.0.16:3000/Nullifidian"
-localnet=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 # First three octets of the local network. Assumes a /24 private network.
+localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3)
 red_error=$(printf "\e[91mERROR:\e[0m")
 red_warning=$(printf "\e[91mWARNING!\e[0m")
 
@@ -777,9 +777,8 @@ unmount_nas() {
 #   $1 -> name of the repository to clone
 ###############################################################################
 clone_repo() {
-  local git_svr="http://192.168.0.16:3000/Nullifidian"
   local git_repo="${1}.git"
-  git clone "$git_svr/$git_repo" "$HOME/Downloads"
+  git clone "$Gitea_URL/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
