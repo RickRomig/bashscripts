@@ -4,34 +4,37 @@
 # Description  : check for updates and install if necessary.
 # Dependencies : none
 # Arguments    : none
-# Author       : Copyright (C) 2018, Richard Romig, 08 December 2018
+# Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Crated       : 08 Dec 2018
+# Updated      : 30 Apr 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
-## TODO (rick)  :
+#              : Uses Nala, if installed.
+# TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 # Copyright © 2018, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 ###############################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -47,8 +50,8 @@ set -euo pipefail
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.2.2"
-readonly _updated="25 Feb 2024"
+readonly _version="2.6.24120"
+readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
@@ -204,8 +207,8 @@ sudo_login 0
 SECONDS=0
 
 clear
-printf "%s%s%s v%s (%s)\n" "$bold" "$orange" "$_script" "$_version" "$_updated"
-printf "System: %s (# %s)\n" "$(uname -n)" "$(local_ip)"
+printf "%s%s%s v%s\n" "$bold" "$orange" "$_script" "$_version"
+printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
 printf "Distro: %s\n" "$(get_distribution)"
 printf "Kernel: %s\n\n" "$(uname -sr)"
 printf "Checking for updates...%s\n\n" "$normal"
