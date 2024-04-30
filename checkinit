@@ -4,8 +4,10 @@
 # Description  : Checks what init system is being used.
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2022, Richard B. Romig, 07 Sep 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Crated       : 07 Sep 2022
+# Updated      : 30 Apr 2024
 # Comments     : partially based on code by Jake@Linux <https://gitlab.com/jped>
 #              : The else in find_init will detect runit.
 # License      : GNU General Public License, version 2.0
@@ -13,25 +15,24 @@
 
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.5"
-readonly _updated="01 Nov 2023"
+readonly _version="1.4.24121"
 
 ## Functions ##
 
@@ -55,6 +56,6 @@ find_init() {
 
 ## Execution ##
 
+printf "%s v%s\n" "$_script" "$_version"
 printf "Init System: %s \n" "$(find_init)"
-printf "%s v%s (updated: %s)\n" "$_script" "$_version" "$_updated"
 exit
