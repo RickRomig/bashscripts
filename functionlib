@@ -210,12 +210,13 @@ get_distribution() {
 
 ###############################################################################
 # is_debian
-# Purpose: Returns true if the distribution is based on Debian.
+# Purpose: Returns true if the distribution is directly based on Debian.
 # Arguments: none
 # Returns: True or False
 # Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
 ###############################################################################
 is_debian() {
+  local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
     bookworm|bullseye|debbie|elsie|faye )
@@ -224,6 +225,19 @@ is_debian() {
     * )
       return "$FALSE"
   esac
+}
+
+###############################################################################
+# debian_based
+# Purpose: Returns true if distributions is a Debian derivative.
+# Arguments: none
+# Returns: True or False
+###############################################################################
+
+debian_based() {
+  local like_deb
+  like_deb=$(grep -E 'ID|ID_LIKE' /etc/os-release | grep -w debian)
+  [[ "$like_deb" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
