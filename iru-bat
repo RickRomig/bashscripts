@@ -3,33 +3,34 @@
 # Script Name  : iru-bat
 # Description  : Installs, updates, and removes the Bat utillity program.
 # Dependencies : gdebi, wget
-# Arguments    : -c -h -i -r -u (See the help function for details.)
-# Author       : Copyright (C) 2022, Richard B. Romig, 09 Jan 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 09 Jan 2022
+# Updated      : 03 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
-# Copyright © 2023, Richard B. Romig
+#
+# Copyright © 2022, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
+# shellcheck disable=SC2034
 
 ## Source function library ##
 
@@ -43,8 +44,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.6"
-readonly _updated="10 Jan 2024"
+readonly _version="5.6.24124"
+readonly _updated="03 May 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -207,4 +208,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+leave "$_script v$_version"
