@@ -4,16 +4,18 @@
 # Description  : personal function library used in Bash scripts
 # Dependencies : none
 # Arguments    : none except those passed to individual functions
-# Author       : Copyright (C) 2019, Richard B. Romig, 21 Sep 2019
+# Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
-# Comments     : source into the current shell environment by entering:
-# . /home/rick/bin/functionlib or . functionlib or source "$HOME/bin/functionlib"
-# Environmental variables like $HOME or $USER cannot be used with the . alias.
-# Last updated : 24 Feb 2024
+# Created      : 21 Sep 2019
+# Last updated : 04 May 2024
+# Comments     : source into the current shell environment by entering at the begining of the script:
+#              : # shellcheck source=/home/rick/bin/functionlib.
+#              : source "$HOME/bin/functionlib"
+#              : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 #
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2019, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -35,7 +37,6 @@
 ## Global variables ##
 declare -r TRUE=0
 declare -r FALSE=1
-declare -r Gitea_URL="http://192.168.0.16:3000/Nullifidian"
 # First three octets of the local network. Assumes a /24 private network.
 localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3)
 red_error=$(printf "\e[91mERROR:\e[0m")
@@ -644,6 +645,7 @@ format_time() {
 # Argurment:
 #   $1 -> name of package to check and install
 # Example: check_package "$package"
+# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_package() {
   local package="$1"
@@ -663,6 +665,7 @@ check_package() {
 # Argurment:
 #   $@ -> array of packages to check and install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
+# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_packages() {
 	local pkgs=("$@")
@@ -819,7 +822,7 @@ dots() {
 # Arguments: none
 ###############################################################################
 spin() {
-  local spinner=( '|' '/' '-' '\' )
+  local spinner="( '|' '/' '-' '\' )"
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
 }
 
