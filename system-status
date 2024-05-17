@@ -46,7 +46,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.8.24138"
+readonly _version="5.9.24138"
 
 ## Functions ##
 
@@ -119,6 +119,7 @@ main() {
   [[ -b /dev/sda ]] && sata_temperature
   disk_usage
   printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
+  printf "Last reboot: %s\n" "$(/usr/bin/who -b | awk '{print $(NF-1)" at "$NF}')"
   printf "\n%s %s\n" "$_script" "$_version"
   exit
 }
