@@ -8,7 +8,22 @@ I have a git server on my home network where I maintain my scripts and other sou
 I maintain a small home network of about a dozen desktops and laptops. Most of them are older machines, some more than 10 years old. I generally don't get rid of a computer if I can get some use out of it. All of them are running Debian or Ubuntu based operating systems (Debian, Linux Mint, and LMDE). Most of the scripts in this repository should run under other distributions, but may require a few modifications.
 
 ### Function library
-Many of the scripts in this repository source the `functionlib` script which contains various functions and global variables. I recommend having this script in your `~/bin` directory or in your user path. If you place in a directory other than `~/bin`, you need to change the scripts with the new path to the library. Another alternative would be to cut and paste the necessary functions and global variables into the scripts as required.
+Many of the scripts in this repository source the `functionlib` script which contains various functions and global variables. I recommend having this script in your `~/bin` directory or in your user path. If you place in a directory other than `~/bin`, you need to change the scripts with the new path to the library. Another alternative would be to cut and paste the necessary functions and global variables directly into the scripts as required.
+
+Shellcheck directives are required only if you are using `shellcheck` to check syntax. You will need to change the hard-coded path for the shellcheck directive to the location of `functionlib` on your system. If using `shellcheck`, I recommend using the command `shellcheck -x`, otherwise you'll need to include the directive `# shellcheck disable=SC1091` to avoid the 'SC1091 Not following: (error message here)' error. (https://www.shellcheck.net/wiki/SC1091)
+```bash
+## Shellcheck Directives ##
+# shellcheck source=/home/user/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+```
 
 The `functions` directory contains markdown files explaining each of the function in `functionlib`.
 
