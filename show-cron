@@ -5,32 +5,33 @@
 #              : crontabs for all normal and root users.
 # Dependencies : None
 # Arguments    : None
-# Author       : Copyright (C) 2018, Richard Romig, 6 March 2018
+# Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 06 Mar 2018
+# Updated      : 16 May 2024
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 #####################################################################
- 
+
 # Copyright © 2018, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -46,38 +47,37 @@ fi
 show_daily_jobs() {
   local daily="/var/spool/anacron/cron.daily"
   printf "\n%sAnacron Daily:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$daily" 2>/dev/null)"
-  printf "%sJobs:%s\n"  "$orange" "$normal"
   if [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
     printf "No jobs scheduled.\n"
   else
-    ls -1 /etc/cron.daily
+    find /etc/cron.daily -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
   fi
 }
 
 show_weekly_jobs() {
   local weekly="/var/spool/anacron/cron.weekly"
   printf "\n%sAnacron Weekly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$weekly" 2>/dev/null)"
-  printf "%sJobs:%s\n"  "$orange" "$normal"
   if [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
     printf "No jobs scheduled.\n"
   else
-    ls -1 /etc/cron.weekly
+    find /etc/cron.weekly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
   fi
 }
 
 show_monthly_jobs() {
   local monthly="/var/spool/anacron/cron.monthly"
   printf "\n%sAnacron Monthly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$monthly" 2>/dev/null)"
-  printf "%sJobs:%s\n"  "$orange" "$normal"
   if [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
     printf "No jobs scheduled.\n"
   else
-    ls -1 /etc/cron.monthly
+    find /etc/cron.monthly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
   fi
 }
 
 show_user_cron() {
   local passwd_file="/etc/passwd"
+  local num_users
+  local max
   num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' "$passwd_file")
   i=1000
   max=$(( num_users + i ))
@@ -86,7 +86,7 @@ show_user_cron() {
     norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
     if [[ -n "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
+      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  " $NF}'
     fi
     (( i++ ))
   done
@@ -94,14 +94,13 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//'
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  " $NF}'
   printf "\n"
 }
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.5.2"
-  local _updated="27 Feb 2024"
+  local _version="5.2.24137"
   local lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
@@ -112,7 +111,7 @@ main() {
   show_monthly_jobs
   show_user_cron
   show_root_cron
-  under_line "$_script v$_version ($_updated)" "-"
+  under_line "$_script v$_version" "-"
   exit
 }
 
