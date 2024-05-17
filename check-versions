@@ -7,31 +7,32 @@
 # Arguments    : none
 # Author       : Copyright (C) 2021, Richard B. Romig, 24 Aug 2021
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 24 Aug 2021
+# Last updated : 16 May 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2021, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Source function library ##
 
@@ -72,9 +73,13 @@ github_versions() {
         local release_path="marktext/marktext/releases"
         cur_ver=$(dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//')
       ;;
-		  "vSCodium" )
+		  "codium" )
 			  local release_path="VSCodium/vscodium/releases"
 			  cur_ver=$(dpkg -l | awk '$2 == "codium" {print $3}' | sed 's/[+-].*//')
+      ;;
+      "fastfetch" )
+        local release_path="fastfetch-cli/fastfetch/releases"
+			  cur_ver=$(dpkg -l | awk '$2 == "fastfetch" {print $3}' | sed 's/[+-].*//')
       ;;
       * )
         printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
@@ -85,7 +90,7 @@ github_versions() {
     # Extract newest version number, ignoring beta and release candidate releases.
     new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
     # Print capitalized package name
-    printf "%s%-15s" "${darkgray}" "${package^}"
+    printf "%s%-16s" "${darkgray}" "${package^}"
     # Print newest version
     if [[ -z "$new_ver" ]]; then
       printf "%s%-16s" "${red}" "No release"
@@ -98,14 +103,14 @@ github_versions() {
     elif [[ "$new_ver" == "$cur_ver" ]]; then
       printf "%s%s\n" "${gray}" "$cur_ver"
     else
-      printf "%s%s\n" "${orange}" "$cur_ver"  # new version available
+      printf "%s%-16s%sUpdate available\n" "${gray}" "$cur_ver" "${orange}"
     fi
   done
   printf "%s\n" "${normal}"
 }
 
 apt_tools() {
-	local packages=( bluefish geany git glow nano shellcheck xed )
+	local packages=( bluefish featherpad geany gedit git glow nano shellcheck xed )
 	printf "%-15s%s\n" "Package" "Version"
 	for pkg in "${packages[@]}"; do
 		if exists "$pkg"; then
@@ -114,8 +119,14 @@ apt_tools() {
         bluefish )
           printf "%s\n" "$(bluefish --version | awk '/^Bluefish/ {print $NF}')"
         ;;
+        featherpad )
+          printf "%s\n" "$(dpkg -l | awk '$2 == "featherpad" {print $3}' | sed 's/[+-].*//')"
+        ;;
 				geany )
 					printf "%s\n" "$(geany --version | cut -d' ' -f2)"
+        ;;
+        gedit )
+					printf "%s\n" "$(gedit --version | cut -d' ' -f4)"
         ;;
         git )
           printf "%s\n" "$(git --version | cut -d' ' -f3)"
@@ -202,10 +213,9 @@ browsers() {
 
 main() {
   local _script; _script=$(basename "$0")
-  local _version="0.11.8"
-  local _updated="24 Feb 2024"
+  local _version="11.8.24137"
   clear
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
   github_versions
   apt_tools
