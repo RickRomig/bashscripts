@@ -102,7 +102,25 @@
   }
   gcommitall "Changed some files."
   ```
-13. Extract compressed files using various compression utilitiesl.
+13. Add a file to be staged in git and create a command for it without verifying the code
+  ```bash
+  ncommit() {
+	  git status
+	  git add $1
+	  git commit -m "$1 - $2" --no-verify
+  }
+  ncommit foo.bar "Made some changes to foo.bar"
+  ```
+14. Add all new or modified files in git and create a command for it without verifying the code
+  ```bash
+  ncommit() {
+	  git status
+	  git add -A
+	  git commit -m "$1" --no-verify
+  }
+  ncommitall "Changed some files."
+  ```
+15. Extract compressed files using various compression utilitiesl.
   ```bash
   ex () {
     if [ -f $1 ]; then
@@ -129,13 +147,26 @@
   }
   gcommitall foobar.tar.gz
   ```
-14. Parse git branch, identifies git branch in bash prompt (~/.bashrc)
+16. Restore files from the trash directory
+```bash
+restore-trash() { gio trash --restore trash:///$1; }
+restore-tras <trashed-filename>
+```
+17. bat help wrapper for syntax highlighting with --help (requres bat to be installed)
+```bash
+alias bathelp='bat --plain --language=help'
+help() {
+  "$@" --help 2>&1 | bathelp
+}
+help <command>
+```
+18. Parse git branch, identifies git branch in bash prompt (~/.bashrc)
   ```bash
   parse_git_branch() {
     git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'
   }
 ```
-15. Alias for ssh if terminal is kitty
+19. Alias for ssh if terminal is kitty
   ```bash
   [[ "$TERM" = "xterm-kitty" ]] && alias ssh="kitty +kitten ssh"
   ```
