@@ -47,6 +47,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **install-virtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **iru-bat** - Installs, removes, updates the Bat utility.
+- **iru-fastfetch** - Installs, removes, updates the Fastfetch tool to fetch system information. (Configuration file in the `files` diretory.)
 - **iru-marktext** - Installs, removes, updates the Mark Text markdown editor.
 - **iru-micro** - Installs, removes, updates the Micro CLI text editor. Includes basic settings and an additional keybinding.
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
@@ -78,7 +79,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-17 May 2024
+19 May 2024
 
 ### DISCLAIMER
 
