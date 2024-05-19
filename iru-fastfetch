@@ -1,0 +1,221 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : iru-fastfetch
+# Description  : Install/udadate/remove FastFetch
+# Dependencies : gdebi, wget
+# Arguments    : See help() function
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 02 May 2024
+# Last updated : 19 May 2024
+# Comments     :
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+
+# Copyright © 2024, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+set -eu
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="2.0.24140"
+readonly _updated="19 May 2024"
+readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
+readonly ff_cfg_d="$HOME/.config/fastfetch"
+readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"	# location for custom logos, if used.
+
+## Functions ##
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+die() {
+  local errmsg="${1:-Undefined error}"
+  local errcode="${2:-1}"
+  printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
+  exit "$errcode"
+}
+
+sudo_login() {
+  local delay="${1:-2}"
+  if id -nG "$USER" | grep -qw sudo; then
+    if ! sudo -vn 2>/dev/null; then
+      sudo ls > /dev/null 2>&1
+      if [[ "$delay" -gt 0 ]]; then
+        sleep "$delay"
+        printf '\e[A\e[K'
+      fi
+    fi
+  else
+    die "$USER is not a member of the sudo group. Access denied." 1
+  fi
+}
+
+check_packages() {
+	local pkgs=("$@")
+	for pkg in "${pkgs[@]}"; do
+		if dpkg -l | grep -qw "$pkg"; then
+			printf "%s - OK\n" "$pkg"
+      sleep 2
+      printf '\e[A\e[K'
+		else
+			printf "Installing %s ...\n" "$pkg"
+			sudo apt-get install "$pkg" -yyq
+		fi
+	done
+}
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+check_distro() {
+	# Changes to version 2.8.2 show change to glibc 2.35 which does not support Debian 11 or Ubuntu 20.04 (Mint 20.x )
+	local codename
+	codename=$(lsb_release --codename --short)
+	case "$codename" in
+		bookworm|faye|jammy|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
+		* ) return "$FALSE"
+	esac
+}
+
+ff_version() {
+	fastfetch --version | cut -d' ' -f2
+}
+
+newest_version() {
+  wget -qO "$tmp_file" "$gh_url"
+  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
+  check_distro || new_ver="2.7.1"
+  echo "$new_ver"
+}
+
+compare_versions() {
+  cur_ver="$(ff_version)"
+  if [[ "$cur_ver" == "$new_ver" ]]; then
+    echo -e "\e[93mFastFetch $cur_ver is the current version. No update required.\e[0m"
+    check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
+  else
+    echo -e "\e[93mInstalled version of FastFetch is $cur_ver, updating to $new_ver...\e[0m"
+    check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
+    install_fastfetch
+  fi
+}
+
+install_fastfetch(){
+  local new_pkg="fastfetch-linux-amd64.deb"
+  printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
+  dots "."
+  wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
+  kill "$!"; tput cnorm
+  printf "done\nInstalling FastFetch %s...\n" "$new_ver"
+  sudo gdebi -n "$tmp_dir/$new_pkg"
+  printf "FastFetch %s installed.\n" "$(ff_version)"
+}
+
+remove_fastfetch() {
+	printf "Removing FastFetch %s ...\n" "$(ff_version)"
+	sudo dpkg --remove fastfetch
+	[[ -d "$ff_cfg_d" ]] && rm -rf "$ff_cfg_d"
+	[[ -d "$ff_logo_d" ]] && rm -rf "$ff_logo_d"
+	printf "Fastfetch and its configuration files have been removed.\n"
+}
+
+fastfetch_config() {
+	[[ -d "$ff_cfg_d" ]] || mkdir -p "$ff_cfg_d"
+	# [[ -d "$ff_logo_d" ]] || mkdir -p "$ff_logo_d"
+	printf "Downloading configuration files...\n"
+	cp "$HOME/bin/files/config.jsonc" "$ff_cfg_d/"
+	# cp path/to/custom_logo "$ff_logo_d/"
+	printf "Fastfetch configuration applied.\n"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+Usage: $_script [OPTION]
+OPTIONS:
+	-h	Display help
+	-i	Install Fastfetch
+	-r	Remove Fastfetch
+	-s	Apply settings
+	-u	Update Fastfetch
+$_script $_version (Updated $_updated)
+END_HELP
+  exit "$errcode"
+}
+
+## Execution ##
+
+box "$_script $_version"
+noOpt=1
+optstr=":hirsu"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		h )
+			help 0
+		;;
+		i )
+			exists fastfetch && { echo "Fastfetch $(ff_version) is already installed."; exit; }
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login 2
+      check_dependencies
+      check_distro || { echo "Fastfetch $new_ver is the latest version compatible with $(get_distribution)"; exit; }
+      new_ver="$(newest_version)"
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
+      echo -e "\e[93mInstalling Fastfetch version $new_ver...\e[0m"
+			install_fastfetch
+			fastfetch_config
+		;;
+		r )
+			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+			sudo_login 2
+			remove_fastfetch
+		;;
+		s )
+			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+			fastfetch_config
+		;;
+		u )
+			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+      trap cleanup EXIT
+      sudo_login 2
+      check_dependencies
+      new_ver="$(newest_version)"
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
+			compare_versions
+		;;
+		? )
+			echo -e "\e[91mERROR:\e[0m %s\n Invalid option -${OPTARG}" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { echo -e "\e[91mERROR:\e[0m %s\n No argument passed." >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+exit
