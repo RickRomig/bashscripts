@@ -4,13 +4,16 @@
 # Description  : Display charge and health statics of a laptop battery
 # Dependencies : bc (not installed by default on BunsenLabs Beryllium)
 # Arguments    : -h, --help, -v --version
-# Author       : Copyright (C) 2020, Richard B. Romig, 28 Jul 2020
+# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 28 Jul 2020
+# Updated      : 22 May 2024
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 #              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
-# Copyright © 2023, Richard B. Romig
+#
+# Copyright © 2020, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -29,7 +32,6 @@
 
 # Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -43,8 +45,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.6.3"
-readonly _updated="15 Mar 2024"
+readonly _version="6.3.23143"
+readonly _updated="22 May 2024"
 
 ## Functions ##
 
@@ -73,8 +75,7 @@ EOF
 }
 
 battery_status() {
-  local bat_status
-  local bat_charge
+  local bat_status bat_charge
   printf "\n%sBattery charge:%s\n" "$orange" "$normal"
   [[ -f "$battery_path/status" ]] || die "Problem with the battery! Replace it!"
   bat_status=$(cat "$battery_path/status")
@@ -86,15 +87,7 @@ battery_status() {
 }
 
 battery_capacity() {
-  local actual_full
-  local design_full
-  local unit
-  local actual_max
-  local design_max
-  local int_des
-  local int_act
-  local cap_percent
-  local bat_health
+  local actual_full design_full unit actual_max design_max int_des int_act cap_percent bat_health
   if [[ -f "$battery_path/charge_full" ]]; then
     actual_full="charge_full"
     design_full="charge_full_design"
@@ -126,10 +119,9 @@ battery_capacity() {
 }
 
 battery_condition() {
+  local warn_level warn
   local cap_pct="$1"
   local c_pct="${cap_pct%%.*}"
-  local warn_level
-  local warn
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
   else
@@ -151,8 +143,7 @@ battery_condition() {
 }
 
 battery_specs() {
-  local battery_data
-  local battery_serial
+  local battery_data battery_serial
   battery_data=$(cat "$battery_path"/uevent)
   battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
   [[ -z "$battery_serial" || "$battery_serial" == " " ]] && battery_serial="Not specified"
@@ -164,8 +155,7 @@ battery_specs() {
 }
 
 ac_power() {
-  local ac_path
-  local ac_status
+  local ac_path ac_status
   ac_path=$(find /sys/class/power_supply/ -name "AC*")
   ac_status="$(cat "$ac_path/online")"
   printf "\n%sAC Power:%s\n" "$orange" "$normal"
@@ -230,6 +220,6 @@ else
   printf "\nThis system is not a laptop.\n" >&2
 fi
 
-printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "\n%s v%s\n" "$_script" "$_version"
 
 exit
