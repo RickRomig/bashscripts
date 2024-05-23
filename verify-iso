@@ -2,37 +2,39 @@
 ##########################################################################
 # Script Name  : verify-iso
 # Description  : Verifies SHA256, SHA512, and MD5 checksums of ISO files
-# Dependencies : fzf (optional), zenity (optional)
+# Dependencies : fzf (optional), zenity (optional), ~/bin/functionlib
 # Arguments    : see help function
-# Author       : Copyright (C) 2022, Richard B. Romig, 09 Apr 2022
+# Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Crated       : 09 Apr 2022
+# Updated      : 22 May 2024
 # Comments     : Checksum file must be one line only for ISO being checked.
 #              : Each ISO file must have its own checksum file.
 #              : Checksum files must have one of the following extensions:
 #              : .md5, .sha256, or .sha512
 #              : Works with fuzzy finder (fzf), if installed.
 # License      : GNU General Public License, version 2.0
-##########################################################################
-# 
-# Copyright © 2023, Richard B. Romig
+#
+# Copyright © 2022, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034,SC2207
+# shellcheck disable=SC2034,SC2207
 
 ## Source function library ##
 
@@ -46,8 +48,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.8.1"
-readonly _updated="13 Feb 2024"
+readonly _version="8.1.24143"
+readonly _updated="22 May 2024"
+# init_dir=$(pwd)	# Initial directory before pushd to ISO directory using select_iso_directory()
 
 ## Functions ##
 
@@ -77,26 +80,104 @@ display_introduction() {
 
 	Checksum files must be a single line specifically for the ISO file you wish to
 	check with a file extension of .md5, .sha256. or .sha512. For ease of identifying
-	them, the basename should match the name of the ISO.
+	them, the basename of the checksum file should match the basename name of the ISO file.
+
+	The select_iso_directory() function will need to be adapted for your directory structure.
 
 END_INTRO
 }
 
-status_msg() {
-  local status="${1:-0}"
-  if [[ "$status" -eq 0 ]]; then
-  	printf "%sThe checksums match.%s\n" "$green" "$normal"
-  else
-  	printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
-  	printf "Verify checksum with the ISO download site.\n"
-  fi
-  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+select_iso_directory() {
+	# You will need to change iso_dir variable and options array for your own directory structure.
+	# The options array is a list of subdirectories under ~/Downloads/ISO/Linux/
+	local options opt
+	local iso_dir="$HOME/Downloads/ISO"
+	under_line "ISO Directories" "*"
+	PS3="Select an ISO directory: "
+	COLUMNS=40
+	options=(
+		"antiX-Linux"
+		"ArchLabs"
+		"Artix"
+		"BunsenLabs"
+		"Debian"
+		"Linux_Lite"
+		"Mint"
+		"MX_Linux"
+		"Tails"
+		"Ubuntu"
+		"Utilities"
+		"Current directory"
+	)
+	select opt in "${options[@]}"; do
+		case "$REPLY" in
+			1 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			2 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			3 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			4 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			5 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			6 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			7 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			8 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			9 )
+				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			10 )
+				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			11 )
+				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
+				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
+				break
+			;;
+			12 )
+				printf "\n%-18s %s\n" "ISO directory:" "$PWD"
+				break
+			;;
+			* )
+				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
+		esac
+	done
 }
 
 select_iso() {
-	local num_iso
-	local opt
-	local options
+	local num_iso opt options
 	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
 	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
 
@@ -128,16 +209,19 @@ zen_select_iso() {
 	local file
 	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
 	case "$?" in
-		0 ) isofile="$(basename "$file")" ;;
-		1 ) echo "$file not selected." ;;
-		-1 ) echo "$file not selected"
+		0 )
+			isofile="$(basename "$file")"
+		;;
+		1 )
+			echo "$file not selected."
+		;;
+		-1 )
+			echo "$file not selected"
 	esac
 }
 
 select_checksum() {
-	local num_files
-	local opt
-	local options
+	local num_files opt options
 	num_files=$(find ./ -maxdepth 1 -type f -name "*.md5" -or -name "*.sha*" | wc -l)
 	[[ "$num_files" = 0 ]] && diehard "No checksum files found." "$_script $_version ($_updated)"
 
@@ -169,9 +253,14 @@ zen_select_checksum() {
 	local file
 	file=$(zenity --file-selection --file-filter='checksum files (md5,sha256,sha512) | *.md5 *.sha256 *.sha512' --file-filter='All files | *' --title="Select a checksum file.")
 	case "$?" in
-		0 ) checksum="$(basename "$file")" ;;
-		1 ) echo "$file not selected." ;;
-		-1 ) echo "$file not selected"
+		0 )
+			checksum="$(basename "$file")"
+		;;
+		1 )
+			echo "$file not selected."
+		;;
+		-1 )
+			echo "$file not selected"
 	esac
 }
 
@@ -205,13 +294,24 @@ check_md5() {
   local iso_file="$1"
   local md5_file="$2"
   dots "."
-  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}') 
+  iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}')
   src_md5=$(awk '{print $1}' "$md5_file")
   kill "$!"; tput cnorm
   printf "done\n\nSelected ISO: %s\n" "$iso_file"
   printf "ISO checksum: %s\n" "$iso_md5"
   printf "MD5 checksum: %s\n" "$src_md5"
   [[ "$iso_md5" == "$src_md5" ]] && return "$TRUE" || return "$FALSE"
+}
+
+status_msg() {
+  local status="${1:-0}"
+  if [[ "$status" -eq 0 ]]; then
+		printf "%sThe checksums match.%s\n" "$green" "$normal"
+  else
+		printf "%sThe checksums do not match.%s\n" "$lightred" "$normal"
+		printf "Verify checksum with the ISO download site.\n"
+  fi
+  printf "\n%s v%s (%s)\n" "$_script" "$_version" "$_updated"
 }
 
 check_checksum() {
@@ -252,7 +352,7 @@ while getopts "$optstr" opt; do
 	case "$opt" in
 		f )
 			if exists fzf; then
-				select_iso_directory
+				# select_iso_directory
 				fzf_select_iso
 				fzf_select_checksum
 			else
@@ -263,13 +363,13 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		s )
-			select_iso_directory
+			# select_iso_directory
 			select_iso
 			select_checksum
 		;;
 		z )
 			if exists zenity; then
-				select_iso_directory
+				# select_iso_directory
 				zen_select_iso
 				zen_select_checksum
 			else
@@ -288,4 +388,6 @@ printf "%-18s %s\n" "Selected ISO:" "$isofile"
 printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
 check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version ($_updated)"
 compare_checksums
+# Retruns you to initial diretory if using select_iso_directory to pushd into an ISO directory.
+# if [[ "$init_dir" != "$PWD" ]]; then popd > /dev/null || printf "%s popd failed!" "$red_error" >&2; fi
 exit
