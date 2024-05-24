@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 19 May 2024
+# Last updated : 24 May 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,8 +34,8 @@ set -eu
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.0.24140"
-readonly _updated="19 May 2024"
+readonly _version="2.1.24145"
+readonly _updated="24 May 2024"
 readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
 readonly ff_cfg_d="$HOME/.config/fastfetch"
 readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"	# location for custom logos, if used.
@@ -71,9 +71,17 @@ sudo_login() {
   fi
 }
 
-check_packages() {
-	local pkgs=("$@")
-	for pkg in "${pkgs[@]}"; do
+dots() {
+  local char="${1:-.}"
+  local len="${#char}"
+  (( len > 1 )) && char=${char::1}
+  tput civis
+  while true; do echo -n "."; sleep 0.2; done &
+}
+
+check_dependencies() {
+	local packages=( gdebi wget )
+	for pkg in "${packages[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s - OK\n" "$pkg"
       sleep 2
@@ -83,11 +91,6 @@ check_packages() {
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
-}
-
-check_dependencies() {
-  local packages=( gdebi wget )
-  check_packages "${packages[@]}"
 }
 
 check_distro() {
@@ -112,13 +115,13 @@ newest_version() {
 }
 
 compare_versions() {
+	local cur_ver
   cur_ver="$(ff_version)"
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo -e "\e[93mFastFetch $cur_ver is the current version. No update required.\e[0m"
     check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
   else
     echo -e "\e[93mInstalled version of FastFetch is $cur_ver, updating to $new_ver...\e[0m"
-    check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
     install_fastfetch
   fi
 }
@@ -159,7 +162,7 @@ OPTIONS:
 	-h	Display help
 	-i	Install Fastfetch
 	-r	Remove Fastfetch
-	-s	Apply settings
+	-s	Apply Fastretch configuration and logo
 	-u	Update Fastfetch
 $_script $_version (Updated $_updated)
 END_HELP
@@ -168,7 +171,7 @@ END_HELP
 
 ## Execution ##
 
-box "$_script $_version"
+echo "$_script $_version"
 noOpt=1
 optstr=":hirsu"
 while getopts "$optstr" opt; do
@@ -183,12 +186,14 @@ while getopts "$optstr" opt; do
       trap cleanup EXIT
       sudo_login 2
       check_dependencies
-      check_distro || { echo "Fastfetch $new_ver is the latest version compatible with $(get_distribution)"; exit; }
       new_ver="$(newest_version)"
       [[ "$new_ver" ]] || die "No download available. Try again later." 1
+      check_distro || echo "Fastfetch $new_ver is the latest version compatible with $(get_distribution)"
       echo -e "\e[93mInstalling Fastfetch version $new_ver...\e[0m"
 			install_fastfetch
 			fastfetch_config
+			sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"		# Comments call to neofetch
+			echo "[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch" | tee -a "$HOME/.bashrc"
 		;;
 		r )
 			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
@@ -197,6 +202,7 @@ while getopts "$optstr" opt; do
 		;;
 		s )
 			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+			echo -e "\e[93mInstalling custom Fastfetch configuration...\e[0m"
 			fastfetch_config
 		;;
 		u )
