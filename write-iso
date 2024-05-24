@@ -2,18 +2,17 @@
 ##########################################################################
 # Script Name  : write-iso
 # Description  : Copies an ISO file to a USB drive using dd
-# Dependencies : None
-# Arguments    : None
+# Dependencies : fzf, ~/bin/functionlib
+# Arguments    : see help function
 # Author       : Copyright (C) 2023, Richard B. Romig, LuditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 22 May 2024
-# Comments     : Run script from a directory containing the ISO file.
-#              : Testing indicates USB drive should be mounted.
-#              : Works with fuzzy finder (fzf), if installed.
-#              : To test without writing to USB drive, comment call to write_dd and uncomment call to simulate_dd
+# Updated      : 24 May 2024
+# Comments     : Testing indicates USB drive need to be mounted.
+#              : Works with fuzzy finder (fzf) or zenity, if installed.
+#              : To test without writing to USB drive, use the -d option to enable a dryrun.
+#              : By default, after a dryrun, USB drive will not be unmounted.
 # License      : GNU General Public License, version 2.0
-
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
@@ -33,7 +32,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034,SC2207
 
 ## Load function library ##
 
@@ -47,258 +45,38 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.1.24143"
+readonly _version="6.0.24145"
 readonly _updated="22 May 2024"
+readonly iso_d="$HOME/Downloads/ISO/"
 user=$(whoami)
-init_dir=$(pwd)
+dryrun="$FALSE"
 
 ## Functions ##
-
-# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
-# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
-cleanup() {
-	[[ -f "$devfile" ]] && rm -f "$devfile"
-}
 
 help() {
 	local errcode="${1:-2}"
 	cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
 ${orange}OPTIONS:${normal}
-	-f	Select with Fuzzy Finder (fzf)
+	-d	Enable Dry Run simulation
 	-h	Display help
-	-s	Select with Select Menu
-	-z	Select with Zenity dialog
+	-w	Write ISO to USB device
 $_script $_version (Updated $_updated)
 END_HELP
   exit "$errcode"
-}
-
-display_introduction() {
-	cat << END_INTRO
-	$_script verifies SHA256/SHA512/MD5 checksums with ISO files.
-	The script offers three options for selecting ISO files and USB drives - fzf
-	(Fuzzy Finder), Zenity dialog boxes, or a menu using select. Zenity and fzf
-	need to be installed prior to using those options.
-
-	You should already be in the directory containing the ISO files you wish to
-	write to a USB drive, especially if you are using Fuzzy Finder or the select
-	menu.
-
-	The USB drive you plan to write to should be inserted and mounted before
-	running the script. If the USB drive is not already mounted, the script will
-	mount the drive at /media/$USER/$(date +%y%b%d). (/media/user/yymmdd)
-
-	The select_iso_directory() function will need to be adapted for your directory structure.
-
-END_INTRO
 }
 
 check_usb_drive() {
 	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
 }
 
-select_iso_directory() {
-	# You will need to change iso_dir variable and options array for your own directory structure.
-	# The options array is a list of subdirectories under ~/Downloads/ISO/Linux/
-	local options opt
-	local iso_dir="$HOME/Downloads/ISO"
-	under_line "ISO Directories" "*"
-	PS3="Select an ISO directory: "
-	COLUMNS=40
-	options=(
-		"antiX-Linux"
-		"ArchLabs"
-		"Artix"
-		"BunsenLabs"
-		"Debian"
-		"Linux_Lite"
-		"Mint"
-		"MX_Linux"
-		"Tails"
-		"Ubuntu"
-		"Utilities"
-		"Current directory"
-	)
-	select opt in "${options[@]}"; do
-		case "$REPLY" in
-			1 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			2 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			3 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			4 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			5 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			6 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			7 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			8 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			9 )
-				pushd "$iso_dir/Linux/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/Linux/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			10 )
-				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			11 )
-				pushd "$iso_dir/$opt" > /dev/null || die "pushd failed!"
-				printf "\n%-18s %s/%s\n" "ISO directory:" "$iso_dir" "$opt"
-				break
-			;;
-			12 )
-				printf "\n%-18s %s\n" "ISO directory:" "$PWD"
-				break
-			;;
-			* )
-				printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
-		esac
-	done
-}
-
-# List available ISO files and select file to write
 select_iso() {
-	local num_iso opt options
-	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
-	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-
-	under_line "ISO files:" "*"
-	PS3="Please select an ISO file: "
-	options=($(find ./ -maxdepth 1 -name "*.iso" | sed 's/\.\///' | sort -u))
-	select opt in "${options[@]}" "Quit"; do
-		if (( REPLY == 1 + ${#options[@]} )); then
-			printf "No ISO file selected. Operation canceled. Exiting the script."
-			leave "$_script $_version (updated: $_updated)"
-		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-			isofile="$opt"
-			break
-		else
-			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
-		fi
-	done
-	printf "\n"
+	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 40% --reverse --prompt "Select the ISO file to write: ")
 }
 
-fzf_select_iso() {
-	local num_iso
-	num_iso=$(find ./ -maxdepth 1 -type f -name "*.iso" | wc -l)
-	[[ "$num_iso" = 0 ]] && diehard "No ISO files found." "Change to a directory containing the ISO file to be checked." "$_script $_version ($_updated)"
-	isofile=$(find ./ -type f -name "*.iso" -print | sed 's/\.\///' | fzf --prompt "Select the ISO file to check: ")
-}
-
-zen_select_iso() {
-	local file
-	file=$(zenity --file-selection --file-filter='ISO files (iso) | *.iso' --file-filter='All files | *' --title="Select an ISO file.")
-	case "$?" in
-		0 )
-			isofile="$(basename "$file")"
-		;;
-		1 )
-			echo "$file not selected."
-		;;
-		-1 )
-			echo "$file not selected"
-	esac
-}
-
-# List removable devices and select device to write to
 select_usb() {
-	local options opt
-	printf "Available drives:\n"
-	lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//;s/disk //'
-	print_line "-" 40
-	PS3="Please select an available USB drive: "
-	options=($(lsblk -o NAME,TYPE,HOTPLUG | awk '$2 == "disk" && $3 == "1" {print $1}'))
-	select opt in "${options[@]}" "Quit"; do
-		if (( REPLY == 1 + ${#options[@]} )); then
-			printf "No USB device selected. Operation canceled. Exiting the script.\n"
-			leave "$_script v$_version ($_updated)"
-		elif (( REPLY > 0 && REPLY <= ${#options[@]} )); then
-			usb_device="$opt"
-			break
-		else
-			printf "Invalid option. Choose 1 - %d\n" "${#options[@]}"
-		fi
-	done
-}
-
-fzf_select_usb() {
 	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --height 40% --reverse --prompt "Select the USB drive to write to: ")
 	usb_device=$(echo "$usb_device" | awk '{print $2}')
-}
-
-zen_select_usb() {
-	usbdev=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE | awk '$2 == "disk" && $1 == "1" {print $3,$4}')
-	echo "$usbdev" | \
-	awk '{
-	    print NR;
-	    for(i=1;i<=NF;i++){
-	        print $i;
-	    }
-	}' | \
-	zenity --list \
-	--title="USB Devices" \
-	--column="Index" --column="Device" --column="Size" \
-	--print-column=2 > "$devfile"  2>/dev/null
-	usb_device=$(cat "$devfile")
-}
-
-
-write_dd() {
-	local iso="$1"
-	local usb="$2"
- 	printf "\nWriting %s to /dev/%s...\n" "$isofile" "$usb_device"
-	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
-	  printf "%s written to /dev/%s.\n" "$iso" "$usb"
-    printf "\nContents of /dev/%s\n\n" "$usb_device"
-    ls "/media/$user/$mount_name"
-else
-    diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version"
-  fi
-}
-
-simulate_dd() {
-  local iso="$1"
-	local usb="$2"
-  printf "\nSimulating writing %s to /dev/%s ...\n" "$isofile" "$usb_device"
-  spin
-  sleep 10
-  kill "$!"
-  tput cnorm
-  printf "\n%s written to /dev/%s (SIMULATED)\n"  "$isofile" "$usb_device"
-  printf "\nContents of /dev/%s\n\n" "$usb_device"
-  ls "/media/$user/$mount_name"
 }
 
 mount_usb() {
@@ -313,49 +91,86 @@ unmount_usb() {
 	printf "It's now safe to remove the USB drive.\n"
 }
 
+simulate_dd() {
+  local iso="$1"
+	local usb="$2"
+  printf "\nWriting %s to /dev/%s (SIMULATED) ...\n" "$(basename "$iso")" "$usb"
+  spin
+  sleep 10
+  kill "$!"
+  tput cnorm
+  printf "\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
+  printf "\nContents of /dev/%s:\n" "$usb"
+  ls "/media/$user/$mount_name"
+}
+
+write_dd() {
+	local iso="$1"
+	local usb="$2"
+	printf "\nWriting %s to /dev/%s...\n" "$(basename "$iso")" "$usb"
+	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
+	  printf "%s written to /dev/%s.\n" "$(basename "$iso")" "$usb"
+    printf "\nContents of /dev/%s\n\n" "$usb"
+    ls "/media/$user/$mount_name"
+else
+    diehard "$iso write to /dev/$usb failed.\n" "$_script v$_version"
+  fi
+}
+
+write_iso() {
+	printf "%-16s %s\n" "Selected ISO:" "$(basename "$isofile")"
+	printf "%-16s /dev/%s\n" "Selected device:" "$usb_device"
+
+	# Mount selected USB drive if not already mounted.
+	usbpart="${usb_device}1"
+	if mount | grep -q "$usbpart" > /dev/null 2>&1; then
+		mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
+	else
+		sudo_login 2
+		mount_name="$(date +%y%b%d)"
+		mount_usb #"/dev/$usbpart"
+	fi
+
+	# Confirm action or cancel
+	if [[ "$dryrun" == "$TRUE" ]]; then
+		simulate_dd "$isofile" "$usb_device"
+	else
+		printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usb_device" "$normal"
+		printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
+		if yes_or_no "Write $(basename "$isofile") to /dev/$usb_device?"; then
+			sudo_login 2
+			write_dd "$isofile" "$usb_device"
+			printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
+			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
+		else
+		printf "Operation canceled. No action taken.\n"
+		fi
+	fi
+
+}
+
 ## Execution ##
 
-trap cleanup EXIT
-
+box "$_script v$_version"
 printf "Writes ISO to a USB drive.\n\n"
 
 noOpt=1
-optstr=":dfhsz"
+optstr=":dhw"
 while getopts "$optstr" opt; do
 	case "$opt" in
 		d )
 			dryrun="$TRUE"
 			printf "%sPerforming a dryrun. The ISO will NOT be written to USB drive.%s\n\n" "$orange" "$normal"
 		;;
-		f )
-			if exists fzf; then
-				check_usb_drive
-				# select_iso_directory
-				fzf_select_iso
-				fzf_select_usb
-			else
-				leave "fzf (Fuzzy Finder) is not installed on this system."
-			fi
-		;;
 		h )
 			help 0
 		;;
-		s )
+		w )
+			check_package fzf
 			check_usb_drive
-			# select_iso_directory
 			select_iso
 			select_usb
-		;;
-		z )
-			if exists zenity; then
-				check_usb_drive
-				devfile=$(mktemp -q) || die "Failed to create temporary file." 1
-				# select_iso_directory
-				zen_select_iso
-				zen_select_usb
-			else
-				leave "Zenity is not installed on this system."
-			fi
+			write_iso
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
@@ -365,35 +180,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-
-printf "%-16s %s\n" "Selected ISO:" "$isofile"
-printf "%-16s /dev/%s\n" "Selected device:" "$usb_device"
-
-# Mount selected USB drive if not already mounted.
-usbpart="${usb_device}1"
-if mount | grep -q "$usbpart" > /dev/null 2>&1; then
-	mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
-else
-	sudo_login 2
-	mount_name="$(date +%y%b%d)"
-	mount_usb #"/dev/$usbpart"
-fi
-
-# Confirm action or cancel
-if [[ "$dryrun" == "$TRUE" ]]; then
-	simulate_dd "$isofile" "$usb_device"
-else
-	printf "%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usb_device" "$normal"
-	printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
-	if yes_or_no "Write $isofile to /dev/$usb_device?"; then
-		sudo_login 2
-		write_dd "$isofile" "$usb_device"
-		printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
-		mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
-	else
-	printf "Operation canceled. No action taken.\n"
-	fi
-fi
-# Retruns you to initial diretory if using select_iso_directory to pushd into an ISO directory.
-# if [[ "$init_dir" != "$PWD" ]]; then popd > /dev/null || printf "%s popd failed!" "$red_error" >&2; fi
-leave "$_script v$_version (Updated: $_updated)"
+exit
