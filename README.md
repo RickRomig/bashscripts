@@ -53,8 +53,8 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **laptop-utils** - Installs utilities for power-management and other services on a laptop.
 - **laptoplid** - Modifies `/etc/systemd/logind` to allow a laptop's lid to be closed without going into suspend mode.
 - **locale-fix.sh** - changes locale-gen to store locales in individual locale direectories instead of a single archive file.
-- **no-flatpak** - Enables/Disables Flatpak in Debian/Ubuntu systems.
-- **no-snaps** - Enables/Disables Snaps in Debian/Ubuntu systems.
+- **no-flatpak** - Enables/Disables Flatpak in Debian/Ubuntu/Mint systems.
+- **no-snaps** - Enables/Disables Snaps in Debian/Ubuntu/Mint systems.
 - **purge-image-rc** - Purges obsolete packages (Linux headers and images) in the remove/deinstall state with only configuration files installed.
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
@@ -65,8 +65,8 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **system-info** - Displays system information in an easy-to-read format.
 - **system-status** - Displays a snapshot of CPU, memory, & disk usage, as well as system temperatures and uptime.
 - **upper2lower** - Changes filenames to all lowercase.
-- **verify-iso** - Verifies checksums for downloaded ISO files.
-- **write-iso** - Writes ISO files to USB drive using `dd`. Lists available ISO files in the current directory and attached USB drives.
+- **verify-iso** - Verifies checksums for downloaded ISO files. Uses `fzf` (fuzzy finder) to select ISO and checksum files.
+- **write-iso** - Writes ISO files to USB drive using `dd`. Uses `fzf` (fuzzy finder) to select ISO files and available USB devices.
 
 ### Feedback:
 
@@ -79,7 +79,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-19 May 2024
+24 May 2024
 
 ### DISCLAIMER
 
