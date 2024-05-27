@@ -10,7 +10,7 @@ I maintain a small home network of about a dozen desktops and laptops. Most of t
 ### Function library
 Many of the scripts in this repository source the `functionlib` script which contains various functions and global variables. I recommend having this script in your `~/bin` directory or in your user path. If you place in a directory other than `~/bin`, you need to change the scripts with the new path to the library. Another alternative would be to cut and paste the necessary functions and global variables directly into the scripts as required.
 
-Shellcheck directives are required only if you are using `shellcheck` to check syntax. You will need to change the hard-coded path for the shellcheck directive to the location of `functionlib` on your system. If using `shellcheck`, I recommend using the command `shellcheck -x`, otherwise you'll need to include the directive `# shellcheck disable=SC1091` to avoid the 'SC1091 Not following: (error message here)' error. (https://www.shellcheck.net/wiki/SC1091)
+Shellcheck directives are required only if you are using `shellcheck` to check syntax. You will need to change the hard-coded path for the shellcheck directive to the location of `functionlib` on your system. If using `shellcheck`, I recommend using the command `shellcheck -x`, otherwise you'll need to include the directive `# shellcheck disable=SC1091` to avoid the [SC1091 Not following: (error message here) error.](https://www.shellcheck.net/wiki/SC1091)
 ```bash
 ## Shellcheck Directives ##
 # shellcheck source=/home/user/bin/functionlib
@@ -24,8 +24,10 @@ else
   exit 1
 fi
 ```
-
 The `functions` directory contains markdown files explaining each of the function in `functionlib`.
+
+### files directory
+The `files` directory contains support files for various scripts, to include sed instructions and configuration files.
 
 ### License
 All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to download and use them if you find them useful. Modify them to fit your own use cases. I don't ask that you send me any changes you make, but if you find a way to make them better, I'd appreciate you sharing them with me.
@@ -79,7 +81,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-24 May 2024
+27 May 2024
 
 ### DISCLAIMER
 
