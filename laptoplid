@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : laptoplid
 # Description  : Settings to close laptop lid without suspend
-# Dependencies : laptoplid.sed
+# Dependencies : ~/bin/files/laptoplid.sed
 # Arguments    : None
 # Author       : Copyright (C) 2020, Richard B. Romig, 22 Oct 2020
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -10,20 +10,20 @@
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2024, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -43,18 +43,17 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.1"
-readonly _updated="10 Jan 2024"
+readonly _version="4.1.24148"
 readonly logind_conf="/etc/systemd/logind.conf"
+readonly sed_file="$HOME/bin/files/laptoplid.sed"
 
 ## Execution ##
 
 clear
-printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+printf "%s v%s\n" "$_script" "$_version"
 printf "Allows a laptop lid to be closed without going into suspend mode.\n\n"
-
 is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
 sudo_login 2
-sed -i.bak '/HandleSuspendKey/s/^#//;s/suspend$/ignore/;/HandleLidSwitch/s/^#//;s/suspend$/ignore/;/LidSwitchIgnoreInhibited/s/^#//;s/yes$/no/' "$logind_conf"
+sudo sed -i.bak -f "$sed_file" "$logind_conf"
 sudo systemctl restart systemd-logind.service
 leave "$logind_conf modified. Backup file (${logind_conf}.bak) created."
