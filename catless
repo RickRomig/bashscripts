@@ -3,12 +3,11 @@
 # Script Name  : catless
 # Description  : view text file with less or cat based on terminal window size.
 # Dependencies : functionlib
-# Arguments    : $1 -> text file to be viewed
 # Arguments    : $1 -> file to be viewed
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 30 Apr 2024
+# Updated      : 03 Jul 2024
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +43,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.5.24121"
+readonly _version="4.6.24185"
 readonly _updated="30 Apr 2024"
 
 ## Functions ##
@@ -52,32 +51,32 @@ readonly _updated="30 Apr 2024"
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-  Usage: $_script [filename] [-h] [--help]
+${orange}$_script${normal} v$_version (updated $_updated)
+Displays a text file using either cat or less depending the number of lines in
+the file and the number of rows in the current terminal window. Less is used when
+the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
-  $_script displays a text file using either cat or less depending the number of
-  lines in the file and the number of rows in the current terminal window. Less
-  is used when the number of lines is greater than the 87% of the rows, otherwise
-  cat is used.
+ ${green}Usage:${normal} $_script filename [-h] [--help]
 
-$_script v$_version (updated $_updated)
 END_HELP
   exit "$errcode"
 }
 
 main() {
-  local textfile="$1"
-  # Get 87% of screen and size of file
+  local catmax filelines textfile
+  textfile="$1"
+  # Get 87% of screen
   catmax=$(( $(tput lines)*87/100 ))
-  filesize=$(wc -l "$textfile" | cut -d' ' -f1)
-
+  # Find the number of lines in the file
+  filelines=$(wc -l "$textfile" | cut -d' ' -f1)
   # View the file
   box "File: $textfile" "*"
-  if (( filesize < catmax )); then
+  if (( filelines <= catmax )); then
 	  cat "$textfile"
-	  over_line "$_script $_version (Updated $_updated)" "*"
+	  over_line "$_script $_version" "*"
   else
 	  less "$textfile"
-	  echo "$_script $_version (Updated $_updated)"
+	  echo "$_script $_version"
   fi
 }
 
