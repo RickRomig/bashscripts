@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 26 Apr 2024
+# Updated:     : 02 Jul 2024
 # Comments     : Will not get desktop session info from an SSH connection, run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,8 +44,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.4.5"
-readonly _updated="04 Mar 2024"
+readonly _version="3.6.24184"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -78,7 +77,8 @@ save_info() {
 }
 
 rename_mnt_pt() {
-  local ts_path="/run/timeshift/backup"
+  local ts_path ts_drv opt
+  ts_path="/run/timeshift/backup"
   ts_drv=$(mount | awk '/timeshift/ {print $3}' | cut -d' ' -f1)
   printf "\nRename the mountpoint for %s to:\n" "$ts_drv"
   PS3="Select the appropriate mountpoint: "
@@ -110,6 +110,7 @@ rename_mnt_pt() {
 }
 
 ff_fix() {
+  local opt options hd_ff
   printf "Form factor not displayed in Hard Disk Information.\n" >&2
   PS3="Select form factor: " >&2
   options=( "2.5 inch" "3.5 inch" "less than 1.8 inch" "ignore")
@@ -134,10 +135,12 @@ ff_fix() {
         printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$red_error"
     esac
   done
+  echo "$hd_ff"
 }
 
 mfg_info() {
-	local dmi_dir="/sys/class/dmi/id"
+  local dmi_dir mfg_version mfg_serial
+	dmi_dir="/sys/class/dmi/id"
 	mfg_version=$(cat $dmi_dir/product_version)
 	[[ -z "${mfg_version// }" ]] && mfg_version="Not specified"
 	mfg_serial=$(sudo cat $dmi_dir/product_serial)
@@ -149,10 +152,11 @@ mfg_info() {
 }
 
 os_info() {
-  local desktop="$DESKTOP_SESSION"
-  [[ "$desktop" == "bunsenlabs" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
-	r_p=$(df -P / | awk '/dev/ {print $1}')
-	created_date=$(sudo /usr/sbin/tune2fs -l "$r_p" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
+  local desktop root_part created_date
+  desktop="$DESKTOP_SESSION"
+  [[ "$desktop" == "bunsenlabs" || "$desktop" == "lightdm-xsession" ]] && desktop=$(wmctrl -m | awk '/Name/ {print $2}')
+	root_part=$(df -P / | awk '/dev/ {print $1}')
+	created_date=$(sudo /usr/sbin/tune2fs -l "$root_part" | awk '/created:/ {print $(NF-2),$(NF-3),$NF}')
 	printf "\n%-19s %s\n" "Operating System:" "$(uname -o)"
 	printf "%-19s %s\n" "Distribution:" "$(get_distribution)"
   printf "%-19s %s\n" "Desktop:" "$desktop"
@@ -160,6 +164,7 @@ os_info() {
 }
 
 cpu_info() {
+  local arch model threads
   model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
   arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
   threads=$(/usr/bin/lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
@@ -167,6 +172,7 @@ cpu_info() {
 }
 
 memory_info() {
+  local mem_max mem_type phys_mem
 	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
 	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
@@ -178,10 +184,9 @@ graphics_info() {
 }
 
 mac_mfgr() {
-  local mac_addr="$1"
-  local oui_file="/usr/share/ieee-data/oui.txt"
-	local oui_addr
-	local mfgr
+  local mac_addr mfgr oui_addr oui_file
+  mac_addr="$1"
+  oui_file="/usr/share/ieee-data/oui.txt"
 	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
 	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
 	if [[ -n "$mfgr" ]]; then
@@ -192,6 +197,7 @@ mac_mfgr() {
 }
 
 wired_info() {
+  local eth_int ethernet_dev e_mac e_man
 	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
 	if [[ -n "$eth_int" ]]; then
 		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
@@ -203,6 +209,7 @@ wired_info() {
 }
 
 wireless_info() {
+  local wifi_int wireless_dev w_mac w_man
 	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
 	if [[ -n "$wifi_int" ]]; then
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
@@ -214,6 +221,7 @@ wireless_info() {
 }
 
 ssd_hd_info() {
+  local disk hd_ff hd_rpm
 	printf "\nHard Disk Information:\n"
 	for disk in /dev/sd[a-z]; do
 		sudo hdparm -I "${disk}" 2>/dev/null | tee "$hd_data" > /dev/null
@@ -222,7 +230,7 @@ ssd_hd_info() {
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
-    [[ -z "$hd_ff" ]] && ff_fix
+    [[ -z "$hd_ff" ]] && hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
@@ -236,6 +244,7 @@ ssd_hd_info() {
 }
 
 nvme_info() {
+  local nvme_data devline
   printf "\nNVMe Information\n"
   nvme_data=$(sudo /usr/sbin/nvme list | tail -n+3)
   for devline in "${nvme_data[@]}"; do
@@ -252,6 +261,7 @@ partition_info() {
 }
 
 battery_info() {
+  local battery_name battery_path battery_data battery_serial
   printf "\nBattery Information:\n"
   battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
   if [[ -n "$battery_name" ]]; then
