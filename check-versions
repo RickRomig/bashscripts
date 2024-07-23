@@ -53,11 +53,11 @@ cleanup() {
 	[[ -f "$tmp_file" ]] && rm -f "$tmp_file"
 }
 
-current_version() {
-  local cv pkg
+installed_version() {
+  local ver pkg
   pkg="$1"
-  cv=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
-  echo "$cv"
+  ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
+  echo "$ver"
 }
 
 github_versions() {
@@ -72,28 +72,25 @@ github_versions() {
     case "$package" in
       bat )
         release_path="sharkdp/bat/releases"
-        cur_ver=$(current_version "$package")
       ;;
 		  codium )
 			  release_path="VSCodium/vscodium/releases"
-        cur_ver=$(current_version "$package")
       ;;
       fastfetch )
         release_path="fastfetch-cli/fastfetch/releases"
-        cur_ver=$(current_version "$package")
       ;;
       marktext )
         release_path="marktext/marktext/releases"
-         cur_ver=$(current_version "$package")
       ;;
       micro )
         release_path="zyedidia/micro/releases"
-        cur_ver=$(current_version "$package")
       ;;
       * )
         printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
     esac
 
+    # Get installed version
+    cur_ver=$(installed_version "$package")
     # Download package's GitHub release page to a temporary file.
     curl -s -o "$tmp_file" "$github_url/$release_path"
     # Extract newest version number, ignoring beta and release candidate releases.
@@ -120,52 +117,14 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-	packages=( bluefish featherpad geany gedit git glow nano shellcheck xed )
+  packages=( bluefish featherpad geany gedit git glow nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 		  printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-			case "$package" in
-        bluefish )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        featherpad )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				geany )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        gedit )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        git )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				glow )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				nano )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        xed )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        shellcheck )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				* )
-          printf "%s Invalid package name - %s\n" "$red_error" "${package^}" >&2
-			esac
+      cur_ver=$(installed_version "$package")
+      printf "%s\n" "$cur_ver"
 		fi
 	done
 	printf "%s\n" "${normal}"
@@ -173,41 +132,14 @@ apt_tools() {
 
 terminals() {
 	local cur_ver packages package
-	packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
+  packages=( gnome-terminal kitty lxterminal terminator xfce4-terminal xterm )
 
 	printf "%-15s%s\n" "Terminal" "Version"
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-			case "$package" in
-        kitty )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        terminator )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        gnome-terminal )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        lxterminal )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-        xfce4-terminal )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-          printf "%s\n" "$(dpackage -l | awk '$2 == "xfce4-terminal" {print $3}' | sed 's/[+-].*//')"
-        ;;
-        xterm )
-           cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				* )
-					printf "%s Invalid package name - %s\n" "$red_error" "${package^}" >&2
-			esac
+      cur_ver=$(installed_version "$package")
+      printf "%s\n" "$cur_ver"
 		fi
 	done
 	printf "%s\n" "${normal}"
@@ -221,27 +153,9 @@ browsers() {
 	for package in "${packages[@]}"; do
 		if exists "$package"; then
 			printf "%s%-15s%s" "${darkgray}" "${package^}" "${gray}"
-			case "$package" in
-				brave-browser )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				chromium )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				firefox )
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				google-chrome )
-          package+="-stable"
-          cur_ver=$(current_version "$package")
-          printf "%s\n" "$cur_ver"
-        ;;
-				* )
-					printf "%s Invalid package name - %s\n" "$red_error" "${package^}" >&2
-			esac
+      [[ "$package" == "google-chrome" ]] && package+="-stable"
+      cur_ver=$(installed_version "$package")
+      printf "%s\n" "$cur_ver"
 		fi
 	done
 	printf "%s\n" "${normal}"
@@ -250,7 +164,7 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="12.0.24204"
+  _version="13.0.24205"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
