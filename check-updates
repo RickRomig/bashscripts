@@ -2,16 +2,17 @@
 ###############################################################################
 # Script Name  : check-updates
 # Description  : check for updates and install if necessary.
-# Dependencies : none
+# Dependencies : ~/bin/functionlib
 # Arguments    : none
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Apr 2024
+# Updated      : 13 Aug 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
 #              : Uses Nala, if installed.
+#              : `check-updates apt` forces use of apt_update().
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -34,7 +35,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Load function library ##
 
@@ -45,7 +45,7 @@ else
   exit 1
 fi
 
-set -euo pipefail
+set -eu
 
 ## Variables ##
 
@@ -56,12 +56,13 @@ readonly local_host="${HOSTNAME:-$(hostname)}"
 ## Functions ##
 
 update_apt_cache() {
-  local cache_file="/var/cache/apt/pkgcache.bin"
-  local current_time; current_time=$(date +%s)
-  local updated_time; updated_time=$(stat -c%Y "$cache_file")
-  local time_diff; time_diff=$(( current_time - updated_time ))
-  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours
-  local threshold=86400
+  local cache_file current_time updated_time time_diff threshold
+  cache_file="/var/cache/apt/pkgcache.bin"
+  current_time; current_time=$(date +%s)
+  updated_time; updated_time=$(stat -c%Y "$cache_file")
+  time_diff; time_diff=$(( current_time - updated_time ))
+  # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours
+  threshold=10800
   if [[ "$time_diff" -le "$threshold" ]]; then
     printf "%sApt cache is up to date.%s\n" "$orange" "$normal"
   else
@@ -85,14 +86,12 @@ remove_orphans() {
   sudo apt-get autoremove -yy
 }
 
-purge_configs() {
-  local rcpkgs
+purge_rc_packages() {
   local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
-  rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
-  if [[ -n "$rcpkgs" ]]; then
-    printf "%s\n" "$rcpkgs"
+  if dpkg -l | grep -c '^rc' > /dev/null; then
     for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+      printf "Purging %s...\n" "$rcpkg"
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
@@ -103,18 +102,19 @@ purge_configs() {
 update_complete() {
   local num_updates="$1"
   printf "\n%sUpdate complete. %d" "$orange" "$num_updates"
-  (( nupd > 1 )) && printf  " updates were" || printf  " update was"
+  (( num_updates > 1 )) && printf  " updates were" || printf  " update was"
   printf " installed.%s\n" "$normal"
 }
 
 defer_updates() {
   local num_updates="$1"
   printf "\n%sNo updates installed. %d" "$orange" "$num_updates"
-  (( nupd > 1 )) && printf " updates were" || printf " update was"
+  (( num_updates > 1 )) && printf " updates were" || printf " update was"
   printf " deferred.%s\n" "$normal"
 }
 
 update_flatpak() {
+  local fp_count
   fp_count=$(flatpak list | wc -l)
   printf "\n%sFlatpak:%s\n" "$orange" "$normal"
   if [[ "$fp_count" -gt 0 ]]; then
@@ -128,9 +128,14 @@ update_flatpak() {
   fi
 }
 
+update_spices() {
+  printf "\n%sCinnamon Spices:%s\n" "$orange" "$normal"
+  cinnamon-spice-updater --update-all
+}
+
 nala_update() {
   sudo nala upgrade
-  if default_yes "Run autoremove/autopurge?"; then
+  if default_no "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
     sudo nala autoremove
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
@@ -141,8 +146,10 @@ nala_update() {
   printf "\n"
 }
 
+# shellcheck disable=SC2034
 apt_update() {
   local nupd
+  # Check if Debian or Dehian-based, then update apt cache
   grep -qw debian /etc/os-release && update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
@@ -152,7 +159,7 @@ apt_update() {
     (( nupd > 1 )) && printf "packages" || printf "package"
     printf " can be upgraded%s.\n" "$normal"
     # List upgradeable packages
-    apt list --upgradeable
+    apt list --upgradable
     # Options menu
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -196,7 +203,7 @@ apt_update() {
       esac
     done
   else
-    printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
+    printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
   fi
 }
 
@@ -213,12 +220,16 @@ printf "Distro: %s\n" "$(get_distribution)"
 printf "Kernel: %s\n\n" "$(uname -sr)"
 printf "Checking for updates...%s\n\n" "$normal"
 
-if exists nala; then
+action="${1:-nala}"
+if [[ "$action" == "apt" ]]; then
+  apt_update
+elif exists nala; then
   nala_update
 else
   apt_update
 fi
 
+exists cinnamon-spice-updater && update_spices
 exists flatpak && update_flatpak
 
 leave "Script completed in $(format_time $SECONDS)"
