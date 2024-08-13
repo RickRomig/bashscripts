@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 03 May 2024
+# Updated      : 13 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -30,7 +30,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC2034
 
 ## Source function library ##
 
@@ -44,8 +43,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.6.24124"
-readonly _updated="03 May 2024"
+readonly _version="5.7.24226"
+readonly _updated="13 Aug 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -64,9 +63,10 @@ check_dependencies() {
 }
 
 check_distro() {
+  local codename
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|elsie|faye|focal|jammy|una|vanessa|vera|victoria|virginia ) return "$TRUE" ;;
+    bookworm|bullseye|boron|elsie|faye|focal|jammy|noble|una|vanessa|vera|victoria|virginia|wilma ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
@@ -83,6 +83,7 @@ newest_version() {
 }
 
 compare_versions() {
+  local cur_ver
   cur_ver="$(bat_ver)"
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Bat $cur_ver is the current version. No update required.${normal}"
@@ -144,15 +145,18 @@ END_CONFIG
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs, updates, or removes the Bat utililty.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -c    Installs/updates Bat configuration file.
-  -h    Displays help.
-  -i    Installs the Bat utility.
-  -r    Removes the Bat utility from the system.
-  -u    Updates the Bat utility to the latest version.
-EOF
+${orange}Available options:${normal}
+  -c  Installs/updates Bat configuration file.
+  -h  Displays help.
+  -i  Installs the Bat utility.
+  -r  Removes the Bat utility from the system.
+  -u  Updates the Bat utility to the latest version.
+END_HELP
   exit "$errcode"
 }
 
@@ -165,7 +169,7 @@ optstr=":chiru"
 while getopts "$optstr" opt; do
   case "$opt" in
     c )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
       apply_config
     ;;
     h )
@@ -185,12 +189,12 @@ while getopts "$optstr" opt; do
       apply_config
     ;;
     r )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
       sudo_login 2
       remove_bat
     ;;
     u )
-      exists bat || leave "Bat is not installed. Run '$_script -i' to install."
+      exists bat || leave "Bat is not installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
