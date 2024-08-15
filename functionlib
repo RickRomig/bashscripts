@@ -197,8 +197,7 @@ bin_in_path() {
 # Returns: True or False
 ###############################################################################
 exists() {
-  local cmd
-  command -v "$cmd" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
