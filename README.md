@@ -43,6 +43,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **cinnkeys** - Creates a backup file for Cinnamon keybindings and restores keybindings from the backup.
 - **empty-trash.sh** - Run as a cron job to empty the Trash directory in a user's home folder. Tested on Linux Mint, LMDE, MX Linux, BunsenLabs, Debian Cinnamon, Debian i3.
 - **functionlib** - A library of useful functions and global variables that can be sourced by a script.
+- **install-batcat** - Install/removes Bat from distribution repository. In Debian-based distros, bat is renamed to batcat. Script creates a symbolic link.
 - **install-brave** - Installs/Removes the Brave browser.
 - **install-codium** - Installs/Removes VSCodium.
 - **install-firefox-deb** - Installs Firefox from the Mozilla DEB repository.
@@ -81,7 +82,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-27 May 2024
+15 Aug 2024
 
 ### DISCLAIMER
 
