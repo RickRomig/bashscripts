@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 06 May 2024
+# Last updated : 15 Aug 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -113,6 +113,7 @@ die() {
 # Example: diehard "File not found." "Check directory."
 ###############################################################################
 diehard() {
+	local line
 	printf "\e[91mERROR:\e[0m "
 	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
@@ -127,8 +128,11 @@ diehard() {
 # Do not use in scripts with functions that return non-error integers.
 ###############################################################################
 error_handler() {
-  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$1" "$2" >&2
-  exit "$1"
+  local err_code line_nr
+  err_code="$1"
+  line_nr="$2"
+  printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
+  exit "$err_code"
 }
 
 ###############################################################################
@@ -193,7 +197,8 @@ bin_in_path() {
 # Returns: True or False
 ###############################################################################
 exists() {
-  command -v "$1" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+  local cmd
+  command -v "$cmd" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -263,6 +268,16 @@ is_jammy() {
 }
 
 ###############################################################################
+# is_noble
+# Purpose: Returns true if distribution is based on Ubuntu 24.04 (i.e., Mint 22.x)
+# Arguments: none
+# Returns: True or False
+###############################################################################
+is_jammy() {
+  [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
 # support_ppa
 # Purpose: Returns true if the distribution supports Ubuntu PPA.
 # Arguments: none
@@ -271,7 +286,7 @@ is_jammy() {
 support_ppa() {
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    focal|jammy|uma|una|vanessa|vera|victoria )
+    focal|jammy|noble|uma|una|vanessa|vera|victoria|virginia|wilma )
       return "$TRUE"
     ;;
     * )
@@ -392,6 +407,7 @@ leapyear() {
 # Arguments: none
 ###############################################################################
 local_ip() {
+  local octet
   octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
   [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
   printf "%s" "$octet"
@@ -412,8 +428,9 @@ local_ip() {
 # Exits with exit code of 5 if the argument is not an integer value.
 ###############################################################################
 valid_ip() {
-  local octet="$1"
-  local status=0
+  local octet status localip
+  octet="$1"
+  status=0
   localip="$(local_ip)"
   if [[ -z "$octet" ]]; then
     status=1    # No argument passed.
@@ -465,7 +482,8 @@ valid_ip() {
 #   $1 -> file to be edited or reviewed.
 ###############################################################################
 edit_view_quit() {
-  local filename="$1"
+  local filename opt
+  filename="$1"
   printf "\nYou may edit or view %s at this time.\n\n" "$filename"
   PS3="Choose an option: "
   select opt in Edit View Quit; do
@@ -480,7 +498,9 @@ edit_view_quit() {
         break
       ;;
       2 )
-        if exists bat; then
+        if exists batcat; then
+          "$HOME"/.local/bin/bat "$filename"
+        elif exists bat; then
           /usr/bin/bat "$filename"
         else
           viewtext "$filename"
@@ -504,10 +524,11 @@ edit_view_quit() {
 #   $1 -> file to be viewed
 ###############################################################################
 viewtext() {
-  local file="$1"
+  local catmax file filelines
+  file="$1"
   catmax=$(( $(tput lines)*87/100 ))
-  filesize=$(wc -l "$file" | cut -d " " -f1)
-  if [[ "$filesize" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
+  filelines=$(wc -l "$file" | cut -d " " -f1)
+  if [[ "$filelines" -gt "$catmax" ]]; then less "$file"; else cat "$file"; fi
 }
 
 ###############################################################################
@@ -516,6 +537,7 @@ viewtext() {
 # Arguments: none
 ###############################################################################
 remove_tilde() {
+  local nbu
   nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
   (( nbu > 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
 }
@@ -540,10 +562,11 @@ anykey() {
 # Length argument, if present, must follow a character argument.
 ###############################################################################
 print_line() {
-  local char="${1:-=}"
+  local char width len
+  char="${1:-=}"
   width=$(tput cols); local width
   if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
-  local len=${#char}
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   printf "%${width}s\n" | sed "s/ /$char/g"
 }
@@ -559,10 +582,11 @@ print_line() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 box() {
-  local char="${2:-*}"
-  local len=${#char}
+  local char width len edge title
+  char="${2:-*}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
-  local title="$char $1 $char"
+  title="$char $1 $char"
   edge=$(echo "$title" | sed "s/./$char/g")
   echo "$edge"
   echo "$title"
@@ -580,9 +604,10 @@ box() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 under_line() {
-  local title="$1"
-  local char="${2:--}"
-  local len=${#char}
+  local char width len edge title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   line=$(echo "$title" | sed "s/./$char/g")
   echo "$title"
@@ -600,9 +625,10 @@ under_line() {
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
 over_line() {
-  local title="$1"
-  local char="${2:--}"
-  local len=${#char}
+  local char width len edge title
+  title="$1"
+  char="${2:--}"
+  len=${#char}
   (( len > 1 )) && char=${char::1}
   line=$(echo "$title" | sed "s/./$char/g")
   echo "$line"
@@ -617,8 +643,9 @@ over_line() {
 #   $1 -> Exit message (Optional)
 ###############################################################################
 leave() {
-  local message="$1"
-  local msg_file="$HOME/.local/share/doc/leave.txt"
+  local message msg_file
+  message="$1"
+  msg_file="$HOME/.local/share/doc/leave.txt"
   [[ -z "$message" ]] && message=$(shuf -n 1 "$msg_file")
   printf "%s\n" "$message"
   exit 0
@@ -633,7 +660,8 @@ leave() {
 # SECONDS and ((...)) are undefined in POSIX.
 ###############################################################################
 format_time() {
-  local ET="$1"
+  local ET h m s
+  ET="$1"
   ((h=ET/3600))
   ((m=(ET%3600)/60))
   ((s=ET%60))
@@ -692,7 +720,8 @@ check_packages() {
 # Returns: True or False
 ###############################################################################
 in_repos() {
-  local package="$1"
+  local in_repo package
+  package="$1"
   in_repo=$(apt-cache show "$package" 2>/dev/null)
   [[ -n "$in_repo" ]] && return "$TRUE" || return "$FALSE"
 }
@@ -704,8 +733,9 @@ in_repos() {
 # Arguments: none
 ###############################################################################
 mount_server() {
-  local server_ip="11"
-  local share="HP-6005"
+  local server_ip share mounted
+  server_ip="11"
+  share="HP-6005"
   ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
@@ -731,7 +761,8 @@ mount_server() {
 # Arguments: none
 ###############################################################################
 unmount_server() {
-  local share="HP-6005"
+  local mounted share
+  share="HP-6005"
   mounted=$(mount | grep "$share")
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
@@ -750,8 +781,9 @@ unmount_server() {
 # Arguments: none
 ###############################################################################
 mount_nas() {
-  local server_ip="4"
-  local share="NASD97167"
+  local server_ip share mounted
+  server_ip="4"
+  share="NASD97167"
   ping -c3 "$localnet.$server_ip" > /dev/null 2>&1 || die "$share at $localnet.$server_ip is not online."
   if [[ -d "$HOME/mnt/$share/" ]]; then
     mounted=$(mount | grep "$share")
@@ -776,8 +808,8 @@ mount_nas() {
 # Arguments: none
 ###############################################################################
 unmount_nas() {
-  local share="NASD97167"
-  mounted=$(mount | grep "$share"); local mounted
+  local mounted share
+  share="NASD97167"
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
@@ -809,8 +841,9 @@ clone_repo() {
 # Refer to ~/bin/functions/dots-spin.md for usage instructions.
 ###############################################################################
 dots() {
-  local char="${1:-.}"
-  local len="${#char}"
+  local char len
+  char="${1:-.}"
+  len="${#char}"
   (( len > 1 )) && char=${char::1}
   tput civis
   while true; do echo -n "."; sleep 0.2; done &
@@ -836,6 +869,8 @@ spin() {
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
 y_or_n() {
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [y/n]: " yn
     case "$yn" in
@@ -863,8 +898,10 @@ y_or_n() {
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
 yes_or_no() {
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
-    read -rp "$1 [yes/no]: " yesno
+    read -rp "$1 [yes/no]: " yn
     case "${yesno,,}" in
       yes )
         return "$TRUE"
@@ -890,6 +927,8 @@ yes_or_no() {
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
 default_yes() {
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [Y/n]: " yn
     case "$yn" in
@@ -914,6 +953,8 @@ default_yes() {
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
 default_no() {
+  local yn yn_prompt
+  yn_prompt="$1"
   while true; do
     read -rp "$1 [y/N]: " yn
     case "$yn" in
