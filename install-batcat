@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : install-batcat
+# Description  : install/remove/configure bat/batcat
+# Dependencies : curl
+# Arguments    : see help()
+# Author       : Copyright © 2024 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 03 Aug 2024
+# Last updated : 15 Aug 2024
+# Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
+#              : because of a file name clash with another Debian package.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+#
+# Copyright © 2024, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+_script=$(basename "$0"); readonly _script
+readonly _version="1.3.24228"
+readonly _updated="15 Aug 2024"
+readonly bat_cfg_d=$HOME"/.config/bat"
+
+## Functions ##
+
+check_dependencies() {
+  local packages=( gdebi wget )
+  check_packages "${packages[@]}"
+}
+
+# shellcheck disable=SC2317 # Don't warn about unreachable commands in this function
+# ShellCheck may incorrectly believe that code is unreachable if it's invoked by variable name or in a trap.
+cleanup() {
+	[[ -f "$tmp_file" ]] && rm "$tmp_file"
+	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
+}
+
+help() {
+	errcode="${1:-2}"
+	cat << END_HELP
+${orange}$_script${normal} $_version, Upated: $_updated
+Installs/removes/configures bat/batcat
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
+	-c	Create bat configuration file
+	-h	Show help
+	-i	Install bat from Debian/Ubuntu repositories
+	-r	Remove bat and configuration file
+END_HELP
+  exit "$errcode"
+}
+
+bat_version() {
+	dpkg -l bat 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//'
+}
+
+install_bat() {
+	sudo apt-get install -yy bat
+	apply_config
+	[[ -L "$HOME"/.local/bin ]] || ln -s /usr/bin/batcat "$HOME"/.local/bin
+	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
+}
+
+remove_bat() {
+  printf "Removing Bat %s...\n" "$(bat_version)"
+	sudo apt-get remove --purge bat
+	purge_config
+	[[ -L "$HOME"/.local/bin ]] && unlink "$HOME"/.local/bin
+  printf "Bat and its configuration files have been removed.\n"
+}
+
+apply_config() {
+  [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
+  printf "Applying Bat configuration...\n"
+  cat << END_CONFIG > "$bat_cfg_d"/config
+# Set the theme to "OneHalfDark"
+--theme="OneHalfDark"
+
+# Show line numbers, Git modifications and file header (but no grid)
+--style="numbers,changes,header,grid"
+
+# Use italic text on the terminal (not supported on all terminals)
+# --italic-text=always
+
+# Add mouse scrolling support in less (does not work with older
+# versions of "less")
+# --pager="less -FR"
+
+# paging option - *auto*, always, never
+--paging=always
+
+# Use C++ syntax (instead of C) for .h header files
+# --map-syntax h:cpp
+
+# Use "gitignore" highlighting for ".ignore" files
+# --map-syntax .ignore:.gitignore
+--map-syntax ".ignore:Git Ignore"
+END_CONFIG
+  printf "Bat configuration created and applied.\n"
+}
+
+purge_config() {
+if default_no "Remove configuration files?"; then
+  [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
+else
+	printf "Kept user configuration file.\n"
+fi
+}
+
+## Execution ##
+
+check_package curl
+noOpt=1
+optstr=":chir"
+while getopts "$optstr" opt; do
+	case "$opt" in
+		c )
+			exists bat || leave "Bat is not installed."
+			apply_config
+		;;
+		h )
+			help 0
+		;;
+		i )
+			exists bat && leave "Bat $(bat_version) is already installed."
+			sudo_login 2
+			install_bat
+		;;
+		r )
+			exists bat || leave "Bat is not installed."
+			sudo_login 2
+			remove_bat
+		;;
+		? )
+			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+			help 2
+	esac
+	noOpt=0
+done
+[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+shift "$(( OPTIND - 1 ))"
+leave "$_script $_version"
