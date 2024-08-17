@@ -16,17 +16,17 @@
 
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -46,14 +46,14 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.4"
-readonly _updated="10 Jan 2024"
+readonly _version="4.5.24229"
+readonly _updated="16 Aug 2024"
 readonly old_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
 name_rules() {
-  cat << EOF
+  cat << END_RULES
 ${red}Hostname Rules${normal}
   ${orange}*${normal} 5-15 characters (for NETBIOS compatibility)
   ${orange}*${normal} a-z, 0-9, - (hyphen)
@@ -61,24 +61,24 @@ ${red}Hostname Rules${normal}
   ${orange}*${normal} no special characters
   ${orange}*${normal} first character cannot be a hyphen or a digit
   ${orange}*${normal} last character cannot be a hyphen
-EOF
+END_RULES
 }
 
 ## Execution ##
 
-# Enter new hostname and check rules
+clear
+echo "$_script v$_version ($_updated)"
+echo "Renames the system hostname."
+name_rules
 
 while true; do
-  clear
-  echo "$_script v$_version ($_updated)"
-  echo "Renames the system hostname."
-  name_rules
-  echo -e "\nCurrent hostname is $old_host\n"
+	echo -e "\nCurrent hostname is $old_host\n"
 
   read -rp "Enter new hostname: " new_host
   strlen=${#new_host}
   if [[ "$strlen" -lt 5 || "$strlen" -gt 15 ]]; then
     echo $'\n'$"${lightred}Invalid length${normal}" >&2
+    echo "Hostname must be between 5 and 15 characters." >&2
     name_rules
     continue
   fi
@@ -104,8 +104,6 @@ while true; do
       name_rules
       continue
     ;;
-    * )
-      echo $'\n'$"${green}New hostname is valid.$(normal)"
   esac
   # Compare new hostname with the old hostname
   new_host="${new_host,,}"
@@ -114,11 +112,11 @@ while true; do
     name_rules
     continue
   else
+    echo $'\n'$"${green}New hostname is a valid hostname.${normal}"
     break
   fi
 done
 
-# Checking for sudo privileges...
 sudo_login 2
 
 echo $'\n'$"Changing the hostname from $old_host to $new_host ..."
@@ -127,7 +125,6 @@ sudo sed -i.old "s/$old_host/$new_host/" /etc/hostname
 sudo sed -i.old "s/$old_host/$new_host/" /etc/hosts
 
 # Confirm changes
-
 host1=$(cat /etc/hostname)
 host2=$(awk '/127.0.1.1/ {print $2}' /etc/hosts)
 if [[ -z "$host2" ]]; then
