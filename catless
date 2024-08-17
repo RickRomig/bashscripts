@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 03 Jul 2024
+# Updated      : 16 Aug 2024
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,11 +40,13 @@ else
   exit 1
 fi
 
+set -eu
+
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.6.24185"
-readonly _updated="30 Apr 2024"
+readonly _version="4.6.24229"
+readonly _updated="16 Aug 2024"
 
 ## Functions ##
 
