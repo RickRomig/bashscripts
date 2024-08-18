@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 15 Aug 2024
+# Last updated : 18 Aug 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -33,17 +33,20 @@
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
-# shellcheck disable=SC2034,SC2154,SC1003,SC2001
+# shellcheck disable=SC2034 # diabled globally because of colors block.
 
 ## Global variables ##
+
 declare -r TRUE=0
 declare -r FALSE=1
+red_error=$(printf "\e[91mERROR:\e[0m"); readonly red_error
+red_warning=$(printf "\e[91mWARNING!\e[0m"); readonly red_warning
+
 # First three octets of the local network. Assumes a /24 private network.
 localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3)
-red_error=$(printf "\e[91mERROR:\e[0m")
-red_warning=$(printf "\e[91mWARNING!\e[0m")
 
 ## Colors ##
+
 # Text attributes
 normal=$(echo -en "\e[0m")
 bold=$(echo -en "\e[1m")
@@ -53,6 +56,7 @@ blink=$(echo -en "\e[5m")
 reverse=$(echo -en "\e[7m")
 hidden=$(echo -en "\e[8m")
 strikethrough=$(echo -en "\e[9m")
+
 # Foreground (text) colors
 black=$(echo -en "\e[30m")
 red=$(echo -en "\e[31m")
@@ -71,6 +75,7 @@ lightpurple=$(echo -en "\e[95m")
 lightaqua=$(echo -en "\e[96m")
 white=$(echo -en "\e[97m")
 default=$(echo -en "\e[39m")
+
 # Background colors
 BLACK=$(echo -en "\e[40m")
 RED=$(echo -en "\e[41m")
@@ -481,11 +486,11 @@ valid_ip() {
 #   $1 -> file to be edited or reviewed.
 ###############################################################################
 edit_view_quit() {
-  local filename opt
+  local filename _opt
   filename="$1"
   printf "\nYou may edit or view %s at this time.\n\n" "$filename"
   PS3="Choose an option: "
-  select opt in Edit View Quit; do
+  select _opt in Edit View Quit; do
     case "$REPLY" in
       1 )
         if exists micro; then
@@ -580,6 +585,7 @@ print_line() {
 # Character argument, if present, needs to be in double quotes, i.e., "-".
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
+# shellcheck disable=SC2001
 box() {
   local char width len edge title
   char="${2:-*}"
@@ -593,6 +599,7 @@ box() {
 }
 
 ###############################################################################
+# shellcheck disable=SC2001
 # under_line
 # Purpose: Displays a line of hyphen/dashes under a line of text.
 # Arguments:
@@ -602,6 +609,7 @@ box() {
 # Character argument, if present, needs to be in double quotes, i.e., "-".
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
+# shellcheck disable=SC2001
 under_line() {
   local char width len edge title
   title="$1"
@@ -623,6 +631,7 @@ under_line() {
 # Character argument, if present, needs to be in double quotes, i.e., "-".
 # Character argument, if present, is limited to the first character entered.
 ###############################################################################
+# shellcheck disable=SC2001
 over_line() {
   local char width len edge title
   title="$1"
@@ -759,6 +768,7 @@ mount_server() {
 # $tmp_dir, $tmp_file must be global variables in the calling script.
 # Arguments: none
 ###############################################################################
+# shellcheck disable=SC2154
 unmount_server() {
   local mounted share
   share="HP-6005"
@@ -806,6 +816,7 @@ mount_nas() {
 # $tmp_dir, $tmp_file must be global variables in the calling script.
 # Arguments: none
 ###############################################################################
+# shellcheck disable=SC2154
 unmount_nas() {
   local mounted share
   share="NASD97167"
@@ -817,17 +828,6 @@ unmount_nas() {
   else
     printf "%s is not mounted.\n" "$share" >&2
   fi
-}
-
-###############################################################################
-# clone_repo
-# Purpose: Clone a git repository on the Gitea server to ~/Downloads
-# Argument:
-#   $1 -> name of the repository to clone
-###############################################################################
-clone_repo() {
-  local git_repo="${1}.git"
-  git clone "$Gitea_URL/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
@@ -854,6 +854,7 @@ dots() {
 # Refer to ~/bin/functions/dots-spin.md for ussage instructions.
 # Arguments: none
 ###############################################################################
+# shellcheck disable=SC1003
 spin() {
   local spinner="( '|' '/' '-' '\' )"
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
@@ -871,7 +872,7 @@ y_or_n() {
   local yn yn_prompt
   yn_prompt="$1"
   while true; do
-    read -rp "$1 [y/n]: " yn
+    read -rp "$yn_prompt [y/n] " yn
     case "$yn" in
       [Yy]* )
         return "$TRUE"
@@ -900,8 +901,8 @@ yes_or_no() {
   local yn yn_prompt
   yn_prompt="$1"
   while true; do
-    read -rp "$1 [yes/no]: " yn
-    case "${yesno,,}" in
+    read -rp "$yn_prompt [yes/no] " yn
+    case "${yn,,}" in
       yes )
         return "$TRUE"
       ;;
@@ -929,7 +930,7 @@ default_yes() {
   local yn yn_prompt
   yn_prompt="$1"
   while true; do
-    read -rp "$1 [Y/n]: " yn
+    read -rp "$yn_prompt [Y/n] " yn
     case "$yn" in
       [Yy]*|'' )
         return "$TRUE"
@@ -955,7 +956,7 @@ default_no() {
   local yn yn_prompt
   yn_prompt="$1"
   while true; do
-    read -rp "$1 [y/N]: " yn
+   read -rp "$yn_prompt [y/N] " yn
     case "$yn" in
       [Yy]* )
         return "$TRUE"
