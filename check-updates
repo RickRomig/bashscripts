@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 13 Aug 2024
+# Updated      : 18 Aug 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -50,7 +50,7 @@ set -eu
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.6.24120"
+readonly _version="2.6.24231"
 readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -141,14 +141,13 @@ nala_update() {
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
     sudo nala autopurge --config
   else
-    printf "Abort.\n"
+    printf "Action deferred.\n"
   fi
   printf "\n"
 }
 
-# shellcheck disable=SC2034
 apt_update() {
-  local nupd
+  local nupd options _opt
   # Check if Debian or Dehian-based, then update apt cache
   grep -qw debian /etc/os-release && update_apt_cache
   # Get number of packages that can be upgraded
@@ -166,7 +165,7 @@ apt_update() {
     PS3="Choose an option: "
     options=("Install updates." "Install updates & clean cache" "Install updates & remove orphaned packages." \
     "Install updates, clean cache, & remove orphaned packages." "Defer updates until later.")
-    select opt in "${options[@]}"; do
+    select _opt in "${options[@]}"; do
       case $REPLY in
         1 )
           install_updates
