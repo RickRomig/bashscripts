@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 11 Apr 2024
+# Updated      : 22 Aug 2024
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -45,8 +45,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.8.24102"
-readonly _updated="11 Apr 2024"
+readonly _version="4.9.24235"
+readonly _updated="22 Aug 2024"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -98,15 +98,17 @@ remove_configs() {
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
-${orange}Usage:${normal} $_script [OPTION]
-Options:
-  -h   help
-  -i   Install the Brave Browser.
-  -p   Purge the Brave Browser & configuration files.
-  -r   Remove the Brave Browser & leave configuration files.
+${orange}$_script${normal} $_version ($_updated)
+Installs/Removes the Brave browser
+
+${green}Usage:${normal} $_script [OPTION]
+
+${orange}Available options:${normal}
+  -h  Show this help text.
+  -i  Install the Brave Browser.
+  -p  Remove the Brave Browser & purge configuration files.
+  -r  Remove the Brave Browser & leave configuration files.
 END_HELP
-  printf "%s v%s\n" "$_script" "$_version"
-  printf "Updated: %s\n" "$_updated"
   exit "$errcode"
 }
 
@@ -124,8 +126,6 @@ check_dependencies() {
 
 ## Execution ##
 
-printf "Installs/Removes the Brave browser.\n\n"
-
 noOpt=1
 optstr=":hipr"
 while getopts "$optstr" opt; do
@@ -136,18 +136,21 @@ while getopts "$optstr" opt; do
     i )
       exists brave-browser && leave "$(brave_ver) is already installed."
       sudo_login 2
+      printf "Installs/Removes the Brave browser.\n\n"
       check_dependencies
       install_brave
     ;;
     p )
       exists brave-browser || leave "Brave browser is not installed."
       sudo_login 2
+      printf "Installs/Removes the Brave browser.\n\n"
       remove_brave
       remove_configs
     ;;
     r )
       exists brave-browser || leave "Brave browser is not installed."
       sudo_login 2
+      printf "Installs/Removes the Brave browser.\n\n"
       remove_brave
     ;;
     ? )
