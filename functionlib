@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 18 Aug 2024
+# Last updated : 22 Aug 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -105,8 +105,9 @@ DEFAULT=$(echo -en "\e[49m")
 #   $2 -> Exit status (optional, default is 1)
 ###############################################################################
 die() {
-  local errmsg="${1:-Undefined error}"
-  local errcode="${2:-1}"
+  local errmsg errcode
+  errmsg="${1:-Undefined error}"
+  errcode="${2:-1}"
   printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
   exit "$errcode"
 }
@@ -174,10 +175,7 @@ sudo_login() {
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
 			sudo ls > /dev/null 2>&1
-      if [[ "$delay" -gt 0 ]]; then
-        sleep "$delay"
-        printf '\e[A\e[K'
-      fi
+      [[ "$delay" -gt 0 ]] && { sleep "$delay"; printf '\e[A\e[K'; }
     fi
   else
     die "$USER is not a member of the sudo group. Access denied." 1
@@ -212,7 +210,7 @@ exists() {
 ###############################################################################
 get_distribution() {
   if [[ -f /etc/lsb-release ]]; then
-    distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
+		distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release  | sed 's/"//g')
   else
     distro=$(/usr/bin/lsb_release --description --short)
   fi
@@ -230,7 +228,7 @@ is_debian() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|debbie|elsie|faye )
+    bookworm|bullseye|debbie|elsie|faye|boron )
       return "$TRUE"
     ;;
     * )
@@ -277,7 +275,7 @@ is_jammy() {
 # Arguments: none
 # Returns: True or False
 ###############################################################################
-is_jammy() {
+is_noble() {
   [[ $(awk -F= '/UBUNTU_CODENAME/ {print $NF}' /etc/os-release) == "noble" ]] && return "$TRUE" || return "$FALSE"
 }
 
@@ -305,6 +303,8 @@ support_ppa() {
 # Returns: True or False
 ###############################################################################
 antix_mx() {
+  local dist_id
+	[[ -f /etc/lsb-release ]] || return "$FALSE"
   dist_id=$(awk -F'=' '/DISTRIB_ID/ {print $NF}' /etc/lsb-release 2> /dev/null)
   [[ "$dist_id" == "antiX" || "$dist_id" == "MX" ]] && return "$TRUE" || return "$FALSE"
 }
@@ -437,44 +437,30 @@ valid_ip() {
   status=0
   localip="$(local_ip)"
   if [[ -z "$octet" ]]; then
-    status=1    # No argument passed.
+    status=1
+    printf "%s No argument passed. No host IP.\nEnter the last octet of the target IP address (1 - 254).\n" "$red_error" >&2
   elif [[ "$1" =~ ^[0-9]+$ ]] 2>/dev/null; then
     # Argument is an integer value
     if (( octet > 0 )) && (( octet < 255 )); then
       # Valid address - test if reachable or local machine
       if [[ "$localip" -eq "$octet" ]]; then
         status=2    # Valid address - local machine
+        printf "%s %s.%s is the local client computer.\n" "$red_error" "$localnet" "$octet" >&2
       elif ping -c 1 "$localnet.$octet" > /dev/null 2>&1; then
-        status=0    # Valid and reachable address
+        status=0
+        printf "%s.%s is a valid and reachable IP address.\n" "$localnet" "$octet"
       else
-        status=3    # Valid address but unreachable
+        status=3
+        printf "%s %s.%s is valid IP address but is unreachable.\nCheck to see if it is on the network.\n" "$red_error" "$localnet" "$octet" >&2
       fi
     else
-      status=4  # invalid address - out of range
+      status=4
+      printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$red_error" "$localnet" "$octet" >&2
     fi
   else
-    status=5    # Argument is a non-integer value
+  printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$red_error" "$octet" >&2
+     status=5
   fi
-
-  # Display the status message
-  case $status in
-    0 )
-      printf "%s.%s is a valid and reachable IP address.\n" "$localnet" "$octet" ;;
-    1 )
-      printf "\e[91mERROR:\e[0m No argument passed. No host IP.\n" >&2
-      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
-    2 )
-      printf "\e[91mERROR:\e[0m %s.%s is the local client computer.\n" "$localnet" "$octet" >&2 ;;
-    3 )
-      printf "\e[91mERROR:\e[0m %s.%s is valid IP address but is unreachable.\n" "$localnet" "$octet" >&2
-      printf "Check to see if it is on the network.\n" >&2 ;;
-    4 )
-      printf "\e[91mERROR:\e[0m %s.%s is not a valid IP address.\n" "$localnet" "$octet" >&2
-      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
-    * )
-      printf "\e[91mERROR:\e[0m Invalid argument: %s\n" "$octet" >&2
-      printf "Enter the last octet of the target IP address (1 - 254).\n" >&2 ;;
-  esac
 
   (( status == 0 )) && return "$status" || exit "$status"
 }
