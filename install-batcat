@@ -76,7 +76,7 @@ bat_version() {
 
 install_bat() {
 	sudo apt-get install -yy bat
-	apply_config
+	bat_config
 	[[ -L "$HOME"/.local/bin/bat ]] || ln -s /usr/bin/batcat "$HOME"/.local/bin/bat
 	printf "bat (batcat) version %s installed.\n" "$(bat_version)"
 }
@@ -89,7 +89,7 @@ remove_bat() {
   printf "Bat and its configuration files have been removed.\n"
 }
 
-apply_config() {
+bat_config() {
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
   cat << END_CONFIG > "$cfg_d"/config
@@ -122,6 +122,7 @@ END_CONFIG
 purge_config() {
 if default_no "Remove configuration files?"; then
   [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
+  printf "Bat configuration removed."
 else
 	printf "Kept user configuration file.\n"
 fi
@@ -136,7 +137,7 @@ while getopts "$optstr" opt; do
 	case "$opt" in
 		c )
 			exists bat || leave "Bat is not installed."
-			apply_config
+			bat_config
 		;;
 		h )
 			help 0
