@@ -7,24 +7,25 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
+# Updated      : 22 Aug 2024
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -44,44 +45,49 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.1.8"
-readonly _updated="10 Jan 2024"
+readonly _version="1.9.24235"
+readonly _updated="22 Aug 2024"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
+verbose_mode="$FALSE"
 
 ## Functions ##
 
 help() {
 	errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Install/Removes VSCodium & applies settings
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-	-a	Set apt gpg key and source list
-	-h	Display help
-	-i	Install VSCodium
-	-r	Remove VSCodium
-	-s	Apply VSCodium settings
+
+${orange}Available options:${normal}
+  -a  Set apt gpg key and source list
+  -h  Display help
+  -i  Install VSCodium via apt
+  -r  Remove VSCodium
+  -s  Apply VSCodium settings
   -v  Enable verbose mode
 END_HELP
-	printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 codium_version() {
-	codium --version | head -n 1
+	# codium --version | head -n 1
+	dpkg -l codium | awk '/ii/ {print $3}'
 }
 
 apply_settings() {
   local vsc_cfg_d="${HOME}/.config/VSCodium/User"
   [[ -d "$vsc_cfg_d" ]] || mkdir -p "$vsc_cfg_d"
-  printf "Applying VSCodium settings...\n"
+  show_message "Applying VSCodium settings..."
   settings
-  printf "VSCodium settings applied.\n"
+  show_message "VSCodium settings applied."
 }
 
 settings() {
   local vsc_cfg_d="${HOME}/.config/VSCodium/User"
-  cat << EOL > "$vsc_cfg_d/settings.json"
+  cat << END_JSON > "$vsc_cfg_d/settings.json"
 {
   "workbench.colorTheme": "Default High Contrast",
   "editor.tabSize": 2,
@@ -94,49 +100,58 @@ settings() {
   "editor.insertSpaces": false,
   "editor.autoClosingQuotes": "always"
 }
-EOL
+END_JSON
 }
 
 set_key() {
 	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+	show_message "Setting the GPG key..."
 	sudo mv pub.gpg "$key_file"
 }
 
 set_src() {
 	local src_url="https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main"
+	show_message "Creating the source list file..."
 	echo "deb [ signed-by=$key_file ] $src_url" | sudo tee "$src_list" > /dev/null
 }
 
 install_vscodium() {
 	sudo_login 2
-	show_me "Installing VSCodium..."
+	show_message "Installing VSCodium..."
 	set_key
 	set_src
 	sudo apt-get update
-	sudo apt-get install codium
+	sudo apt-get install -y codium
 	apply_settings
 	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
 remove_vscodium() {
-	local vsc_cfg_d="${HOME}/.config/VSCodium"
+	local cfg_dir="${HOME}/.config/VSCodium"
 	sudo_login 2
-	show_me "Removing VSCodium..."
+	show_message "Removing VSCodium..."
 	sudo apt-get remove codium
+	show_message "Removing VSCodium GPG key ..."
 	[[ -f "$key_file" ]] && sudo rm -v "$key_file"
+	show_message "Removing VSCodium source list ..."
 	[[ -f "$src_list" ]] && sudo rm -v "$src_list"
-  [[ -d "$vsc_cfg_d" ]] && rm -rf "$vsc_cfg_d"
+	show_message "Removing VSCodium configuration files ..."
+  [[ -d "$cfg_dir" ]] && rm -rf "$vsc_cfg_d"
 	printf "VSCodium has been removed.\n"
 }
 
-show_me() {
+show_message() {
   local message="$1"
-  [[ "$verbose_mode" = 0 ]] && echo "$message"
+  [[ "$verbose_mode" = "$TRUE" ]] && echo "$message"
+}
+
+show_title() {
+	box "$_script v$_version"
+	printf "Installs/removes VSCodium\n"
 }
 
 ## Execution ##
 
-check_package wget
 noOpt=1
 optstr=":ahirsv"
 while getopts "$optstr" opt; do
@@ -144,6 +159,11 @@ while getopts "$optstr" opt; do
 		a)
 			exists codium || leave "VSCodium is not installed."
 			printf "Setting the GPG key and creating the source list file.\n"
+			show_title
+			sudo_login 2
+			show_message "Checking dependencies..."
+			check_package wget
+			show_message "Setting the GPG key and creating the source list file."
 			set_key
 			set_src
 		;;
@@ -152,19 +172,28 @@ while getopts "$optstr" opt; do
 		;;
 		i )
 			exists codium && leave "VSCodium $(codium_version) is already installed."
+			show_title
+			sudo_login 2
+			show_message "Checking dependencies..."
+			check_package wget
 			install_vscodium
 		;;
 		r )
 			exists codium || leave "VSCodium is not installed."
+			show_title
+			sudo_login 2
 			remove_vscodium
 		;;
 		s )
 		  exists codium || leave "VSCodium is not installed."
+			show_title
+			sudo_login 2
+			show_message "Checking dependencies..."
     	apply_settings
 		;;
 		v )
-      verbose_mode=0
-      show_me "Verbose mode enabled."
+      verbose_mode="$TRUE"
+      show_message "Verbose mode enabled."
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
