@@ -7,6 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
+# Updated      : 23 Aug 2024
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -14,17 +15,17 @@
 
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
@@ -44,8 +45,8 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.5"
-readonly _updated="10 Jan 2024"
+readonly _version="4.5.24236"
+readonly _updated="23 Aug 2024"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -53,20 +54,22 @@ readonly pwfb_file="0pwfeedback"
 ## Functions ##
 
 pwfeedback_status() {
+  local pwfb
   pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -n "$pwfb" || -f "$pwfb_dir/$pwfb_file" ]]; then
     printf "Password feedback is enabled by "
-    [[  -n "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
+    [[ "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
   else
     printf "Password feeback is not enabled.\n"
   fi
 }
 
 enable_pwfeedback() {
+  local pwfb
   pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -n "$pwfb" || -f "$pwfb_dir/$pwfb_file" ]]; then
     printf "Password feedback is already enabled by "
-    [[  -n "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
+    [[ "$pwfb" ]] && printf "sudoers.\n" || printf "%s.\n" "$pwfb_file"
   else
     printf "Creating %s ...\n" "$pwfb_file"
     printf "Defaults  pwfeedback\n" | sudo tee "$pwfb_dir/$pwfb_file" > /dev/null
@@ -77,11 +80,12 @@ enable_pwfeedback() {
 }
 
 disable_pwfeedback() {
+  local pwfb
   pwfb=$(sudo grep -w pwfeedback "$sudoers_file")
   if [[ -f "$pwfb_dir/$pwfb_file" ]]; then
     sudo rm -fv "$pwfb_dir/$pwfb_file"
     printf "Password feeback is now disabled. %s has been deleted.\n" "$pwfb_dir/$pwfb_file"
-  elif [[ -n "$pwfb" ]]; then
+  elif [[ "$pwfb" ]]; then
     # Use of visudo to edit /etc/sudoers is highly recommended.
     printf "Remove 'pwfeedback' from the sudoers file using visudo.\n"
     sudo visudo
@@ -94,20 +98,21 @@ disable_pwfeedback() {
 help() {
   local errcode="${1:-2}"
   cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Enable/Disable password feedback in the terminal.
+
 ${green}Usage:${normal} $_script [OPTIONS]
-${orange}OPTIONS:${normal}
-  -e    Enable password feedback
-  -d    Disable password feedback
-  -h    Help
-  -s    Status of password feedback
+
+${orange}Available options:${normal}
+  -e  Enable password feedback
+  -d  Disable password feedback
+  -h  Help
+  -s  Status of password feedback
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
   exit "$errcode"
 }
 
 ## Execution ##
-
-printf "Enable/Disable password feedback in the terminal.\n"
 
 noOpt=1
 optstr=":edhs"
@@ -136,4 +141,4 @@ while getopts "$optstr" opt; do
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
