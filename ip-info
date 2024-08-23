@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 19 Feb 2019
-# Updated      : 28 Apr 2024
+# Updated      : 23 Aug 2024
 # Comments     : Some systems may require sudo to get ssid & signal strength.
 #              : Add those hostnames to case in req_sudo()
 #              : So far, I've only seen this with MX Linux.
@@ -45,7 +45,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="2.7.24119"
+readonly _version="2.7.242369"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
@@ -70,6 +70,7 @@ show_public() {
 }
 
 show_wired() {
+  local eth_int eth_state eth_ip eth_mac
   for eth_int in $(/usr/bin/nmcli dev | awk '/ethernet/ {print $1}'); do
     if [[ -n "$eth_int" ]]; then
       # interface data
@@ -102,6 +103,7 @@ show_wired() {
 }
 
 show_wireless() {
+  local wifi_int wifi_state wifi_ip wifi_mac wifi_ssid wifi_sig
   for wifi_int in $(/usr/bin/nmcli dev | awk '/wifi/ {print $1;exit}'); do
     if [[ -n "$wifi_int" ]]; then
       # interface data
@@ -145,6 +147,7 @@ show_wireless() {
 }
 
 show_bridge() {
+  local br_int br_state br_ip br_mac br_route
 	# br_int=$(/usr/bin/nmcli dev | awk '/bridge/ {print $1}')
   br_int=$(ip ad show | awk '/: vir/ {print $2;exit}' | sed 's/:$//')
 
