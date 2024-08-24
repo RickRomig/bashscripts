@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 18 Aug 2024
+# Updated:     : 24 Aug 2024
 # Comments     : Will not get desktop session info from an SSH connection, run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,7 +43,7 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="3.7.24231"
+readonly _version="3.7.24237"
 readonly lhost="${HOSTNAME:-$(hostname)}"
 readonly info_file="$HOME/$lhost.info"
 today=$(date +'%d %B %Y'); readonly today
@@ -140,9 +140,9 @@ mfg_info() {
   local dmi_dir mfg_version mfg_serial
 	dmi_dir="/sys/class/dmi/id"
 	mfg_version=$(cat $dmi_dir/product_version)
-	[[ -z "${mfg_version// }" ]] && mfg_version="Not specified"
+	[[ "${mfg_version// }" ]] || mfg_version="Not specified"
 	mfg_serial=$(sudo cat $dmi_dir/product_serial)
-	[[ -z "${mfg_serial// }" ]] && mfg_serial="Not specified"
+	[[ "${mfg_serial// }" ]] || mfg_serial="Not specified"
 	printf "%-14s %s\n" "Manufacturer:" "$(cat $dmi_dir/sys_vendor)"
 	printf "%-14s %s\n" "Product name:" "$(cat $dmi_dir/product_name)"
 	printf "%-14s %s\n" "Version:" "$mfg_version"
@@ -187,7 +187,7 @@ mac_mfgr() {
   oui_file="/usr/share/ieee-data/oui.txt"
 	oui_addr=$(echo "$mac_addr" | sed 's/:/-/g' | cut -d '-' -f1,2,3 | tr '[:lower:]' '[:upper:]')
 	mfgr=$(grep -m 1 -i "$oui_addr" "$oui_file" )
-	if [[ -n "$mfgr" ]]; then
+	if [[ "$mfgr" ]]; then
 		echo "$mfgr" | awk '{$1=""; $2=""; gsub("^  ", ""); print $0}'
 	else
 		echo "Not found"
@@ -197,7 +197,7 @@ mac_mfgr() {
 wired_info() {
   local eth_int ethernet_dev e_mac e_man
 	eth_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: e/ {print $NF}')
-	if [[ -n "$eth_int" ]]; then
+	if [[ "$eth_int" ]]; then
 		ethernet_dev=$(/usr/bin/lspci | awk -F: '/Ethernet controller/ {print $NF}' | sed 's/^ //')
 		e_mac=$(cat /sys/class/net/"${eth_int}"/address)
 		e_man=$(mac_mfgr "$e_mac")
@@ -209,7 +209,7 @@ wired_info() {
 wireless_info() {
   local wifi_int wireless_dev w_mac w_man
 	wifi_int=$(sudo /usr/bin/lshw -class network -quiet | awk '/name: w/ {print $NF}')
-	if [[ -n "$wifi_int" ]]; then
+	if [[ "$wifi_int" ]]; then
 		wireless_dev=$(/usr/bin/lspci | awk -F: '/Network controller/ {print $NF}' | sed 's/^ //')
 		w_mac=$(cat /sys/class/net/"${wifi_int}"/address)
 		w_man=$(mac_mfgr "$w_mac")
@@ -228,7 +228,7 @@ ssd_hd_info() {
     printf "   %-15s%s\n" "Serial Number:" "$(awk -F: '/Serial N/ {print $NF}' "$hd_data" | sed 's/^ *//g')"
     printf "   %-15s%s\n" "Capacity:" "$(awk '/GB/ {print $(NF-1),$NF}' "$hd_data" | tr -d '()')"
     hd_ff=$(awk -F: '/Form Factor/ {print $NF}' "$hd_data" | sed 's/^ //')
-    [[ -z "$hd_ff" ]] && hd_ff=$(ff_fix)
+    [[ "$hd_ff" ]] || hd_ff=$(ff_fix)
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
@@ -255,14 +255,14 @@ nvme_info() {
 
 partition_info() {
 	printf "\nPartition Information:\n"
-	/usr/bin/lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,MODEL,SERIAL
+	/usr/bin/lsblk -o NAME,SIZE,TYPE,ROTA,MOUNTPOINT,MODEL,SERIAL
 }
 
 battery_info() {
   local battery_name battery_path battery_data battery_serial
   printf "\nBattery Information:\n"
   battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
-  if [[ -n "$battery_name" ]]; then
+  if [[ "$battery_name" ]]; then
     battery_path="/sys/class/power_supply/$battery_name"
     battery_data=$(cat "$battery_path"/uevent)
     battery_serial=$(echo "$battery_data" | awk -F= '/SERIAL/ {print $NF}')
