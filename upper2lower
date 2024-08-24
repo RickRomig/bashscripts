@@ -100,7 +100,9 @@ elif [[ $# -eq 1 ]]; then
 	esac
 else
 	printf "Renaming selected files to lowercase.\n"
-	for fname in "$@"; do upper_lower "$fname"; done
+	for file_name in "$@"; do
+		upper_to_lower "$file_name"
+	done
 fi
 
 leave "$_script v$_version"
