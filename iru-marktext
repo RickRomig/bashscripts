@@ -6,30 +6,31 @@
 # Arguments    : [-h] [-i] [-r] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Jan 2022
+# Updated      : 24 Aug 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Source function library ##
 
@@ -43,10 +44,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.4.5"
-readonly _updated="10 Jan 2024"
+readonly _version="4.6.24237"
+readonly _updated="24 Aug 2024"
 readonly gh_url="https://github.com/marktext/marktext/releases"
-readonly mt_cfg_dir="$HOME/.config/marktext"
+readonly cfg_dir="$HOME/.config/marktext"
 
 ## Functions ##
 
@@ -63,8 +64,7 @@ check_dependencies() {
 }
 
 marktext_version() {
-  # dpkg -l | awk '$2 == "marktext" {print $3}' | sed 's/[+-].*//'
-  marktext --version | awk '/MarkText/ {print $2}' | sed 's/^v//'
+  dpkg -l marktext | awk '/ii/ {print $3}'
 }
 
 newest_version() {
@@ -75,6 +75,7 @@ newest_version() {
 }
 
 compare_versions() {
+  local cur_ver
   cur_ver=$(marktext_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Marktext $cur_ver is the current version. No update required.${normal}"
@@ -85,7 +86,7 @@ compare_versions() {
 }
 
 install_marktext() {
-  new_pkg="marktext-amd64.deb"
+  local new_pkg="marktext-amd64.deb"
   printf "Downloading Mark Text markdown editor (v %s) from the marktext GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -99,15 +100,15 @@ install_marktext() {
 remove_marktext() {
   echo "Removing the Mark Text markdown editor..."
   sudo apt-get remove --purge marktext -yy
-  [[ -d "$mt_cfg_dir" ]] && rm -rf "$mt_cfg_dir"
+  [[ -d "$cfg_dir" ]] && rm -rf "$cfg_dir"
   echo "Mark Text markdown editor has been removed."
 }
 
 apply_preferences() {
 	local json_file="preferences.json"
-	[[ -d "$mt_cfg_dir" ]] && mkdir -p "$mt_cfg_dir"
+	[[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
 	printf "Applying %s...\n" "$json_file"
-	cat << END_PREFS > "$mt_cfg_dir/$json_file"
+	cat << END_PREFS > "$cfg_dir/$json_file"
 {
 	"autoSave": true,
 	"autoSaveDelay": 5000,
@@ -171,23 +172,26 @@ apply_preferences() {
 	"watcherUsePolling": false,
 	"defaultDirectoryToOpen": "",
 	"zoom": 1.25
-}	
+}
 END_PREFS
   printf "MarkText %s applied.\n" "$json_file"
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs, configures, updates, removes the Mark Text markdown editor.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -h    Displays help.
-  -i    Installs the Marktext markdown editor.
-  -p    Applies Marktext preferences.
-  -r    Removes the Marktext markdown editor from the system.
-  -u    Updates the Marktext markdown editor to the latest version.
-$_script v$_version (Updated: $_updated)
-EOF
+
+${orange}Available options:${normal}
+  -c  Applies Marktext preferences.
+  -h  Displays help.
+  -i  Installs the Marktext markdown editor.
+  -r  Removes the Marktext markdown editor from the system.
+  -u  Updates the Marktext markdown editor to the latest version.
+END_HELP
   exit "$errcode"
 }
 
@@ -196,9 +200,13 @@ EOF
 printf "Installs, updates, or removes the Mark Text markdown editor.\n"
 
 noOpt=1
-optstr=":hipru"
+optstr=":chiru"
 while getopts "$optstr" opt; do
   case "$opt" in
+    c )
+      exists marktext || leave "Marktext is not installed."
+      apply_preferences
+    ;;
     h )
       help 0
     ;;
@@ -211,12 +219,7 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
-      sudo_login
       install_marktext
-    ;;
-    p )
-      exists marktext || leave "Marktext is not installed."
-      apply_preferences
     ;;
     r )
       exists marktext || leave "Marktext is not installed."
@@ -231,15 +234,15 @@ while getopts "$optstr" opt; do
       sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
-      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
       compare_versions
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      echo "$red_error Invalid option -${OPTARG}" >&2
       help 2
   esac
 	noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+leave "$_script v$_version"
