@@ -6,30 +6,31 @@
 # Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Jan 2022
+# Updated      : 24 Aug 2024
 # Comments     : -u option updates installed version only. Does not do initial install.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
-# 
+#
 # Copyright © 2023, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091,SC2034
 
 ## Source function library ##
 
@@ -43,10 +44,10 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="0.5.7"
-readonly _updated="16 Jan 2024"
+readonly _version="5.8.24237"
+readonly _updated="24 Aug 2024"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
-readonly micro_cfg_d=$HOME"/.config/micro"
+readonly cfg_d=$HOME"/.config/micro"
 
 ## Functions ##
 
@@ -62,8 +63,9 @@ check_dependencies() {
   check_packages "${packages[@]}"
 }
 
-micro_ver() {
-  micro --version | awk '/Version/ {print $NF}'
+micro_version() {
+  # micro --version | awk '/Version/ {print $NF}'
+  dpkg -l micro | awk '/ii/ {print $3}'
 }
 
 newest_version() {
@@ -73,7 +75,8 @@ newest_version() {
 }
 
 compare_versions() {
-  cur_ver=$(micro_ver)
+  local cur_ver
+  cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
   else
@@ -83,7 +86,7 @@ compare_versions() {
 }
 
 install_micro() {
-  new_pkg="micro-${new_ver}-amd64.deb"
+  local new_pkg="micro-${new_ver}-amd64.deb"
   printf "Downloading Micro %s from the zyedidia GitHub repository..." "$new_ver"
   dots "."
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
@@ -91,46 +94,48 @@ install_micro() {
   printf "Installing Micro %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   check_package xclip
-  printf "Micro %s installed.\n" "$(micro_ver)"
+  printf "Micro %s installed.\n" "$(micro_version)"
 }
 
 remove_micro() {
-  cur_ver=$(micro_ver)
+  cur_ver=$(micro_version)
   echo "Removing the Micro CLI text editor..."
-  sudo dpkg --remove micro
-  [[ -d "$micro_cfg_d" ]] && rm -rf "$micro_cfg_d"
+  sudo dpkg --remove -y micro
+  [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
   echo "Micro $cur_ver and configuration files have been removed."
 }
 
 apply_settings() {
-  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
+  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro settings..."
   settings
   echo "Micro setttings applied."
 }
 
 settings() {
-  cat <<- EOF > "$micro_cfg_d/settings.json"
+  cat <<- END_SETTINGS > "$cfg_d/settings.json"
 {
   "colorscheme": "atom-dark",
+  "diffgutter": true,
+  "rmtrailingws": true,
   "softwrap": true,
 	"tabsize": 2,
   "wordwrap": true
 }
-EOF
+END_SETTINGS
   echo "Micro settings.json created."
 }
 
 apply_bindings() {
-  [[ -d "$micro_cfg_d" ]] || mkdir -p "$micro_cfg_d"
+  [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   echo "Applying Micro keybindings..."
   bindings
   echo "Micro keybindings applied."
 }
 
 bindings() {
-  cat << EOF > "$micro_cfg_d/bindings.json"
+  cat << END_BINDINGS > "$cfg_d/bindings.json"
 {
   "Alt-/": "lua:comment.comment",
   "CtrlUnderscore": "lua:comment.comment",
@@ -138,22 +143,26 @@ bindings() {
   "Ctrl-Alt-v": "VSplit",
   "Ctrl-Alt-z": "HSplit"
 }
-EOF
+END_BINDINGS
   echo "micro bindings.json created."
 }
 
 help() {
   local errcode="${1:-2}"
-  cat << EOF
+  cat << END_HELP
+${orange}$_script${normal} $_version ($_updated)
+Installs, configures, updates, or removes the Micro CLI text editor.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -b    Installs/updates the Micro key-bindings configuration file.
-  -h    Displays help.
-  -i    Installs the Micro CLI text editor.
-  -r    Removes the Micro CLI text editor from the system.
-  -s    Installs/updates the Micro settings configuration file.
-  -u    Updates the Micro CLI text editor to the latest version.
-EOF
+
+${orange}Available options:${normal}
+  -b  Installs/updates the Micro key-bindings json file.
+  -h  Displays help.
+  -i  Installs the Micro CLI text editor.
+  -r  Removes the Micro CLI text editor from the system.
+  -s  Installs/updates the Micro settings json file.
+  -u  Updates the Micro CLI text editor to the latest version.
+END_HELP
   exit "$errcode"
 }
 
@@ -166,14 +175,14 @@ optstr=":bhirsu"
 while getopts "$optstr" opt; do
   case "$opt" in
     b )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       apply_bindings
     ;;
     h )
       help 0
     ;;
     i )
-      exists micro && leave "Micro $(micro_ver) is already installed."
+      exists micro && leave "Micro $(micro_version) is already installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
@@ -181,37 +190,37 @@ while getopts "$optstr" opt; do
       check_dependencies
       new_ver="$(newest_version)"
       echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-      sudo_login
       install_micro
       apply_settings
       apply_bindings
     ;;
     r )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       sudo_login 2
       remove_micro
     ;;
     s )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       apply_settings
     ;;
     u )
-      exists micro || leave "Micro is not installed. Run '$_script -i' to install."
+      exists micro || leave "Micro is not installed."
       tmp_file=$(mktemp) || die "Failed to create temporary file." 1
       tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
       trap cleanup EXIT
       sudo_login 2
       check_dependencies
       new_ver="$(newest_version)"
-      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+      [[ "$new_ver" ]] || die "No download available. Try again later." 1
       compare_versions
     ;;
     ? )
-      echo "${lightred}ERROR:${normal} Invalid option -${OPTARG}" >&2
+      echo "$red_error Invalid option -${OPTARG}" >&2
       help 2
   esac
   noOpt=0
 done
 [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
 shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version (Updated: $_updated)"
+box "$_script v$_version"
+exit
