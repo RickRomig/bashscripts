@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 24 May 2024
+# Updated      : 24 Aug 2024
 # Comments     : Checksum file must be one line only for ISO being checked.
 #              : Each ISO file must have its own checksum file.
 #              : Checksum files must have one of the following extensions:
@@ -45,8 +45,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="9.0.24145"
-readonly _updated="24 May 2024"
+readonly _version="9.2.24237"
+readonly _updated="24 Aug 2024"
 readonly iso_d="$HOME/Downloads/ISO/"		# Change to reflect the path to your ISO and checksum files.
 
 ## Functions ##
@@ -54,30 +54,39 @@ readonly iso_d="$HOME/Downloads/ISO/"		# Change to reflect the path to your ISO 
 help() {
 	local errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version, Upated: $_updated
+Verifies SHA256/SHA512/MD5 checksums with ISO files.
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-	-h	Display help
-	-v	Verify ISO and checkfile
-Checksum files must be a single line specifically for the ISO file you wish to check,
-and must have a file extension of .md5, .sha256. or .sha512.
-For ease of identifying them, the basename should match the basename name of the ISO.
-$_script $_version (Updated $_updated)
+
+${orange}Available options:${normal}
+  -h  Display help
+  -v  Verify ISO with checksum
+
+  * Checksum files must be a single line specifically for the ISO file you wish to check.
+  * Checksum files must have a file extension of .md5, .sha256. or .sha512.
+  * The basename of the checksum file should match the basename name of the ISO.
+
 END_HELP
   exit "$errcode"
 }
 
 select_iso() {
+	local isofile
 	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 40% --reverse --prompt "Select the ISO file to check: ")
+	echo "$isofile"
 }
 
 select_checksum() {
+	local checksum
 	checksum=$(find "$iso_d" -maxdepth 3 -type f -name "*.md5" -or -name "*.sha*" | sed 's/\.\///' | sort -d | fzf --height 40% --reverse --prompt "Select the checksum file: ")
+	echo "$checksum"
 }
 
 check_sha256() {
-	local iso_sha src_sha
-	local iso_file="$1"
-	local sha_file="$2"
+	local iso_sha src_sha iso_file sha_file
+	iso_file="$1"
+	sha_file="$2"
   dots "."
 	iso_sha=$(/usr/bin/sha256sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
@@ -89,9 +98,9 @@ check_sha256() {
 }
 
 check_sha512() {
-	local iso_sha src_sha
-  local iso_file="$1"
-	local sha_file="$2"
+	local iso_sha src_sha iso_file sha_file
+  iso_file="$1"
+	sha_file="$2"
   dots "."
 	iso_sha=$(/usr/bin/sha512sum "$iso_file" | awk '{print $1}')
 	src_sha=$(awk '{print $1}' "$sha_file")
@@ -103,9 +112,9 @@ check_sha512() {
 }
 
 check_md5() {
-	local iso_md5 src_md5
-  local iso_file="$1"
-  local md5_file="$2"
+	local iso_md5 md5_file src_md5 iso_file
+  iso_file="$1"
+  md5_file="$2"
   dots "."
   iso_md5=$(/usr/bin/md5sum "$iso_file" | awk '{print $1}')
   src_md5=$(awk '{print $1}' "$md5_file")
@@ -127,15 +136,16 @@ status_msg() {
 }
 
 check_checksum() {
-  local file="$1"
+	local file lines
+  file="$1"
   lines=$(wc -l "$file" | cut -d' ' -f1)
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
 compare_checksums() {
-	local ext
-	local iso="$1"
-	local chk="$2"
+	local ext chk iso
+	iso="$1"
+	chk="$2"
 	ext="${checksum##*.}"
 	printf "Comparing checksums."
 	case "$ext" in
@@ -157,19 +167,23 @@ compare_checksums() {
 	esac
 }
 
-verify() {
-	select_iso
-	select_checksum
+verify_iso() {
+	local checksum isofile
+	isofile=$(select_iso)
+	checksum=$(select_checksum)
 	printf "\n%-18s %s\n" "Selected ISO:" "$(basename "$isofile")"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$(basename "$checksum")"
 	check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version"
 	compare_checksums "$isofile" "$checksum"
 }
 
+show_title() {
+	box "$_script v$_version"
+	printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n"
+}
+
 ## Execution ##
 
-box "$_script v$_version"
-printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n"
 noOpt=1
 optstr=":hv"
 while getopts "$optstr" opt; do
@@ -178,8 +192,9 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		v )
+			show_title
 			check_package fzf
-			verify
+			verify_iso
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
