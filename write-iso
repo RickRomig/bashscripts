@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LuditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 24 May 2024
+# Updated      : 24 Aug 2024
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -45,8 +45,8 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.0.24145"
-readonly _updated="22 May 2024"
+readonly _version="6.2.24237"
+readonly _updated="24 Aug 2024"
 readonly iso_d="$HOME/Downloads/ISO/"
 user=$(whoami)
 dryrun="$FALSE"
@@ -56,44 +56,60 @@ dryrun="$FALSE"
 help() {
 	local errcode="${1:-2}"
 	cat << END_HELP
+${orange}$_script${normal} $_version, Upated: $_updated
+Writes ISO to a USB drive
+
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-	-d	Enable Dry Run simulation
-	-h	Display help
-	-w	Write ISO to USB device
-$_script $_version (Updated $_updated)
+
+${orange}Available options:${normal}
+  -d  Enable Dry Run simulation (with -w)
+  -h  Display help
+  -w  Write ISO to USB device (-dw for a dry run)
+
 END_HELP
   exit "$errcode"
 }
 
 check_usb_drive() {
-	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version ($_updated)"
+	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$_script v$_version"
 }
 
 select_iso() {
+	local isofile
 	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 40% --reverse --prompt "Select the ISO file to write: ")
+	echo "$isofile"
 }
 
 select_usb() {
+	local usb_device
 	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --height 40% --reverse --prompt "Select the USB drive to write to: ")
 	usb_device=$(echo "$usb_device" | awk '{print $2}')
+	echo "$usb_device"
 }
 
 mount_usb() {
+	local mount_name usbpart mount_name
+	mount_name="$1"
+	usbpart="$2"
   [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
 	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
 	printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
 }
 
 unmount_usb() {
-	sudo umount "/dev/$usbpart"	&& printf "USB drive unmounted.\n" # /media/$user/"$mount_name"
-	[[ -d "/media/$user/$mount_name" ]] && sudo rmdir "/media/$user/$mount_name"
-	printf "It's now safe to remove the USB drive.\n"
+	local mount_name usbpart
+	mount_name="$1"
+	usbpart="$2"
+  [[ -d "/media/$user/$mount_name" ]] || sudo mkdir -p "/media/$user/$mount_name"
+	sudo mount "/dev/$usbpart" "/media/$user/$mount_name" 2>/dev/null
+	printf "USB drive /dev/%s is mounted at /media/$user/%s\n" "$usbpart" "$mount_name"
 }
 
 simulate_dd() {
-  local iso="$1"
-	local usb="$2"
+  local iso usb mount_name
+	iso="$1"
+	usb="$2"
+	mount_name="$3"
   printf "\nWriting %s to /dev/%s (SIMULATED) ...\n" "$(basename "$iso")" "$usb"
   spin
   sleep 10
@@ -105,8 +121,10 @@ simulate_dd() {
 }
 
 write_dd() {
-	local iso="$1"
-	local usb="$2"
+	local iso usb mount_name
+	iso="$1"
+	usb="$2"
+	mount_name="$3"
 	printf "\nWriting %s to /dev/%s...\n" "$(basename "$iso")" "$usb"
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$(basename "$iso")" "$usb"
@@ -118,6 +136,9 @@ else
 }
 
 write_iso() {
+	local isofile usbdevice usbpart mount_name
+	isofile="$1"
+	usbdevice="$2"
 	printf "%-16s %s\n" "Selected ISO:" "$(basename "$isofile")"
 	printf "%-16s /dev/%s\n" "Selected device:" "$usb_device"
 
@@ -128,31 +149,27 @@ write_iso() {
 	else
 		sudo_login 2
 		mount_name="$(date +%y%b%d)"
-		mount_usb #"/dev/$usbpart"
+		mount_usb "$usbpart"
 	fi
 
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
-		simulate_dd "$isofile" "$usb_device"
+		simulate_dd "$isofile" "$usbdevice" "$mount_name"
 	else
 		printf "\n%sIf you continue, ALL data will be erased from device %s.%s\n\n" "$orange" "$usb_device" "$normal"
 		printf "Answer 'yes' only if you are %s%sABSOLUTELY%s sure you want to proceed.\n\n" "$bold" "$orange" "$normal"
 		if yes_or_no "Write $(basename "$isofile") to /dev/$usb_device?"; then
 			sudo_login 2
-			write_dd "$isofile" "$usb_device"
-			printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
-			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb
+			write_dd "$isofile" "$usbdevice" "$mount_name"
+			printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user" "$mount_name"
+			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 		printf "Operation canceled. No action taken.\n"
 		fi
 	fi
-
 }
 
 ## Execution ##
-
-box "$_script v$_version"
-printf "Writes ISO to a USB drive.\n\n"
 
 noOpt=1
 optstr=":dhw"
@@ -166,11 +183,13 @@ while getopts "$optstr" opt; do
 			help 0
 		;;
 		w )
+			box "$_script v$_version"
+			printf "Writes ISO to a USB drive.\n\n"
 			check_package fzf
 			check_usb_drive
-			select_iso
-			select_usb
-			write_iso
+			iso_file=$(select_iso)
+			usb_device=$(select_usb)
+			write_iso "$iso_file" "$usb_device"
 		;;
 		? )
 			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
