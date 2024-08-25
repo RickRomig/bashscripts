@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 23 Aug 2024
+# Last updated : 24 Aug 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -380,6 +380,27 @@ is_runit() {
 ###############################################################################
 is_cinnamon() {
   [[ -f /usr/bin/cinnamon-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_i3wm
+# Purpose: Returns true is the window manager is i3wm
+# Arguments: none
+# Returns: True or False
+###############################################################################
+is_i3wm() {
+  # [[ $(wmctrl -m | awk '/Name/ {print $2}') == "i3" ]] && return "$TRUE" || return "$FALSE"
+  [[ -f /usr/bin/i3-session ]] && return "$TRUE" || return "$FALSE"
+}
+
+###############################################################################
+# is_xfce
+# Purpose: Returns true is the desktop environment is Xfce
+# Arguments: none
+# Returns: True or False
+###############################################################################
+is_xfce() {
+  [[ -f /usr/bin/xfce-session ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
