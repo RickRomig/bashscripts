@@ -2,15 +2,15 @@
 ###############################################################################
 # Script Name  : empty-trash.sh
 # Description  : Empty the local trash directory
-# Dependencies : none
+# Dependencies : tree 'sudo apt install tree'
 # Arguments    : none
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Last updated : 17 Mar 2024 Version 01.5.24117
-# Comments     : Run as a user cron job daily, weekly, or monthly
+# Last updated : 30 Aug 2024 Version 2.3.24243
+# Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
-#              : Tested with Debian 11/12, LMDE 6, Mint 21.x, MX Linux 23.x, BunsenLabs 11.
+#              : Tested with Debian 11/12, LMDE 6, Mint 21.x, Mint 22, MX Linux 23.1, BunsenLabs 11.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 #
@@ -35,14 +35,15 @@ readonly log_dir="$HOME/.local/share/logs"
 readonly log_file="trash.log"
 
 empty_trash() {
-	if [[ $(find "$trash_dir/files" -type f | wc -l) -gt 0 ]]; then
+	if [[ $(find "$trash_dir"/info -type f | wc -l) -gt 0 ]]; then
 		printf "\nTrash contents:\n---------------\n"
-		find "$trash_dir/files" -type f -exec basename {} \;
-		rm -rf "$trash_dir"/files/*
-		rm -f "$trash_dir"/info/*
+		tree -a "$trash_dir"
+		find "$trash_dir"/files -mindepth 1 -type f,d -exec rm -rf {} +
+		rm "$trash_dir"/info/*
 		printf "\nTrash emptied.\n"
+		tree -a "$trash_dir"
 	else
-		printf "No trash to empty.\n"
+		printf "\nNo trash to empty.\n"
 	fi
 }
 
