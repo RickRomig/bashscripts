@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 16 Aug 2024
+# Updated      : 01 Sep 2024
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,8 +45,8 @@ set -eu
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.6.24229"
-readonly _updated="16 Aug 2024"
+readonly _version="4.6.24245"
+readonly _updated="01 Sep 2024"
 
 ## Functions ##
 
@@ -96,7 +96,7 @@ elif [[ ! -f "$1" ]]; then
 elif [[ ! -s "$1" ]]; then
   printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
   exit 1
-elif file -bL --mime "$1" | grep -qEi "text|json"; then
+elif file -bL "$1" | grep -qEi "text|json"; then
   main "$1"
   exit 0
 else
