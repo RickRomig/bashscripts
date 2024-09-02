@@ -11,6 +11,7 @@
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 #              : Tested with Debian 11/12, LMDE 6, Mint 21.x, Mint 22, MX Linux 23.1, BunsenLabs 11.
+#              : May not remove the '*.trashinfo' files for hidden files in the trash if run as a local cron job.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
 #
