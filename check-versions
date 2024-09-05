@@ -5,10 +5,10 @@
 #              : displays latest versions with currently installed versions.
 # Dependencies : curl
 # Arguments    : none
-# Author       : Copyright (C) 2021, Richard B. Romig, 24 Aug 2021
+# Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 15 Aug 2024
+# Last updated : 05 Sep 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened.
 # TODO (Rick)  :
@@ -56,7 +56,12 @@ cleanup() {
 installed_version() {
   local ver pkg
   pkg="$1"
-  ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//')
+  case "$pkg" in
+    micro )
+      ver=$(micro -version | awk '/Version:/ {print $NF}') ;;
+    * )
+      ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//') ;;
+  esac
   echo "$ver"
 }
 
@@ -94,7 +99,12 @@ github_versions() {
     # Download package's GitHub release page to a temporary file.
     curl -s -o "$tmp_file" "$github_url/$release_path"
     # Extract newest version number, ignoring beta and release candidate releases.
-    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//')
+    case "$package" in
+      micro )
+        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//') ;;
+      * )
+        new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}' | sed 's/^v//') ;;
+    esac
     # Print capitalized package name
     printf "%s%-16s" "${darkgray}" "${package^}"
     # Print newest version
@@ -165,7 +175,7 @@ browsers() {
 main() {
   local _script _version
   _script=$(basename "$0")
-  _version="13.0.24228"
+  _version="13.5.24249"
   clear
   printf "%s v%s\n" "$_script" "$_version"
   printf "Newest & installed versions of select programs.\n\n"
