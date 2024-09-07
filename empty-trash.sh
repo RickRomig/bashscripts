@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 05 Sep 2024 Version 3.1.24249
+# Updated      : 07 Sep 2024 Version 3.2.24251
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 #              : Removes files that have been in the trash folder more than a week.
@@ -37,20 +37,25 @@ last_week=$(date -d "$(date) - 7 days" +%F)
 
 empty_trash() {
 	if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
-		printf "\nTrash contents:\n---------------\n"
+		printf "\nTrash contents:\n"
 		/usr/bin/trash-list
-		printf "\nRemoving trash before %s...\n" "$last_week"
-		/usr/bin/trash-empty 7
-		if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
-			printf "\nTrash after %s...\n" "$last_week"
-			/usr/bin/trash-list
+		if [[ $(find "$trash_dir"/files -type f,d -mtime 7 | wc -l) -gt 0 ]]; then
+			printf "\nRemoving trash older than %s...\n" "$last_week"
+			/usr/bin/trash-empty 7
+			if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
+				printf "\nTrash newer than %s...\n" "$last_week"
+				/usr/bin/trash-list
+			else
+				printf "All trash removed.\n"
+			fi
 		else
-			printf "All trash removed.\n"
+			printf "\nNo trash older than %s...\n" "$last_week"
 		fi
 	else
-		printf "\nNo trash to empty.\n"
+		printf "\nThe trash can is empty.\n"
 	fi
 }
+
 
 [[ -d "$log_dir" ]] || mkdir -p "$log_dir"
 
