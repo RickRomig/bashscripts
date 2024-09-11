@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 21 Nov 2023
-# Updated      : 07 Sep 2024 Version 3.2.24251
+# Updated      : 11 Sep 2024 Version 3.2.24255
 # Comments     : Run as a user cron job.
 #              : Trash directory does not exist until a file is moved to the trash.
 #              : Removes files that have been in the trash folder more than a week.
@@ -39,7 +39,7 @@ empty_trash() {
 	if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
 		printf "\nTrash contents:\n"
 		/usr/bin/trash-list
-		if [[ $(find "$trash_dir"/files -type f,d -mtime 7 | wc -l) -gt 0 ]]; then
+		if [[ $(find "$trash_dir"/info -type f -mtime +7 | wc -l) -gt 0 ]]; then
 			printf "\nRemoving trash older than %s...\n" "$last_week"
 			/usr/bin/trash-empty 7
 			if [[ $(/usr/bin/trash-list | wc -l) -gt 0 ]]; then
