@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 06 Jun 2024
+# Updated      : 20 Sep 2024
 # Comments     : Based on a script by Joe Collins at EzeeLinux.com
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,8 +44,9 @@ fi
 ## Global Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="1.5.7"
-readonly _updated="10 Jan 2024"
+readonly _version="1.6.2426"
+readonly _updated="20 Sep 2024"
+readonly lhost="${HOSTNAME:=-$(hostname)}"
 
 ## Funtions ##
 
@@ -65,13 +66,15 @@ help() {
   intro
   cat << END_HELP
 ${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
+
+${orange}Available options:${normal}
   -h  Display help.
   -i  Install laptop utilities.
-  -l  Display installed utilities.
+  -l  List installed utilities.
   -s  Start TLP service
+
 END_HELP
-  printf "%s v%s (%s)\n" "$_script" "$_version" "$_updated"
+  intro
   exit "$errcode"
 }
 
@@ -85,7 +88,7 @@ main() {
 
 installed() {
   local package="$1"
-  dpkg -l | grep -qw "$package" && return "$TRUE" || return "$FALSE"
+  dpkg -l "$package" > /dev/null 2>&1 && return "$TRUE" || return "$FALSE"
 }
 
 install_thermald() {
@@ -121,17 +124,34 @@ install_touchpad_indicator() {
   fi
 }
 
-start_tlp() {
-  if is_systemd; then
-    systemctl status tlp | grep -qw active && printf "The tlp service is active.\n"
-  elif is_sysv; then
-    tlp-stat -s | grep -qw enabled && printf "The tlp service is running.\n"
+install_tlp() {
+  if installed tlp && installed tlp-rdw; then
+    echo "TLP is already installed."
+  elif in_repos tlp; then
+    sudo apt-get install tlp tlp-rdw -yy
+    start_tlp_service
+    printf "TLP installed.\n"
   else
-    tlp_service
+    printf "TLP was not installed.\n"
   fi
 }
 
-tlp_service() {
+tlp_status() {
+  local status=0
+  if is_systemd; then
+    systemctl status tlp | grep -qw active || status=1
+  elif is_sysv; then
+    tlp-stat -s | grep -qw enabled || status=1
+  fi
+  if (( status = 1 )); then
+    printf "Starting TLP service\n"
+    start_tlp_service
+  else
+    printf "TLP service is active and running.\n"
+  fi
+}
+
+start_tlp_service() {
   if is_systemd; then
     sudo_login
     sudo systemctl enable tlp.service
@@ -159,7 +179,6 @@ util_status() {
 
 ## Execution ##
 
-is_laptop || die "System is not a laptop." 1
 noOpt=1
 optstr=":hils"
 while getopts "$optstr" opt; do
@@ -168,14 +187,17 @@ while getopts "$optstr" opt; do
       help 0
     ;;
     i )
+      is_laptop || die "$lhost is not a laptop." 1
       sudo_login 2
       intro
       main
     ;;
     l )
+      is_laptop || die "$lhost is not a laptop." 1
       util_status
     ;;
     s )
+      is_laptop || die "$lhost is not a laptop." 1
       sudo_login 2
       start_tlp
     ;;
