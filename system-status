@@ -46,7 +46,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="6.0.24267"
+readonly _version="6.1.24267"
 
 ## Functions ##
 
@@ -106,6 +106,8 @@ gpu_temperature() {
     printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$json" | jq -r '."nouveau-pci-0100"."temp1"."temp1_input"')"
   elif echo "$json" | grep -q 'pch_skylake-virtual-0'; then
     printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$json" | jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"')"
+  else
+    printf "%-10sNot available\n" "GPU:"
   fi
 }
 
