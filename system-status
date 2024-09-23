@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 03 Jul 2024
+# Updated      : 23 Sep 2024
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
@@ -46,20 +46,22 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="5.10.24185"
+readonly _version="6.0.24267"
 
 ## Functions ##
+
+check_drivetemp() {
+  sensors | grep -qw drivetemp || sudo modprobe drivetemp
+  grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
+  printf "drivetemp module - OK\n"
+  sleep 2
+}
 
 check_dependencies() {
   local packages=( jq lm-sensors )
   check_packages "${packages[@]}"
-  # Check for drivetemp modules for SATA drives.
-  if [[ -b /dev/sda ]]; then
-    sensors | grep -qw drivetemp || sudo modprobe drivetemp
-    grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
-    printf "drivetemp module - OK\n"
-    sleep 2
-  fi
+  # Check drivetemp modules for SATA drives.
+  [[ -b /dev/sda ]] && check_drivetemp
 }
 
 nvme_temperature() {
