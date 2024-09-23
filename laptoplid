@@ -4,14 +4,16 @@
 # Description  : Settings to close laptop lid without suspend
 # Dependencies : ~/bin/files/laptoplid.sed
 # Arguments    : None
-# Author       : Copyright (C) 2020, Richard B. Romig, 22 Oct 2020
+# Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 22 Oct 2020
+# Updated      : 23 Sep 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 #
-# Copyright © 2024, Richard B. Romig
+# Copyright © 2020, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -29,7 +31,6 @@
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
-# shellcheck disable=SC1091
 
 ## Load function library ##
 
@@ -43,7 +44,7 @@ fi
 ## Variables ##
 
 _script=$(basename "$0"); readonly _script
-readonly _version="4.1.24148"
+readonly _version="4.2.24267"
 readonly logind_conf="/etc/systemd/logind.conf"
 readonly sed_file="$HOME/bin/files/laptoplid.sed"
 
