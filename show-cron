@@ -3,12 +3,12 @@
 # Script Name  : show-cron
 # Description  : Shows when anacron jobs were last run and displays
 #              : crontabs for all normal and root users.
-# Dependencies : None
+# Dependencies : anacron
 # Arguments    : None
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 27 Sep 2024
+# Updated      : 28 Sep 2024
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,38 +45,27 @@ fi
 ## Functions ##
 
 jobs() {
-  local count cron_d interval
+  local count cron_dir interval
   interval="$1"
-  cron_d="/etc/cron"
-  count=$(find "$cron_d.$interval" -maxdepth 1 -type f -iname \* | wc -l)
+  cron_dir="/etc/cron.$interval"
+  count=$(find "$cron_dir" -maxdepth 1 -type f -iname \* | wc -l)
   [[ "$count" -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
-show_daily_jobs() {
-  local daily="/var/spool/anacron/cron.daily"
-  printf "\n%sAnacron Daily:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$daily" 2>/dev/null)"
-  if jobs "daily"; then
-    find /etc/cron.daily -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
-  else
-    printf "No jobs scheduled.\n"
-  fi
+print_jobs() {
+  local cron_dir interval
+  interval="$1"
+  cron_dir="/etc/cron.$interval"
+  find "$cron_dir" -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
 }
 
-show_weekly_jobs() {
-  local weekly="/var/spool/anacron/cron.weekly"
-  printf "\n%sAnacron Weekly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$weekly" 2>/dev/null)"
-  if jobs "weekly"; then
-    find /etc/cron.weekly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
-  else
-    printf "No jobs scheduled.\n"
-  fi
-}
-
-show_monthly_jobs() {
-  local monthly="/var/spool/anacron/cron.monthly"
-  printf "\n%sAnacron Monthly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$monthly" 2>/dev/null)"
-  if jobs "monthly"; then
-    find /etc/cron.monthly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
+show_anacron() {
+  local interval cron_spool
+  interval="$1"
+  cron_spool="/var/spool/anacron/cron.$interval"
+  printf "\n%sAnacron %s:%s Last run on %s\n" "$orange" "${interval^}" "$normal" "$(sudo cat "$cron_spool" 2>/dev/null)"
+  if jobs "$interval"; then
+    print_jobs "$interval"
   else
     printf "No jobs scheduled.\n"
   fi
@@ -105,20 +94,21 @@ show_root_cron() {
 }
 
 main() {
-	local lhost _script _version
-  _script; _script=$(basename "$0")
-  _version="5.5.24271"
+  local _script _version lhost interval intervals
+  script=$(basename "$0")
+  version="6.0.24272"
   lhost="${HOSTNAME:-$(hostname)}"
+  intervals=( daily weekly monthly )
 
   sudo_login 0
   clear
   printf "%s%sJobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
-  show_daily_jobs
-  show_weekly_jobs
-  show_monthly_jobs
+  for interval in "${intervals[@]}"; do
+    show_anacron "$interval"
+  done
   show_user_cron
   show_root_cron
-  under_line "$_script v$_version" "-"
+  under_line "$script v$version" "-"
   exit
 }
 
