@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Mar 2018
-# Updated      : 05 Jun 2024
+# Updated      : 27 Sep 2024
 # Comments     : Requires sudo privileges
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,50 +44,57 @@ fi
 
 ## Functions ##
 
+jobs() {
+  local count cron_d interval
+  interval="$1"
+  cron_d="/etc/cron"
+  count=$(find "$cron_d.$interval" -maxdepth 1 -type f -iname \* | wc -l)
+  [[ "$count" -gt 0 ]] && return "$TRUE" || return "$FALSE"
+}
+
 show_daily_jobs() {
   local daily="/var/spool/anacron/cron.daily"
   printf "\n%sAnacron Daily:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$daily" 2>/dev/null)"
-  if [[ "$(find /etc/cron.daily -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
-    printf "No jobs scheduled.\n"
-  else
+  if jobs "daily"; then
     find /etc/cron.daily -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
+  else
+    printf "No jobs scheduled.\n"
   fi
 }
 
 show_weekly_jobs() {
   local weekly="/var/spool/anacron/cron.weekly"
   printf "\n%sAnacron Weekly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$weekly" 2>/dev/null)"
-  if [[ "$(find /etc/cron.weekly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
-    printf "No jobs scheduled.\n"
-  else
+  if jobs "weekly"; then
     find /etc/cron.weekly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
+  else
+    printf "No jobs scheduled.\n"
   fi
 }
 
 show_monthly_jobs() {
   local monthly="/var/spool/anacron/cron.monthly"
   printf "\n%sAnacron Monthly:%s Last run on %s\n" "$orange" "$normal" "$(sudo cat "$monthly" 2>/dev/null)"
-  if [[ "$(find /etc/cron.monthly -maxdepth 1 -type f -iname \* | wc -l)" == 0 ]]; then
-    printf "No jobs scheduled.\n"
-  else
+  if jobs "monthly"; then
     find /etc/cron.monthly -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
+  else
+    printf "No jobs scheduled.\n"
   fi
 }
 
 show_user_cron() {
-	local i max num_users passwd_file
-  passwd_file="/etc/passwd"
-  num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' "$passwd_file")
-  i=1000
-  max=$(( num_users + i ))
+	local index max num_users
+  num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' /etc/passwd)
+  index=1000
+  max=$(( num_users + index ))
 
-  while [[ "$i" -le "$max" ]]; do
-    norm_user="$(awk -v pat="$i" -F: '$0~pat{print $1}' "$passwd_file")"
+  while [[ "$index" -le "$max" ]]; do
+    norm_user="$(awk -v pat="$index" -F: '$0~pat{print $1}' /etc/passwd)"
     if [[ -n "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
       sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  "$1"\t"$NF}'
 		fi
-    (( i++ ))
+    (( index++ ))
   done
 }
 
@@ -100,7 +107,7 @@ show_root_cron() {
 main() {
 	local lhost _script _version
   _script; _script=$(basename "$0")
-  _version="5.3.24157"
+  _version="5.5.24271"
   lhost="${HOSTNAME:-$(hostname)}"
 
   sudo_login 0
