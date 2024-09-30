@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 01 Sep 2024
+# Updated      : 30 Sep 2024
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,27 +44,28 @@ set -eu
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.6.24245"
-readonly _updated="01 Sep 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.7.24274"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
+  local errcode updated
+  errcode="${1:-2}"
+  updated="30 Sep 2024"
   cat << END_HELP
-${orange}$_script${normal} v$_version (updated $_updated)
+${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
- ${green}Usage:${normal} $_script filename [-h] [--help]
+ ${green}Usage:${normal} $script filename [-h] [--help]
 
 END_HELP
   exit "$errcode"
 }
 
-main() {
+view_file() {
   local catmax filelines textfile
   textfile="$1"
   # Get 87% of screen
@@ -75,31 +76,34 @@ main() {
   box "File: $textfile" "*"
   if (( filelines <= catmax )); then
 	  cat "$textfile"
-	  over_line "$_script $_version" "*"
+	  over_line "$script $version" "*"
   else
 	  less "$textfile"
-	  echo "$_script $_version"
+	  echo "$script $version"
+  fi
+}
+
+main() {
+  if [[ $# -eq 0 ]]; then
+    printf "%s No argument passed.\n" "$red_error" >&2
+    help 1
+  elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
+    help 0
+  elif [[ ! -f "$1" ]]; then
+    printf "%s %s not found.\n" "$red_error" "$1" >&2
+    help 2
+  elif [[ ! -s "$1" ]]; then
+    printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
+    exit 1
+  elif file -bL "$1" | grep -qEi "text|json"; then
+    view_file "$1"
+    exit 0
+  else
+    printf "%s %s is not a text file.\n" "$red_error" "$1" >&2
+    help 1
   fi
 }
 
 ## Execution ##
 
-# Check arguments
-if [[ $# -eq 0 ]]; then
-  printf "%s No argument passed.\n" "$red_error" >&2
-  help 1
-elif [[ "$1" = "-h" || "$1" = "--help" ]]; then
-  help 0
-elif [[ ! -f "$1" ]]; then
-  printf "%s %s not found.\n" "$red_error" "$1" >&2
-  help 2
-elif [[ ! -s "$1" ]]; then
-  printf "%s %s is an empty file.\n" "$red_error" "$1" >&2
-  exit 1
-elif file -bL "$1" | grep -qEi "text|json"; then
-  main "$1"
-  exit 0
-else
-  printf "%s %s is not a text file.\n" "$red_error" "$1" >&2
-  help 1
-fi
+main "$@"
