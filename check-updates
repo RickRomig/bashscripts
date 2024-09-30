@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 18 Aug 2024
+# Updated      : 30 Sep 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -48,10 +48,6 @@ fi
 set -eu
 
 ## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="2.6.24231"
-readonly local_host="${HOSTNAME:-$(hostname)}"
 
 ## Functions ##
 
@@ -206,29 +202,35 @@ apt_update() {
   fi
 }
 
+show_header() {
+  local _script _version local_host
+  _script=$(basename "$0")
+  _version="2.14.24274"
+  local_host="${HOSTNAME:-$(hostname)}"
+  clear
+  printf "%s%s%s v%s\n" "$bold" "$orange" "$_script" "$_version"
+  printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
+  printf "Distro: %s\n" "$(get_distribution)"
+  printf "Kernel: %s\n\n" "$(uname -sr)"
+  printf "Checking for updates...%s\n\n" "$normal"
+}
+
+main() {
+  local action="${1:-nala}"
+  SECONDS=0
+  show_header
+  if [[ "$action" == "apt" ]] || ! exists nala; then
+    apt_update
+  else
+    nala_update
+  fi
+  exists cinnamon-spice-updater && update_spices
+  exists flatpak && update_flatpak
+  leave "Script completed in $(format_time $SECONDS)"
+}
+
 ## Execution ##
 
 sudo_login 0
-
-SECONDS=0
-
 clear
-printf "%s%s%s v%s\n" "$bold" "$orange" "$_script" "$_version"
-printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
-printf "Distro: %s\n" "$(get_distribution)"
-printf "Kernel: %s\n\n" "$(uname -sr)"
-printf "Checking for updates...%s\n\n" "$normal"
-
-action="${1:-nala}"
-if [[ "$action" == "apt" ]]; then
-  apt_update
-elif exists nala; then
-  nala_update
-else
-  apt_update
-fi
-
-exists cinnamon-spice-updater && update_spices
-exists flatpak && update_flatpak
-
-leave "Script completed in $(format_time $SECONDS)"
+main "$@"
