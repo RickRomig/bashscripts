@@ -1,0 +1,152 @@
+#!/usr/bin/env bash
+##########################################################################
+# Script Name  : meditation-timer
+# Description  : Counts down remaining time of a meditation session.
+# Dependencies : aplay (alsa-utils)
+# Arguments    : Time in minutes to cound down from.
+# Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 06 Jul 2021
+# Updated      : 04 Oct 2024
+# Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
+#              : Sound does not work with Pipewire audio.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+##########################################################################
+#
+# Copyright © 2024, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Load function library ##
+
+# if [[ -x "$HOME/bin/functionlib" ]]; then
+#   source "$HOME/bin/functionlib"
+# else
+#   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+#   exit 1
+# fi
+
+## Global Variables ##
+
+readonly sound_dir="$HOME/bin/files"
+readonly tibet_bowl="Tibetan_bowl.wav"
+# readonly wood_block="Low-Wood-Block.wav"
+
+## Functions ##
+
+check_alsa() {
+  dpkg -l alsa-utils >/dev/null 2>&1 && return 0 || return 1
+}
+
+input_value() {
+  printf "\e[91mERROR:\e[0m Invalid argument\n" >&2
+  printf "Please supply a value for minutes, only minutes, and only whole numbers greater than 0.\n" >&2
+  exit 2
+}
+
+get_volume() {
+  # Get the cuurent volume setting
+  local vol
+  vol=$(amixer get Master | awk '/Mono:/ {print $3}')
+  echo "$vol"
+}
+
+set_volume() {
+  # Set the volume for sounds played or reset to original volume
+  local vol="$1"
+  amixer cset iface=MIXER,name="Master Playback Volume" "$vol" >/dev/null
+}
+
+play_sound() {
+  # Play a sound as a background process.
+  local sound="$1"
+  /usr/bin/aplay "$sound" > /dev/null 2>&1 &
+}
+
+screensaver_off() {
+  # Turn off screensaver and hide cursor.
+  xset s off
+  xset s noblank
+  xset -dpms
+  tput civis
+}
+
+screensaver_on() {
+  # Turn screensaver back on and restore cursor.
+  xset s on
+  xset s blank
+  xset +dpms
+  tput cnorm
+}
+
+countdown() {
+  for i in {10..1}; do printf "\t%02d\r" "$i"; sleep 1; done
+}
+
+meditation_timer() {
+  local hours interval min minutes seconds sec_rem
+  min="$1"
+  sec_rem=$(( 60 * min ))
+  while [[ "$sec_rem" -gt 0 ]]; do
+    sec_rem=$(( sec_rem - 1 ))
+    interval="$sec_rem"
+    seconds=$(( interval % 60 ))
+    interval=$(( interval - seconds ))
+    minutes=$(( interval % 3600 / 60 ))
+    interval=$(( interval - minutes ))
+    hours=$(( interval % 86400 / 3600 ))
+    # interval=$(( interval - hours ))
+    # days=$(( interval % 604800 / 86400 ))
+    # interval=$(( interval - hours ))
+    # weeks=$(( interval / 604800 ))
+    printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
+    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$wood_block"
+    sleep 1
+  done
+}
+
+main() {
+  local meditation_time ovol vol script version
+  script=$(basename "$0")
+  version="2.1.24278"
+  meditation_time="${1:-20}"
+  vol="${2:-50}"
+  [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
+	check_alsa || { printf "\e[91mWARNING:\e[0m Audio utilities not installed. Audio will not function.\n" >&2; sleep 5; }
+  clear
+  # Capture original volume setting
+  ovol=$(get_volume)
+  # Set playback volume
+  set_volume "$vol"
+  printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
+  screensaver_off
+  countdown
+  play_sound "$sound_dir/$tibet_bowl"
+  meditation_timer "$meditation_time"
+  play_sound "$sound_dir/$tibet_bowl"
+  sleep 30
+  screensaver_on
+  set_volume "$ovol"
+  printf "\n\n\U2638 %s v%s\n" "$script" "$version"
+  printf "\UA9 2021-2024 Richard B. Romig\n"
+  exit
+}
+
+## Execution ##
+
+main "$@"
