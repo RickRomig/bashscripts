@@ -979,3 +979,15 @@ default_no() {
     esac
   done
 }
+
+###############################################################################
+# is_url_good
+# Purpose: Returns true if URL is accessible
+# Argument:
+# $1 -> URL to be checked
+# Returns: True or False
+###############################################################################
+is_url_good() {
+  local url="$1"
+  wget --spider -q "$url" && return "$TRUE" || return "$FALSE"
+}
