@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 07 Sep 2022
-# Updated      : 30 Apr 2024
+# Updated      : 10 Oct 2024
 # Comments     : partially based on code by Jake@Linux <https://gitlab.com/jped>
 #              : The else in find_init will detect runit.
 # License      : GNU General Public License, version 2.0
@@ -29,14 +29,10 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="1.4.24121"
-
 ## Functions ##
 
 find_init() {
+	local file data
 	if [[ "$(/usr/bin/ps -p 1 | awk '/1 ?/ {print $NF}')" == "systemd" ]]; then
 		printf "SystemD"
 	elif [[ $(/sbin/init --version 2>/dev/null | awk '{print $1}') == "SysV" ]]; then
@@ -54,8 +50,15 @@ find_init() {
   fi
 }
 
+main() {
+	local script version
+	script=$(basename "$0")
+	version="1.5.24284"
+	printf "Init System: %s \n" "$(find_init)"
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
+
 ## Execution ##
 
-printf "%s v%s\n" "$_script" "$_version"
-printf "Init System: %s \n" "$(find_init)"
-exit
+main "$@"
