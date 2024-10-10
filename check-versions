@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 05 Sep 2024
+# Last updated : 10 Oct 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened.
 # TODO (Rick)  :
@@ -173,16 +173,17 @@ browsers() {
 }
 
 main() {
-  local _script _version
-  _script=$(basename "$0")
-  _version="13.5.24249"
+  local script version
+  script=$(basename "$0")
+  version="13.5.24284"
   clear
-  printf "%s v%s\n" "$_script" "$_version"
+  box "$script v$version"
   printf "Newest & installed versions of select programs.\n\n"
   github_versions
   apt_tools
   browsers
   terminals
+	exit
 }
 
 ## Execution ##
@@ -191,4 +192,3 @@ check_package curl
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
 main
-exit
