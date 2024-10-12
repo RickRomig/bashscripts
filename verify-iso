@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 24 Aug 2024
+# Updated      : 11 Oct 2024
 # Comments     : Checksum file must be one line only for ISO being checked.
 #              : Each ISO file must have its own checksum file.
 #              : Checksum files must have one of the following extensions:
@@ -44,20 +44,20 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="9.2.24237"
-readonly _updated="24 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="9.3.24285"
 readonly iso_d="$HOME/Downloads/ISO/"		# Change to reflect the path to your ISO and checksum files.
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+	updated="11 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Display help
@@ -67,7 +67,7 @@ ${orange}Available options:${normal}
   * Checksum files must have a file extension of .md5, .sha256. or .sha512.
   * The basename of the checksum file should match the basename name of the ISO.
 
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
@@ -143,27 +143,27 @@ check_checksum() {
 }
 
 compare_checksums() {
-	local ext chk iso
+	local ext checksum iso
 	iso="$1"
-	chk="$2"
+	checksum="$2"
 	ext="${checksum##*.}"
 	printf "Comparing checksums."
 	case "$ext" in
 	  "md5" )
-	    check_md5 "$iso" "$chk"
+	    check_md5 "$iso" "$checksum"
 	    status_msg "$?"
 	  ;;
 	  "sha256" )
-	    check_md5 "$iso" "$chk"
+	    check_md5 "$iso" "$checksum"
 	    status_msg "$?"
 	  ;;
 	  "sha512" )
-	    check_md5 "$iso" "$chk"
+	    check_md5 "$iso" "$checksum"
 	    status_msg "$?"
 	  ;;
 	  * )
 	    printf "\n"
-	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$_script $_version"
+	    diehard "Invalid extension" "Checksum must be one of the following:" ".md5 .sha256 .sha512" "$script $version"
 	esac
 }
 
@@ -173,35 +173,40 @@ verify_iso() {
 	checksum=$(select_checksum)
 	printf "\n%-18s %s\n" "Selected ISO:" "$(basename "$isofile")"
 	printf "%-18s %s\n\n" "Selected Checksum:" "$(basename "$checksum")"
-	check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$_script $_version"
+	check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
 	compare_checksums "$isofile" "$checksum"
 }
 
 show_title() {
-	box "$_script v$_version"
+	box "$script v$version"
 	printf "Verifies SHA256/SHA512/MD5 checksums with ISO files.\n"
+}
+
+main() {
+	local noOpt optstr opt
+	noOpt=1
+	optstr=":hv"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+			;;
+			v )
+				show_title
+				check_package fzf
+				verify_iso
+			;;
+			? )
+				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	exit
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":hv"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		h )
-			help 0
-		;;
-		v )
-			show_title
-			check_package fzf
-			verify_iso
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-exit
+main "$@"
