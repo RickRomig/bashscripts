@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 10 Oct 2024
+# Last updated : 17 Oct 2024
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened.
 # TODO (Rick)  :
@@ -91,7 +91,7 @@ github_versions() {
         release_path="zyedidia/micro/releases"
       ;;
       * )
-        printf "%s Invalid package name - %s\n" "$red_error" "${package,,}" >&2
+        printf "%s Invalid package name - %s\n" "$RED_ERROR" "${package,,}" >&2
     esac
 
     # Get installed version
@@ -127,7 +127,7 @@ github_versions() {
 
 apt_tools() {
 	local cur_ver packages package
-  packages=( batcat bluefish featherpad geany gedit git glow nano shellcheck xed )
+  packages=( batcat bluefish featherpad fzf geany gedit git glow nano shellcheck xed )
 
 	printf "%-15s%s\n" "Package" "Version"
 	for package in "${packages[@]}"; do
@@ -175,7 +175,7 @@ browsers() {
 main() {
   local script version
   script=$(basename "$0")
-  version="13.5.24284"
+  version="13.7.24291"
   clear
   box "$script v$version"
   printf "Newest & installed versions of select programs.\n\n"
@@ -191,4 +191,4 @@ main() {
 check_package curl
 tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
 trap cleanup EXIT
-main
+main "$@"
