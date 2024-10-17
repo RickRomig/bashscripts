@@ -4,16 +4,16 @@
 # Description  : Display charge and health statics of a laptop battery
 # Dependencies : bc (not installed by default on BunsenLabs Beryllium)
 # Arguments    : -h, --help, -v --version
-# Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek
+# Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 22 May 2024
+# Updated      : 17 Oct 2024
 # Comments     : Uses data from /sys/class/power_supply/BAT*
-#              : Battery charge based on a script by Luke Smith (https://lukesmith.xyz)
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
+###############################################################################
 #
-# Copyright © 2020, Richard B. Romig
+# Copyright © 2024, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -28,8 +28,6 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-###############################################################################
-
 # Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 
@@ -42,36 +40,38 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.3.23143"
-readonly _updated="22 May 2024"
+  script=$(basename "$0"); readonly script
+  readonly version="6.6.24291"
 
 ## Functions ##
 
 help() {
-  local errcode="${1:-2}"
-  cat <<- EOF
-  ${green}Usage:${normal} $_script [option]
+  local errcode updated
+  errcode="${1:-2}"
+  updated="17 Oct 2024"
+  cat << END_HELP
+${orange}$script${normal} $version, Upated: $updated
+Shows battery charge and health information
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -h,--help     Show this help text
+  -v,--version  Show version and information
   With no argument, displays battery health information.
-  ${orange}OPTIONS:${normal}
-  -h        # displays this help message.
-  --help    # displays this help message.
-  -v        # displays the version and information about the script.
-  --version # displays the version and information about the script.
-  $_script $_version, Upated: $_updated
-EOF
+END_HELP
   exit "$errcode"
 }
 
 version() {
-  cat <<- EOF
-  $_script $_version, Updated: $_updated
-  Displays the charge state and health of a laptop battery using data obtained
-  from files in /sys/class/power_supply/BAT*. Capacity information may be shown
-  in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
-EOF
+  cat << VER_INFO
+$script $version, Updated: $updated
+Displays the charge state and health of a laptop battery using data obtained
+from files in /sys/class/power_supply/BAT*. Capacity information may be shown
+in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
+VER_INFO
 }
 
 battery_status() {
@@ -119,9 +119,9 @@ battery_capacity() {
 }
 
 battery_condition() {
-  local warn_level warn
-  local cap_pct="$1"
-  local c_pct="${cap_pct%%.*}"
+  local cap_pct c_pct warn_level warn
+  cap_pct="$1"
+  c_pct="${cap_pct%%.*}"
   if [[ "$c_pct" -eq 0 ]]; then
     warn_level=0
   else
@@ -183,43 +183,49 @@ hidpp_battery() {
   done
 }
 
+battery_check() {
+  local battery_name battery_path
+  printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
+  if [[ -d /proc/acpi/button/lid/ ]]; then
+    battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
+    if [[ -n "$battery_name" ]]; then
+      battery_path="/sys/class/power_supply/$battery_name"
+      printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
+      battery_status
+      battery_capacity
+      battery_specs
+    else
+      printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
+    fi
+    ac_power
+    hidpp_battery
+  else
+    printf "\nThis system is not a laptop.\n" >&2
+  fi
+  leave "$script v$version"
+
+}
+
+main() {
+  if [[ $# -gt 0 ]]; then
+    case "$1" in
+      -h|--help )
+        help 0
+      ;;
+      -v|--version )
+        version
+        exit
+      ;;
+      * )
+        printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
+        help 2
+    esac
+  fi
+  check_package bc
+  battery_check
+}
+
 ## Execution ##
 
-if [[ $# -gt 0 ]]; then
-  case "$1" in
-    -h|--help )
-      help 0
-    ;;
-    -v|--version )
-      version
-      exit
-    ;;
-    * )
-      printf "%sInvalid argument: %s%s\n" "$lightred" "$1" "$normal" >&2
-      help 2
-  esac
-fi
-
-check_package bc
 clear
-printf "%s%sBattery Information%s\n" "$bold" "$orange" "$normal"
-if [[ -d /proc/acpi/button/lid/ ]]; then
-  battery_name=$(find /sys/class/power_supply/ -name "BAT*" | awk -F/ '/BAT/ {print $5}')
-  if [[ -n "$battery_name" ]]; then
-    battery_path="/sys/class/power_supply/$battery_name"
-    printf "\n%sBattery:%s %s\n" "$orange" "$normal" "$battery_name"
-    battery_status
-    battery_capacity
-    battery_specs
-  else
-    printf "\n%sNo battery detected%s\n" "$lightred" "$normal" >&2
-  fi
-  ac_power
-  hidpp_battery
-else
-  printf "\nThis system is not a laptop.\n" >&2
-fi
-
-printf "\n%s v%s\n" "$_script" "$_version"
-
-exit
+main "$@"
