@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Oct 2024
+# Updated      : 18 Oct 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -135,15 +135,14 @@ nala_update() {
     printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
     sudo nala autopurge --config
   else
-    printf "Action deferred.\n"
+    printf "Autoremove and autopurge deferred.\n"
   fi
   printf "\n"
 }
 
 apt_update() {
   local nupd options _opt
-  # Check if Debian or Dehian-based, then update apt cache
-  grep -qw debian /etc/os-release && update_apt_cache
+  update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
   # If there are packages to be upgraded
@@ -157,8 +156,13 @@ apt_update() {
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
     PS3="Choose an option: "
-    options=("Install updates." "Install updates & clean cache" "Install updates & remove orphaned packages." \
-    "Install updates, clean cache, & remove orphaned packages." "Defer updates until later.")
+    options=(
+      "Install updates."
+      "Install updates & clean cache"
+      "Install updates & remove orphaned packages."
+      "Install updates, clean cache, & remove orphaned packages."
+      "Defer updates until later."
+    )
     select _opt in "${options[@]}"; do
       case $REPLY in
         1 )
@@ -192,31 +196,36 @@ apt_update() {
           break
         ;;
         * )
-          printf "%sInvalid option!%s Select 1..5\n" "$lightred" "$normal" >&2
+          printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
       esac
     done
   else
-    printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
+    printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
   fi
 }
 
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.15.24284"
+  version="2.16.24292"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
-  printf "%s%s%s v%s\n" "$bold" "$orange" "$script" "$version"
-  printf "System: %s (# %s)\n" "$local_host" "$(local_ip)"
-  printf "Distro: %s\n" "$(get_distribution)"
-  printf "Kernel: %s\n\n" "$(uname -sr)"
-  printf "Checking for updates...%s\n\n" "$normal"
+  cat << _HEADER_
+${bold}${orange}$script $version
+System: $local_host $(local_ip)
+Distro: $(get_distribution)
+Kernel: $(uname -sr)
+
+Checking for updates...${normal}
+
+_HEADER_
 }
 
 main() {
   local action="${1:-nala}"
   SECONDS=0
+  sudo_login 0
   show_header
   if [[ "$action" == "apt" ]] || ! exists nala; then
     apt_update
@@ -225,7 +234,7 @@ main() {
   fi
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
-  leave "Script completed in $(format_time $SECONDS)"
+  leave "Update completed in $(format_time $SECONDS)"
 }
 
 ## Execution ##
