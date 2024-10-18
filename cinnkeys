@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, MosfaNet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 12 May 2021
-# Updated      : 19 Apr 2024
+# Updated      : 18 Oct 2024
 # Comments     : Backup of Cinnamon keybindings in ~/.config
 #              : Tested with Cinnamon DE on Mint 19.x & 20.x, 21.x, LMDE 5/6, Debian 10/11/12
 # TODO (Rick)  :
@@ -42,30 +42,28 @@ else
   exit 1
 fi
 
-## Variables ##
+## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.2.24110"
-readonly _updated="19 Apr 2024"
-readonly kb_bu="keybindings-backup.dconf"
-readonly cfg_dir="$HOME/.config"
-readonly verbose_mode="$FALSE"
+verbose_mode="$FALSE"
 
 ## Functions ##
 
-usage() {
-  local errcode="${1:-1}"
-  cat << _END_HELP_
+help() {
+  local errcode updated
+  errcode="${1:-1}"
+  updated="18 Oct 2024"
+  cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
 Creates a backup file of Cinnamon keybindings and restores from a backup file.
 
-${green}Usage:${normal} $_script [OPTION]
-${orange}OPTIONS:${normal}
-  -d  Dump Cinnamon keybindings to a backup file in ~/.config.
-  -h  Displays help.
-  -l  Load Cinnamon keybindings from the backup file.
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -d  Dumps Cinnamon keybindings to a backup file in ~/.config.
+  -h  Displays this help text.
+  -l  Loads Cinnamon keybindings from the backup file.
   -v  Enable verbose mode
-$_script v$_version, updated: $_updated
-_END_HELP_
+_HELP_
   exit "$errcode"
 }
 
@@ -74,47 +72,58 @@ showme() {
 	[[ "$verbose_mode" == "$TRUE" ]] && echo "$message"
 }
 
+main() {
+  local cfg_dir kb_bu script version
+  script=$(basename "$0")
+  version="2.5.24292"
+  cfg_dir="$HOME/.config"
+  kb_bu="keybindings-backup.dconf"
+
+  if is_cinnamon; then
+    noOpt=1
+    optstr=":dhlv"
+    while getopts "$optstr" opt; do
+      case "$opt" in
+        d )
+          show_message "Dumping keybindings to backup file."
+          dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
+          printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
+        ;;
+        h )
+          help 0
+        ;;
+        l )
+          if [[ -f "$cfg_dir/$kb_bu" ]]; then
+            show_message "loading keybindings from backup file."
+            dconf load /org/cinnamon/desktop/keybindings/ < "$HOME/.config/$kb_bu"
+            printf "Cinnamon Keybindings loaded from %s\n" "$cfg_dir/$kb_bu"
+          else
+            pirntf "%s does not exist. Creating it...\n" "$kb_bu" >&2
+            show_message "Dumping keybindings to backup file."
+            dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
+            printf "Cinnamon Keybindings dumped to %s\n" "$cfg_dir/$kb_bu"
+          fi
+        ;;
+        v )
+          verbose_mode="$TRUE"
+          show_message "Verbose mode enabled."
+        ;;
+        ? )
+          printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+          help 2
+      esac
+      noOpt=0
+    done
+    [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+    shift "$(( OPTIND - 1 ))"
+  else
+    pirntf "The desktop environment is not Cinnamon.\n" >&2
+    exit 1
+  fi
+  over_line "$script v$version"
+  exit
+}
+
 ## Execution ##
 
-if is_cinnamon; then
-  noOpt=1
-  optstr=":dhlv"
-  while getopts "$optstr" opt; do
-    case "$opt" in
-      d )
-        showme "Dumping keybindings to backup file."
-        dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
-        echo "Cinnamon Keybindings dumped to $cfg_dir/$kb_bu."
-      ;;
-      h )
-        usage 0
-      ;;
-      l )
-        if [[ -f "$HOME/.config/$kb_bu" ]]; then
-          showme "loading keybindings from backup file."
-          dconf load /org/cinnamon/desktop/keybindings/ < "$cfg_dir/$kb_bu"
-          echo "Cinnamon Keybindings loaded from $cfg_dir/$kb_bu."
-        else
-          echo "$kb_bu does not exist. Creating it..." >&2
-          showme "Dumping keybindings to backup file."
-          dconf dump /org/cinnamon/desktop/keybindings/ > "$cfg_dir/$kb_bu"
-          echo "Cinnamon Keybindings dumped to $cfg_dir/$kb_bu"
-        fi
-      ;;
-      v )
-        verbose_mode="$TRUE"
-        showme "Verbose mode enabled."
-      ;;
-      ? )
-        echo "$red_error Invalid option: -${OPTARG}" >&2
-        usage 2
-    esac
-    noOpt=0
-  done
-  [[ "$noOpt" = 1 ]] && { echo "$red_error No argument passed." >&2; usage 1; }
-  shift "$(( OPTIND - 1 ))"
-else
-  echo "The desktop environment is not Cinnamon." >&2
-  exit 1
-fi
-leave "$_script v$_version"
+main "$@"
