@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 22 Aug 2024
+# Updated      : 18 Oct 2024
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,9 +44,8 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.9.24235"
-readonly _updated="22 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="1.10.24292"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -54,12 +53,14 @@ verbose_mode="$FALSE"
 ## Functions ##
 
 help() {
+  local errcode updated
 	errcode="${1:-2}"
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+	updated="18 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Install/Removes VSCodium & applies settings
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -a  Set apt gpg key and source list
@@ -68,11 +69,11 @@ ${orange}Available options:${normal}
   -r  Remove VSCodium
   -s  Apply VSCodium settings
   -v  Enable verbose mode
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
-codium_version() {
+codiumversion() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
@@ -87,7 +88,7 @@ apply_settings() {
 
 settings() {
   local vsc_cfg_d="${HOME}/.config/VSCodium/User"
-  cat << END_JSON > "$vsc_cfg_d/settings.json"
+  cat << _JSON_ > "$vsc_cfg_d/settings.json"
 {
   "workbench.colorTheme": "Default High Contrast",
   "editor.tabSize": 2,
@@ -100,11 +101,12 @@ settings() {
   "editor.insertSpaces": false,
   "editor.autoClosingQuotes": "always"
 }
-END_JSON
+_JSON_
 }
 
 set_key() {
-	wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+	local key_url="https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg"
+	wget "$key_url"
 	show_message "Setting the GPG key..."
 	sudo mv pub.gpg "$key_file"
 }
@@ -123,7 +125,7 @@ install_vscodium() {
 	sudo apt-get update
 	sudo apt-get install -y codium
 	apply_settings
-	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
+	printf "VSCodium %s successfully installed.\n" "$(codiumversion)"
 }
 
 remove_vscodium() {
@@ -146,61 +148,66 @@ show_message() {
 }
 
 show_title() {
-	box "$_script v$_version"
+	box "$script v$version"
 	printf "Installs/removes VSCodium\n"
 }
 
-## Execution ##
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":ahirsv"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			a)
+				exists codium || leave "VSCodium is not installed."
+				printf "Setting the GPG key and creating the source list file.\n"
+				show_title
+				sudo_login 2
+				show_message "Checking dependencies..."
+				check_package wget
+				show_message "Setting the GPG key and creating the source list file."
+				set_key
+				set_src
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists codium && leave "VSCodium $(codiumversion) is already installed."
+				show_title
+				sudo_login 2
+				show_message "Checking dependencies..."
+				check_package wget
+				install_vscodium
+			;;
+			r )
+				exists codium || leave "VSCodium is not installed."
+				show_title
+				sudo_login 2
+				remove_vscodium
+			;;
+			s )
+				exists codium || leave "VSCodium is not installed."
+				show_title
+				sudo_login 2
+				show_message "Checking dependencies..."
+				apply_settings
+			;;
+			v )
+				verbose_mode="$TRUE"
+				show_message "Verbose mode enabled."
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script v$version)"
+	exit
+}
+	## Execution ##
 
-noOpt=1
-optstr=":ahirsv"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		a)
-			exists codium || leave "VSCodium is not installed."
-			printf "Setting the GPG key and creating the source list file.\n"
-			show_title
-			sudo_login 2
-			show_message "Checking dependencies..."
-			check_package wget
-			show_message "Setting the GPG key and creating the source list file."
-			set_key
-			set_src
-		;;
-		h )
-			help 0
-		;;
-		i )
-			exists codium && leave "VSCodium $(codium_version) is already installed."
-			show_title
-			sudo_login 2
-			show_message "Checking dependencies..."
-			check_package wget
-			install_vscodium
-		;;
-		r )
-			exists codium || leave "VSCodium is not installed."
-			show_title
-			sudo_login 2
-			remove_vscodium
-		;;
-		s )
-		  exists codium || leave "VSCodium is not installed."
-			show_title
-			sudo_login 2
-			show_message "Checking dependencies..."
-    	apply_settings
-		;;
-		v )
-      verbose_mode="$TRUE"
-      show_message "Verbose mode enabled."
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version ($_updated)"
+	main "$@"
