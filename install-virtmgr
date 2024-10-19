@@ -4,34 +4,30 @@
 # Description  : Installs virt-manager, KVM/QEMU, and associated utilities.
 # Dependencies : systemd (for daemons/services)
 # Arguments    : None
-# Author       : Copyright (C) 2021, Richard B. Romig, 10 Feb 2021
+# Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
+# Created      : 10 Feb 2021
+# Updated      : 02 Oct 2024
 # Comments     : Based on Chris Titus video for installing virt-manager:
 #              : https://www.youtube.com/watch?v=ozYKkaVK0_A
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2021, Richard B. Romig
 # Email: rick.romig@gmail.com
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
-
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="0.2.4"
-readonly _updated="10 Jan 2024"
 
 ## Functions ##
 
@@ -55,11 +51,20 @@ sudo_login() {
   fi
 }
 
+die() {
+  local errmsg errcode
+  errmsg="${1:-Undefined error}"
+  errcode="${2:-1}"
+  printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
+  exit "$errcode"
+}
+
 check_cpu() {
+  local proc64 kernel64 vcpu
   declare -i virt_flag=0
-	local proc64; proc64=$(grep -Ec ' lm ' /proc/cpuinfo)  # egrep -c ' lm ' /proc/cpuinfo
-	local kernel64; kernel64=$(uname -m)
-	local vcpu; vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)' /proc/cpuinfo
+	proc64; proc64=$(grep -Ec ' lm ' /proc/cpuinfo)  # egrep -c ' lm ' /proc/cpuinfo
+	kernel64; kernel64=$(uname -m)
+	vcpu; vcpu=$(grep -Ec 'vmx|svm' /proc/cpuinfo)  # egrep -c '(vmx|svm)' /proc/cpuinfo
 
   printf "* Kernel is "
   if [[ "$kernel64" == "x86_64" ]]; then
@@ -111,6 +116,7 @@ start_networking() {
 }
 
 add_to_libvirt() {
+  local in_libvirt_grp
   # Add user to the libvirt group
   getent group libvirt || sudo groupadd libvirt > /dev/null 2>&1
   in_libvirt_grp=$(awk '/libvirt:/ && /'"$USER"'/' /etc/group)
@@ -125,6 +131,7 @@ add_to_libvirt() {
 }
 
 add_to_libvirtqemu() {
+  local in_libvirt_qemu_grp
   # Add user to the libvirt-qemu group
   getent group libvirt-qemu || sudo groupadd libvirt-qemu > /dev/null 2>&1
   in_libvirt_qemu_grp=$(awk '/libvirt-qemu:/ && /'"$USER"'/' /etc/group)
@@ -139,6 +146,7 @@ add_to_libvirtqemu() {
 }
 
 add_to_kvm() {
+  local in_kvm_grp
   # Add user to the kvm group
   getent group kvm || sudo groupadd kvm > /dev/null 2>&1
   in_kvm_grp=$(awk '/kvm:/ && /'"$USER"'/' /etc/group)
@@ -163,24 +171,29 @@ install_packages() {
   sudo modprobe vhost_net
 }
 
+main() {
+  local script version
+  script=$(basename "$0")
+  version="2.5.24293"
+  box "$script v$version"
+  printf "Installs Virt-Manager and KVM/QEMU...\n\n"
+
+  is_systemd || die "Systemd is required to run background services." 1
+  check_cpu
+  sudo_login 2
+  install_packages
+  # Start Default Network for Networking
+  start_networking
+  printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
+  add_to_libvirt
+  add_to_libvirtqemu
+  add_to_kvm
+  printf "Starting and enabling the libvirt daemon"
+  enable_libvirtd
+  printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups.\n" "$USER"
+  exit
+}
+
 ## Execution ##
 
-clear
-printf "%s v%s (updated %s)\n" "$_script" "$_version" "$_updated"
-printf "Installs Virt-Manager and KVM/QEMU...\n\n"
-
-is_systemd || { echo "Systemd is required to run background services." exit 1; }
-check_cpu
-sudo_login 2
-install_packages
-# Start Default Network for Networking
-start_networking
-printf "Adding %s to libvirt, libvirt-qemu, and kvm groups...\n" "$USER"
-add_to_libvirt
-add_to_libvirtqemu
-add_to_kvm
-printf "Starting and enabling the libvirt daemon"
-enable_libvirtd
-
-printf "Virt-Manager installed. %s added to libvirt, libvirt-qemu, and kvm groups.\n" "$USER"
-exit 0
+main "$@"
