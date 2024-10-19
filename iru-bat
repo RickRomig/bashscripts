@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 13 Aug 2024
+# Updated      : 19 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,9 +42,9 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="5.7.24226"
-readonly _updated="13 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="5.11.24293"
+readonly updated="13 Aug 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -71,8 +71,8 @@ check_distro() {
   esac
 }
 
-bat_ver() {
-  bat --version | awk '{print $2}'
+bat_version() {
+  bat --version | cut -d' ' -f2
 }
 
 newest_version() {
@@ -84,7 +84,7 @@ newest_version() {
 
 compare_versions() {
   local cur_ver
-  cur_ver="$(bat_ver)"
+  cur_ver="$(bat_version)"
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo "${lightyellow}Bat $cur_ver is the current version. No update required.${normal}"
     check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
@@ -103,11 +103,11 @@ install_bat() {
   kill "$!"; tput cnorm
   printf "done\nInstalling Bat %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
-  printf "Bat %s installed.\n" "$(bat_ver)"
+  printf "Bat %s installed.\n" "$(bat_version)"
 }
 
 remove_bat() {
-  printf "Removing Bat %s...\n" "$(bat_ver)"
+  printf "Removing Bat %s...\n" "$(bat_version)"
   sudo dpkg --remove bat
   [[ -d "$bat_cfg_d" ]] && rm -rf "$bat_cfg_d"
   printf "Bat and its configuration files have been removed.\n"
@@ -116,7 +116,7 @@ remove_bat() {
 apply_config() {
   [[ -d "$bat_cfg_d" ]] || mkdir -p "$bat_cfg_d"
   printf "Applying Bat configuration...\n"
-  cat << END_CONFIG > "$bat_cfg_d"/config
+  cat << _CONFIG_ > "$bat_cfg_d"/config
 # Set the theme to "OneHalfDark"
 --theme="OneHalfDark"
 
@@ -139,77 +139,83 @@ apply_config() {
 # Use "gitignore" highlighting for ".ignore" files
 # --map-syntax .ignore:.gitignore
 --map-syntax ".ignore:Git Ignore"
-END_CONFIG
+_CONFIG_
   printf "Bat configuration created and applied.\n"
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="19 Oct 2024"
+	cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -c  Installs/updates Bat configuration file.
   -h  Displays help.
   -i  Installs the Bat utility.
   -r  Removes the Bat utility from the system.
   -u  Updates the Bat utility to the latest version.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":chiru"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				exists bat || leave "Bat is not installed."
+				apply_config
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists bat && leave "Bat $(bat_version) is already installed."
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				sudo_login 2
+				check_dependencies
+				new_ver="$(newest_version)"
+				echo "${lightyellow}Installing Bat version $new_ver...${normal}"
+				check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
+				install_bat
+				apply_config
+			;;
+			r )
+				exists bat || leave "Bat is not installed."
+				sudo_login 2
+				remove_bat
+			;;
+			u )
+				exists bat || leave "Bat is not installed."
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				sudo_login 2
+				check_dependencies
+				new_ver="$(newest_version)"
+				[[ -z "$new_ver" ]] && die "No download available. Try again later." 1
+				compare_versions
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+		done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-printf "Installs, updates, or removes the Bat utililty.\n"
-
-noOpt=1
-optstr=":chiru"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    c )
-      exists bat || leave "Bat is not installed."
-      apply_config
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      exists bat && leave "Bat $(bat_ver) is already installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      echo "${lightyellow}Installing Bat version $new_ver...${normal}"
-      check_distro || echo "Bat $new_ver is the latest version compatible with $(get_distribution)."
-      install_bat
-      apply_config
-    ;;
-    r )
-      exists bat || leave "Bat is not installed."
-      sudo_login 2
-      remove_bat
-    ;;
-    u )
-      exists bat || leave "Bat is not installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      [[ -z "$new_ver" ]] && die "No download available. Try again later." 1
-      compare_versions
-    ;;
-    ? )
-      echo "${lightred}ERROR:${normal}Invalid option -${OPTARG}" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
