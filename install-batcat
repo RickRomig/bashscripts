@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 17 Aug 2024
+# Last updated : 18 Oct 2024
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
 #              : because of a file name clash with another Debian package.
 # TODO (Rick)  :
@@ -46,20 +46,21 @@ set -eu
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.3.24230"
-readonly _updated="17 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="1.5.24274"
 readonly cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
 
 help() {
+	local errcode updated
 	errcode="${1:-2}"
+	updated="18 Oct 2024"
 	cat << END_HELP
-${orange}$_script${normal} $_version, Upated: $_updated
+${orange}$script${normal} $version, Upated: $updated
 Installs/removes/configures bat/batcat
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
 	-c	Create bat configuration file
@@ -92,7 +93,7 @@ remove_bat() {
 bat_config() {
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
   printf "Applying Bat configuration...\n"
-  cat << END_CONFIG > "$cfg_d"/config
+  cat << _CONFIG_ > "$cfg_d"/config
 # Set the theme to "OneHalfDark"
 --theme="OneHalfDark"
 
@@ -115,7 +116,7 @@ bat_config() {
 # Use "gitignore" highlighting for ".ignore" files
 # --map-syntax .ignore:.gitignore
 --map-syntax ".ignore:Git Ignore"
-END_CONFIG
+_CONFIG_
   printf "Bat configuration created and applied.\n"
 }
 
@@ -128,36 +129,42 @@ else
 fi
 }
 
+main() {
+	local noOpt opt optstr
+	noOpt=1
+	optstr=":chir"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				exists bat || leave "Bat is not installed."
+				bat_config
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists bat && leave "Bat $(bat_version) is already installed."
+				sudo_login 2
+				check_package curl
+				install_bat
+			;;
+			r )
+				exists bat || leave "Bat is not installed."
+				sudo_login 2
+				remove_bat
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
+	exit
+}
+
 ## Execution ##
 
-check_package curl
-noOpt=1
-optstr=":chir"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		c )
-			exists bat || leave "Bat is not installed."
-			bat_config
-		;;
-		h )
-			help 0
-		;;
-		i )
-			exists bat && leave "Bat $(bat_version) is already installed."
-			sudo_login 2
-			install_bat
-		;;
-		r )
-			exists bat || leave "Bat is not installed."
-			sudo_login 2
-			remove_bat
-		;;
-		? )
-			printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script $_version"
+main "$@"
