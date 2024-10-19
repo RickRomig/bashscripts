@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 22 Aug 2024
+# Updated      : 18 Oct 2024
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -44,21 +44,21 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.9.24235"
-readonly _updated="22 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.9.24292"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
 ## Functions ##
 
-brave_ver() {
+brave_version() {
   brave-browser --version
 }
 
 install_brave() {
-  local key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
-  local list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
+  local key_url list_url
+  key_url="https://brave-browser-apt-release.s3.brave.com/brave-browser-archive-keyring.gpg"
+  list_url="https://brave-browser-apt-release.s3.brave.com/ stable main"
   printf "Installing the Brave Browser ...\n"
   # Import the public key for verification of the APT repository
   sudo curl -fsSLo "$brave_key" "$key_url"
@@ -67,12 +67,12 @@ install_brave() {
   # Install Brave
   sudo apt-get update -qq
   sudo apt-get install brave-browser brave-keyring -yy
-  printf "%s successfully installed.\n" "$(brave_ver)"
+  printf "%s successfully installed.\n" "$(brave_version)"
 }
 
 remove_brave() {
 	local apt_key="/etc/apt/trusted.gpg.d/brave-browser-release.gpg"
-  printf "Uninstalling %s...\n" "$(brave_ver)"
+  printf "Uninstalling %s...\n" "$(brave_version)"
   sudo apt-get remove brave-browser brave-keyring -yy
   # Remove trusted keys
   if [[ -f "$apt_key" ]]; then
@@ -87,8 +87,9 @@ remove_brave() {
 }
 
 remove_configs() {
-  local brave_cfg_dir="${HOME}/.config/BraveSoftware"
-  local brave_cache_dir="${HOME}/.cache/BraveSoftware"
+  local brave_cfg_dir brave_cache_dir
+  brave_cfg_dir="${HOME}/.config/BraveSoftware"
+  brave_cache_dir="${HOME}/.cache/BraveSoftware"
   printf "Removing local configuration and cache files...\n"
   [[ -d "$brave_cfg_dir" ]] && rm -rf "$brave_cfg_dir"
   [[ -d "$brave_cache_dir" ]] && rm -rf "$brave_cache_dir"
@@ -96,12 +97,14 @@ remove_configs() {
 }
 
 help() {
-  local errcode="${1:-2}"
+  local errcode updated
+  errcode="${1:-2}"
+	updated="18 Oct 2024"
   cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+${orange}$script${normal} $version ($updated)
 Installs/Removes the Brave browser
 
-${green}Usage:${normal} $_script [OPTION]
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Show this help text.
@@ -124,42 +127,47 @@ check_dependencies() {
   fi
 }
 
+main(){
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":hipr"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      h )
+        help 0
+      ;;
+      i )
+        exists brave-browser && leave "$(brave_version) is already installed."
+        sudo_login 2
+        printf "Installs/Removes the Brave browser.\n\n"
+        check_dependencies
+        install_brave
+      ;;
+      p )
+        exists brave-browser || leave "Brave browser is not installed."
+        sudo_login 2
+        printf "Installs/Removes the Brave browser.\n\n"
+        remove_brave
+        remove_configs
+      ;;
+      r )
+        exists brave-browser || leave "Brave browser is not installed."
+        sudo_login 2
+        printf "Installs/Removes the Brave browser.\n\n"
+        remove_brave
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+    noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  over_line "Sscript v$version"
+  exit
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":hipr"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    i )
-      exists brave-browser && leave "$(brave_ver) is already installed."
-      sudo_login 2
-      printf "Installs/Removes the Brave browser.\n\n"
-      check_dependencies
-      install_brave
-    ;;
-    p )
-      exists brave-browser || leave "Brave browser is not installed."
-      sudo_login 2
-      printf "Installs/Removes the Brave browser.\n\n"
-      remove_brave
-      remove_configs
-    ;;
-    r )
-      exists brave-browser || leave "Brave browser is not installed."
-      sudo_login 2
-      printf "Installs/Removes the Brave browser.\n\n"
-      remove_brave
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-printf "%s v%s\n" "$_script" "$_version"
-exit
+main "$@"
