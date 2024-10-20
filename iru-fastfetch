@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 13 Aug 2024
+# Last updated : 19 Oct 2024
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -33,12 +33,11 @@ set -eu
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.3.24226"
-readonly _updated="13 Aug 2024"
-readonly gh_url="https://github.com/fastfetch-cli/fastfetch/releases"
-readonly ff_cfg_d="$HOME/.config/fastfetch"
-readonly ff_logo_d="$HOME/.local/share/fastfetch/logos"	# location for custom logos, if used.
+script=$(basename "$0"); readonly script
+readonly version="2.4.24293"
+readonly GH_URL="https://github.com/fastfetch-cli/fastfetch/releases"
+readonly CFG_D="$HOME/.config/fastfetch"
+readonly LOGO_D="$HOME/.local/share/fastfetch/logos"	# location for custom logos, if used.
 
 ## Functions ##
 
@@ -110,26 +109,28 @@ ff_version() {
 }
 
 newest_version() {
-  wget -qO "$tmp_file" "$gh_url"
+  wget -qO "$tmp_file" "$GH_URL"
   new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /amd64.deb/ {print $7;exit}')
   check_distro || new_ver="2.7.1"
   echo "$new_ver"
 }
 
 compare_versions() {
-	local cur_ver
+	local cur_ver new_ver
+	new_ver="$1"
   cur_ver="$(ff_version)"
   if [[ "$cur_ver" == "$new_ver" ]]; then
     echo -e "\e[93mFastFetch $cur_ver is the current version. No update required.\e[0m"
     check_distro || echo "FastFetch $new_ver is the latest version compatible with $(get_distribution)."
   else
     echo -e "\e[93mInstalled version of FastFetch is $cur_ver, updating to $new_ver...\e[0m"
-    install_fastfetch
+    install_fastfetch "$new_ver"
   fi
 }
 
 install_fastfetch(){
-  local new_pkg
+  local new_pkg new_ver
+	new_ver="$1"
 	if [[ "$new_ver" == "2.7.1" ]]; then
 		new_pkg="fastfetch-2.7.1-Linux.deb"
 	else
@@ -137,105 +138,107 @@ install_fastfetch(){
 	fi
   printf "Downloading FastFetch %s from the fastfetch-cli GitHub repository..." "$new_ver"
   dots "."
-  wget -q -P "$tmp_dir/" "$gh_url/download/$new_ver/$new_pkg"
+  wget -q -P "$tmp_dir/" "$GH_URL/download/$new_ver/$new_pkg"
   kill "$!"; tput cnorm
+	sudo_login 2
   printf "done\nInstalling FastFetch %s...\n" "$new_ver"
   sudo gdebi -n "$tmp_dir/$new_pkg"
   printf "FastFetch %s installed.\n" "$(ff_version)"
 }
 
 remove_fastfetch() {
+	sudo_login 2
 	printf "Removing FastFetch %s ...\n" "$(ff_version)"
 	sudo dpkg --remove fastfetch
-	[[ -d "$ff_cfg_d" ]] && rm -rf "$ff_cfg_d"
-	[[ -d "$ff_logo_d" ]] && rm -rf "$ff_logo_d"
+	[[ -d "$CFG_D" ]] && rm -rf "$CFG_D"
+	[[ -d "$LOGO_D" ]] && rm -rf "$LOGO_D"
 	printf "Fastfetch and its configuration files have been removed.\n"
 }
 
 fastfetch_config() {
-	[[ -d "$ff_cfg_d" ]] || mkdir -p "$ff_cfg_d"
-	# [[ -d "$ff_logo_d" ]] || mkdir -p "$ff_logo_d"
+	[[ -d "$CFG_D" ]] || mkdir -p "$CFG_D"
+	# [[ -d "$LOGO_D" ]] || mkdir -p "$LOGO_D"
 	printf "Downloading configuration files...\n"
-	cp "$HOME/bin/files/config.jsonc" "$ff_cfg_d/"
-	# cp path/to/custom_logo "$ff_logo_d/"
+	cp "$HOME/bin/files/config.jsonc" "$CFG_D/"
+	# cp path/to/custom_logo "$LOGO_D/"
 	sed -i '/neofetch/s/^\[/# \[/' "$HOME/.bashrc"		# Comments call to neofetch
 	echo '[[ -x /usr/bin/fastfetch ]] && /usr/bin/fastfetch' | tee -a "$HOME/.bashrc"
 	printf "Fastfetch configuration applied.\n"
 }
 
 help() {
-	local errcode green normal orange
+	local errcode  updated
 	errcode="${1:-2}"
-	green=$(echo -en "\e[32m")
-	orange=$(echo -en "\e[33m")
-	normal=$(echo -en "\e[0m")
-	cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+	updated="19 Oct 2024"
+	cat << _HELP_
+$script v$version ($updated)
 Installs, configures, removes, updates FastFetch
 
-${green}Usage:${normal} $_script [OPTION]
+Usage: $script [OPTION]
 
-${orange}Available options:${normal}
+Available options:
   -c  Apply Fastretch configuration and logo
   -h  Display help
   -i  Install Fastfetch
   -r  Remove Fastfetch
   -u  Update Fastfetch
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":chiru"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			c )
+				exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+				echo -e "\e[93mInstalling custom Fastfetch configuration...\e[0m"
+				fastfetch_config
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists fastfetch && { echo "Fastfetch $(ff_version) is already installed."; exit; }
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				check_dependencies
+				new_ver="$(newest_version)"
+				[[ "$new_ver" ]] || die "No download available. Try again later." 1
+				check_distro || echo "Fastfetch $new_ver is the latest version compatible with $(get_distribution)"
+				echo -e "\e[93mInstalling Fastfetch version $new_ver...\e[0m"
+				install_fastfetch "$new_ver"
+				fastfetch_config
+			;;
+			r )
+				exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+				remove_fastfetch "$new_ver"
+			;;
+			u )
+				exists fastfetch || { echo "Fastfetch is not installed."; exit; }
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+	      check_dependencies
+				new_ver="$(newest_version)"
+				[[ "$new_ver" ]] || die "No download available. Try again later." 1
+				compare_versions "$new_ver"
+			;;
+			? )
+				echo -e "\e[91mERROR:\e[0m %s\n Invalid option -${OPTARG}" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { echo -e "\e[91mERROR:\e[0m %s\n No argument passed." >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	echo "$script v$version"
+	exit
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":chiru"
-while getopts "$optstr" opt; do
-	case "$opt" in
-		c )
-			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
-			echo -e "\e[93mInstalling custom Fastfetch configuration...\e[0m"
-			fastfetch_config
-		;;
-		h )
-			help 0
-		;;
-		i )
-			exists fastfetch && { echo "Fastfetch $(ff_version) is already installed."; exit; }
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      [[ "$new_ver" ]] || die "No download available. Try again later." 1
-      check_distro || echo "Fastfetch $new_ver is the latest version compatible with $(get_distribution)"
-      echo -e "\e[93mInstalling Fastfetch version $new_ver...\e[0m"
-			install_fastfetch
-			fastfetch_config
-		;;
-		r )
-			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
-			sudo_login 2
-			remove_fastfetch
-		;;
-		u )
-			exists fastfetch || { echo "Fastfetch is not installed."; exit; }
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      [[ "$new_ver" ]] || die "No download available. Try again later." 1
-			compare_versions
-		;;
-		? )
-			echo -e "\e[91mERROR:\e[0m %s\n Invalid option -${OPTARG}" >&2
-			help 2
-	esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { echo -e "\e[91mERROR:\e[0m %s\n No argument passed." >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-echo "$_script $_version"
-exit
+main "$@"
