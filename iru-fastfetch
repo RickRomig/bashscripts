@@ -48,6 +48,10 @@ cleanup() {
 	[[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
 }
 
+exists() {
+	command -v "$1" > /dev/null 2>&1 && return 0 || return 1
+}
+
 die() {
 	local errmsg errcode
   errmsg="${1:-Undefined error}"
