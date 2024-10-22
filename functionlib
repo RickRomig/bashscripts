@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 14 Sep 2024
+# Last updated : 23 Oct 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -557,6 +557,25 @@ remove_tilde() {
   local nbu
   nbu=$(find ./ -maxdepth 1 -type f -regex '\./.*~$' | wc -l)
   (( nbu > 0 )) && find . -maxdepth 1 -type f -regex '\./.*~$' -exec rm {} \;
+}
+
+###############################################################################
+# check_for_file
+# Purpose: Checks for a needed support file in ~/bin/files
+# Arugment: File name to be checked.
+# Displays OK for 2 seconds if found, exits the script if not.
+###############################################################################
+check_for_file() {
+  local file_dir target_file
+  target_file="${1:-foo.bar}"
+  file_dir="$HOME/bin/files"
+  if [[ -f "$file_dir/$target_file" ]]; then
+    printf "%s - OK\n" "$target_file"
+    sleep 2
+    printf '\e[A\e[K'
+  else
+    die "$target_file not found!" 1
+  fi
 }
 
 ###############################################################################
