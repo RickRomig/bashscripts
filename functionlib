@@ -570,7 +570,7 @@ check_for_file() {
   target_file="${1:-foo.bar}"
   file_dir="$HOME/bin/files"
   if [[ -f "$file_dir/$target_file" ]]; then
-    printf "%s - OK\n" "$target_file"
+    printf "%s [OK]\n" "$target_file"
     sleep 2
     printf '\e[A\e[K'
   else
@@ -719,7 +719,7 @@ format_time() {
 check_package() {
   local package="$1"
   if dpkg -l | grep -qw "$package"; then
-    printf "%s - OK\n" "$package"
+    printf "%s [OK]\n" "$package"
     sleep 2
     printf '\e[A\e[K'
   else
@@ -741,7 +741,7 @@ check_packages() {
   printf "Checking dependencies...\n"
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
-			printf "%s - OK\n" "$pkg"
+			printf "%s [OK]\n" "$pkg"
       sleep 2
       printf '\e[A\e[K'
 		else
