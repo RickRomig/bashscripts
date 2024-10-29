@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 18 Oct 2024
+# Updated      : 29 Oct 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -48,6 +48,20 @@ fi
 set -eu
 
 ## Functions ##
+
+check_disk_space() {
+  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+}
+
+check_reboot_required() {
+  if [ -f /var/run/reboot-required ]; then
+    if default_no "Do you want to reboot now?"; then
+      sudo reboot
+    else
+      printf "Please remember to reboot your system as soon as possible.\n"
+    fi
+  fi
+}
 
 update_apt_cache() {
   local cache_file current_time updated_time time_diff threshold
@@ -207,7 +221,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.16.24292"
+  version="2.17.24303"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
@@ -223,10 +237,13 @@ _HEADER_
 }
 
 main() {
-  local action="${1:-nala}"
+  local action initial_space
+  action="${1:-nala}"
+  initial_space=$(check_disk_space)
   SECONDS=0
   sudo_login 0
   show_header
+  printf "Intial disk space used: %s%%\n" "$initial_space"
   if [[ "$action" == "apt" ]] || ! exists nala; then
     apt_update
   else
@@ -234,7 +251,12 @@ main() {
   fi
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
-  leave "Update completed in $(format_time $SECONDS)"
+  printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
+  printf "Update completed in %s\n" "$(format_time $SECONDS)"
+  if [[ "$action" == "apt" ]] || ! exists nala; then
+    check_reboot_required
+  fi
+  exit
 }
 
 ## Execution ##
