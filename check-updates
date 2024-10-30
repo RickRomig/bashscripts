@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 29 Oct 2024
+# Updated      : 30 Oct 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -50,7 +50,13 @@ set -eu
 ## Functions ##
 
 check_disk_space() {
-  df -h / | awk 'NR==2 {print $5}' | sed 's/%//'
+	local df_stats r_size r_used r_perc r_avail
+	df_stats=$(df -h / | awk 'NR==2 {print $2,$3,$4,$5}')
+	r_size=$(echo "$df_stats" | cut -d ' ' -f1)
+	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
+	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
+	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
+	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
 }
 
 check_reboot_required() {
@@ -158,7 +164,7 @@ apt_update() {
   local nupd options _opt
   update_apt_cache
   # Get number of packages that can be upgraded
-  nupd=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1)
+  nupd=$(aptitude search '~U' | wc -l)
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
     printf "%s%d " "$orange" "$nupd"
@@ -221,7 +227,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.17.24303"
+  version="2.18.24304"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
@@ -237,13 +243,12 @@ _HEADER_
 }
 
 main() {
-  local action initial_space
+  local action
   action="${1:-nala}"
-  initial_space=$(check_disk_space)
   SECONDS=0
   sudo_login 0
   show_header
-  printf "Intial disk space used: %s%%\n" "$initial_space"
+  check_disk_space
   if [[ "$action" == "apt" ]] || ! exists nala; then
     apt_update
   else
@@ -251,8 +256,8 @@ main() {
   fi
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
-  printf "Disk space freed: %s%%\n" "$((initial_space - $(check_disk_space)))"
-  printf "Update completed in %s\n" "$(format_time $SECONDS)"
+  check_disk_space
+  over_line "Update completed in $(format_time $SECONDS)"
   if [[ "$action" == "apt" ]] || ! exists nala; then
     check_reboot_required
   fi
