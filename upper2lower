@@ -71,14 +71,14 @@ upper_lower() {
 	if [[ -f "$filename" ]]; then
 		rename -v 'y/A-Z/a-z/' "$filename"
 	else
-		printf "%s %s not found.\n" "$red_error" "$filename" >&2
+		printf "%s %s not found.\n" "$RED_ERROR" "$filename" >&2
 	fi
 }
 
 ## Execution ##
 
 if [[ $# -eq 0 ]]; then
-	printf "%s No argument passed.\n" "$red_error" >&2
+	printf "%s No argument passed.\n" "$RED_ERROR" >&2
   help 1
 elif [[ $# -eq 1 ]]; then
 	case "$1" in
@@ -91,7 +91,7 @@ elif [[ $# -eq 1 ]]; then
 			help 0
 		;;
 		--* )
-			printf "%s Invalid argument, %s\n" "$red_error"  "$1" >&2
+			printf "%s Invalid argument, %s\n" "$RED_ERROR"  "$1" >&2
 			help 1
 		;;
 		* )
