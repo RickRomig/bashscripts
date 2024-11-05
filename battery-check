@@ -217,7 +217,7 @@ main() {
         exit
       ;;
       * )
-        printf "%s Invalid argument - %s\n" "$red_error" "$1" >&2
+        printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
         help 2
     esac
   fi
