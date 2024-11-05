@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 23 Oct 2024
+# Last updated : 05 Nov 2024
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -41,12 +41,9 @@ declare -r TRUE=0
 declare -r FALSE=1
 RED_ERROR=$(printf "\e[91mERROR:\e[0m"); readonly RED_ERROR
 RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); readonly RED_WARNING
-red_error=$(printf "\e[91mERROR:\e[0m"); readonly red_error
-red_warning=$(printf "\e[91mWARNING!\e[0m"); readonly red_warning
 
 # First three octets of the local network. Assumes a /24 private network.
 LOCALNET=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly LOCALNET
-localnet=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly localnet
 
 ## Colors ##
 
