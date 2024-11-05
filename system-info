@@ -102,7 +102,7 @@ rename_mnt_pt() {
         break
       ;;
       * )
-        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$red_error"
+        printf "%s Invalid choice! Select 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
   done
 }
@@ -130,7 +130,7 @@ ff_fix() {
         break
       ;;
       * )
-        printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$red_error"
+        printf "%s Invalid choice! Choose 1, 2, 3, or 4\n" >&2 "$RED_ERROR"
     esac
   done
   echo "$hd_ff"
