@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Oct 2024
+# Updated      : 05 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -56,7 +56,7 @@ check_disk_space() {
 	r_used=$(echo "$df_stats" | cut -d ' ' -f2)
 	r_perc=$(echo "$df_stats" | cut -d ' ' -f4)
 	r_avail=$(echo "$df_stats" | cut -d ' ' -f3)
-	echo "Disk space used (root): $r_used/$r_size $r_perc used, $r_avail available."
+	printf "\nDisk space used (root): %s / %s %s used, %s available.\n" "$r_used" "$r_size" "$r_perc" "$r_avail"
 }
 
 check_reboot_required() {
@@ -64,7 +64,7 @@ check_reboot_required() {
     if default_no "Do you want to reboot now?"; then
       sudo reboot
     else
-      printf "Please remember to reboot your system as soon as possible.\n"
+      printf "\n%s Please remember to reboot your system as soon as possible.\n" "$RED_WARNING"
     fi
   fi
 }
@@ -96,8 +96,14 @@ clean_apt_cache() {
 }
 
 remove_orphans() {
+  local npkgs
+  npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
-  sudo apt-get autoremove -yy
+  if [[ "$npkgs" -gt 0 ]]; then
+    sudo apt-get autoremove -yy
+  else
+    printf "No packages to be removed.\n"
+  fi
 }
 
 purge_rc_packages() {
@@ -109,7 +115,7 @@ purge_rc_packages() {
       sudo apt-get remove --purge "$rcpkg" -yy
     done
   else
-    printf "No packages in the 'rc' state to be purged.\n"
+    printf "No packages in the 'rc' state.\n"
   fi
 }
 
@@ -227,7 +233,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="2.18.24304"
+  version="3.1.24310"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
