@@ -198,12 +198,12 @@ main() {
 				show_message "Verbose mode enabled."
 			;;
 			? )
-				printf "%s Invalid option -%s\n" "$red_error" "$OPTARG" >&2
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
 				help 2
 		esac
 		noOpt=0
 	done
-	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$red_error" >&2; help 1; }
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
 	over_line "$script v$version)"
 	exit
