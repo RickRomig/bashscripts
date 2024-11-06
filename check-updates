@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 05 Nov 2024
+# Updated      : 06 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -72,9 +72,9 @@ check_reboot_required() {
 update_apt_cache() {
   local cache_file current_time updated_time time_diff threshold
   cache_file="/var/cache/apt/pkgcache.bin"
-  current_time; current_time=$(date +%s)
-  updated_time; updated_time=$(stat -c%Y "$cache_file")
-  time_diff; time_diff=$(( current_time - updated_time ))
+  current_time=$(date +%s)
+  updated_time=$(stat -c%Y "$cache_file")
+  time_diff=$(( current_time - updated_time ))
   # threshold values: 86400 = 24 hours, 43200 = 12 hours, 21600 = 6 hours 10800 = 3 hours
   threshold=10800
   if [[ "$time_diff" -le "$threshold" ]]; then
@@ -153,6 +153,25 @@ update_spices() {
   cinnamon-spice-updater --update-all
 }
 
+update_summary() {
+	local summary nupd nnew nrem ndef
+	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
+	nupd=$(echo "$summary" | cut -d' ' -f1)
+	nnew=$(echo "$summary" | cut -d' ' -f2)
+	nrem=$(echo "$summary" | cut -d' ' -f3)
+	ndef=$(echo "$summary" | cut -d' ' -f4)
+	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
+}
+
+count_updates() {
+  local nupdates fields field1 field2
+  fields=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  field1=$(echo "$fields" | cut -d' ' -f1)
+  field2=$(echo "$fields" | cut -d' ' -f2)
+  nupdates=$((field1 + field2))
+  printf "%s" "$nupdates"
+}
+
 nala_update() {
   sudo nala upgrade
   if default_no "Run autoremove/autopurge?"; then
@@ -170,14 +189,16 @@ apt_update() {
   local nupd options _opt
   update_apt_cache
   # Get number of packages that can be upgraded
-  nupd=$(aptitude search '~U' | wc -l)
+  nupd=$(count_updates)
+  update_summary
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
     printf "%s%d " "$orange" "$nupd"
     (( nupd > 1 )) && printf "packages" || printf "package"
     printf " can be upgraded%s.\n" "$normal"
     # List upgradeable packages
-    apt list --upgradable
+    printf "Files to be upgraded:\n"
+    apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
     # Options menu
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -233,7 +254,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.1.24310"
+  version="3.4.24311"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
