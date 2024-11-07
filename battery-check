@@ -51,7 +51,7 @@ help() {
   local errcode updated
   errcode="${1:-2}"
   updated="17 Oct 2024"
-  cat << END_HELP
+  cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
 
@@ -61,17 +61,17 @@ ${orange}Available options:${normal}
   -h,--help     Show this help text
   -v,--version  Show version and information
   With no argument, displays battery health information.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
 version() {
-  cat << VER_INFO
+  cat << _VERSION_
 $script $version, Updated: $updated
 Displays the charge state and health of a laptop battery using data obtained
 from files in /sys/class/power_supply/BAT*. Capacity information may be shown
 in either Ampere-hours (Ah) or Watt-hours (Wh), depending on your system.
-VER_INFO
+_VERSION_
 }
 
 battery_status() {
