@@ -193,12 +193,10 @@ apt_update() {
   update_summary
   # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    printf "%s%d " "$orange" "$nupd"
-    (( nupd > 1 )) && printf "packages" || printf "package"
-    printf " can be upgraded%s.\n" "$normal"
     # List upgradeable packages
-    printf "Files to be upgraded:\n"
+    printf "Packages to be upgraded:\n"
     apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
+
     # Options menu
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -254,7 +252,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.4.24311"
+  version="3.4.24312"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
