@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 06 Nov 2024
+# Updated      : 08 Nov 2024
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -97,7 +97,7 @@ clean_apt_cache() {
 
 remove_orphans() {
   local npkgs
-  npkgs=$(apt-get autoremove -s | awk 'NR==8 {print $6}')
+  npkgs=$(apt-get autoremove -s | awk '$2 == "upgraded," {print $6}')
   printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
   if [[ "$npkgs" -gt 0 ]]; then
     sudo apt-get autoremove -yy
@@ -155,7 +155,7 @@ update_spices() {
 
 update_summary() {
 	local summary nupd nnew nrem ndef
-	summary=$(apt-get dist-upgrade -s | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3,6,10)
+	summary=$(apt-get dist-upgrade -s |  awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
 	nupd=$(echo "$summary" | cut -d' ' -f1)
 	nnew=$(echo "$summary" | cut -d' ' -f2)
 	nrem=$(echo "$summary" | cut -d' ' -f3)
@@ -165,7 +165,7 @@ update_summary() {
 
 count_updates() {
   local nupdates fields field1 field2
-  fields=$(apt-get -s dist-upgrade | grep "^[[:digit:]]\+ upgraded" | cut -d' ' -f1,3)
+  fields=$(apt-get -s dist-upgrade | awk '$2 == "upgraded," {print $1,$3}')
   field1=$(echo "$fields" | cut -d' ' -f1)
   field2=$(echo "$fields" | cut -d' ' -f2)
   nupdates=$((field1 + field2))
@@ -252,7 +252,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.4.24312"
+  version="3.4.24313"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
