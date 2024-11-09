@@ -117,7 +117,7 @@ gpu_temperature() {
 }
 
 memory_usage() {
-	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}')"
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}' | sed 's/i//g')"
   printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
   ps axch -o cmd:15,%mem --sort=-%mem | head -n 5
 }
