@@ -559,7 +559,8 @@ remove_tilde() {
 ###############################################################################
 # check_for_file
 # Purpose: Checks for a needed support file in ~/bin/files
-# Arugment: File name to be checked.
+# Arugment:
+#   $1 -> File name to be checked.
 # Displays OK for 2 seconds if found, exits the script if not.
 ###############################################################################
 check_for_file() {
