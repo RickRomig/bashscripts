@@ -7,14 +7,14 @@
 # Author       : Copyright (C) 2021, Richard B. Romig, ludditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 06 Jul 2021
-# Updated      : 04 Oct 2024
+# Updated      : 09 Jan 2025
 # Comments     : Original script found on Reddit r/dharmmawheel, posted by u/Jhanna4
-#              : Sound does not work with Pipewire audio.
-# TODO (Rick)  :
+#              : Sound may not work with Pipewire audio.
+# TODO (Rick)  : Work out audio with Pipewire.
 # License      : GNU General Public License, version 2.0
 ##########################################################################
 #
-# Copyright © 2024, Richard B. Romig
+# Copyright © 2021, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -32,25 +32,25 @@
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
 
-## Load function library ##
-
-# if [[ -x "$HOME/bin/functionlib" ]]; then
-#   source "$HOME/bin/functionlib"
-# else
-#   printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
-#   exit 1
-# fi
-
 ## Global Variables ##
 
-readonly sound_dir="$HOME/bin/files"
-readonly tibet_bowl="Tibetan_bowl.wav"
-# readonly wood_block="Low-Wood-Block.wav"
+readonly TRUE=0
+readonly FALSE=1
 
 ## Functions ##
 
 check_alsa() {
-  dpkg -l alsa-utils >/dev/null 2>&1 && return 0 || return 1
+  dpkg -l alsa-utils >/dev/null 2>&1 && return "$TRUE" || return "$FALSE"
+}
+
+# dpms_enabled() {
+#   xset -q | grep -w Enabled || return "$TRUE" || return "$FALSE"
+# }
+
+is_valid_integer() {
+  local value="$1"
+  [[ "$value" =~ ^[0-9]+$ ]] || return "$FALSE"
+  [[ "$value" -ge 0 || "$value" -le 100 ]] && return "$TRUE" || return "$FALSE"
 }
 
 input_value() {
@@ -62,45 +62,50 @@ input_value() {
 get_volume() {
   # Get the cuurent volume setting
   local vol
-  vol=$(amixer get Master | awk '/Mono:/ {print $3}')
+  vol=$(amixer get Master | awk -F'[][]' 'END{print $2}')
   echo "$vol"
 }
 
 set_volume() {
   # Set the volume for sounds played or reset to original volume
   local vol="$1"
-  amixer cset iface=MIXER,name="Master Playback Volume" "$vol" >/dev/null
+  amixer set Master "$vol" >/dev/null
 }
 
 play_sound() {
   # Play a sound as a background process.
+  local sound_dir="$HOME/bin/files"
   local sound="$1"
-  /usr/bin/aplay "$sound" > /dev/null 2>&1 &
+  /usr/bin/aplay "$sound_dir/$sound" > /dev/null 2>&1 &
 }
 
 screensaver_off() {
   # Turn off screensaver and hide cursor.
-  xset s off
-  xset s noblank
-  xset -dpms
-  tput civis
+  xset s off      # turns screensaver off
+  xset s noblank  # set blanking off
+  xset -dpms      # turns DPMS off
+  tput civis      # hides cursor
 }
 
+# shellcheck disable=SC2317 # Don't warn about unrachable commands in this function.
+# Shellcheck may incorrectly believe that code is unreachable if it's invoked by a variable or in a trap.
 screensaver_on() {
-  # Turn screensaver back on and restore cursor.
+  # Turn screensaver back on and restore cursor, called by trap command on exit.
   xset s on
   xset s blank
   xset +dpms
   tput cnorm
 }
 
-countdown() {
-  for i in {10..1}; do printf "\t%02d\r" "$i"; sleep 1; done
+prep_countdown() {
+  local count
+  for count in {10..1}; do printf "\t%02d\r" "$count"; sleep 1; done
 }
 
 meditation_timer() {
-  local hours interval min minutes seconds sec_rem
+  local audio_file hours interval min minutes seconds sec_rem
   min="$1"
+  # audio_file="Low-Wood-Block.wav"
   sec_rem=$(( 60 * min ))
   while [[ "$sec_rem" -gt 0 ]]; do
     sec_rem=$(( sec_rem - 1 ))
@@ -115,18 +120,22 @@ meditation_timer() {
     # interval=$(( interval - hours ))
     # weeks=$(( interval / 604800 ))
     printf "\t%02d:%02d:%02d\r" "$hours" "$minutes" "$seconds"
-    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$sound_dir/$wood_block"
+    # [[ $(( sec_rem % 300 )) -eq 0 && "$sec_rem" -gt 0 ]] && play_sound "$audio_file"
     sleep 1
   done
 }
 
 main() {
-  local meditation_time ovol vol script version
+  trap screensaver_on EXIT
+  local audio_file meditation_time ovol vol script version
   script=$(basename "$0")
-  version="2.1.24278"
-  meditation_time="${1:-20}"
-  vol="${2:-50}"
+  version="2.4.25009"
+  audio_file="Tibetan_bowl.wav"
+  meditation_time="${1:-20}"  # Default time is 20 minutes.
   [[ -n "${meditation_time//[0-9]/}" || "$meditation_time" -eq 0 ]] && input_value
+  vol="${2:-50}"  # Default volume setting is 50%.
+  is_valid_integer "$vol" || vol="30"
+  vol="${vol}%"   # pass volume as a percent.
 	check_alsa || { printf "\e[91mWARNING:\e[0m Audio utilities not installed. Audio will not function.\n" >&2; sleep 5; }
   clear
   # Capture original volume setting
@@ -135,15 +144,14 @@ main() {
   set_volume "$vol"
   printf "\n\t\U2638 Meditation Timer \U2638 \n\n"
   screensaver_off
-  countdown
-  play_sound "$sound_dir/$tibet_bowl"
+  prep_countdown
+  play_sound "$audio_file"
   meditation_timer "$meditation_time"
-  play_sound "$sound_dir/$tibet_bowl"
+  play_sound "$audio_file"
   sleep 30
-  screensaver_on
   set_volume "$ovol"
   printf "\n\n\U2638 %s v%s\n" "$script" "$version"
-  printf "\UA9 2021-2024 Richard B. Romig\n"
+  printf "\UA9 2021-2025 Richard B. Romig\n"
   exit
 }
 
