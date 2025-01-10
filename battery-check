@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jul 2020
-# Updated      : 17 Oct 2024
+# Updated      : 09 Jan 2025
 # Comments     : Uses data from /sys/class/power_supply/BAT*
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2
@@ -43,14 +43,14 @@ fi
 ## Global Variables ##
 
   script=$(basename "$0"); readonly script
-  readonly version="6.6.24291"
+  readonly version="6.7.25009"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="17 Oct 2024"
+  updated="09 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
@@ -162,11 +162,9 @@ ac_power() {
   printf "\tLaptop"
   case "$ac_status" in
     0 )
-      printf " is not plugged in to AC power.\n"
-    ;;
+      printf " is not plugged in to AC power.\n" ;;
     1 )
-      printf " is plugged in to AC power.\n"
-    ;;
+      printf " is plugged in to AC power.\n" ;;
     * )
       printf "'s AC power status cannot be determined.\n"
   esac
@@ -174,11 +172,13 @@ ac_power() {
 
 hidpp_battery() {
   local hidpp_path
+	printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
   for hidpp_path in /sys/class/power_supply/hidpp_battery_?; do
     if [[ "$hidpp_path" != "/sys/class/power_supply/hidpp_battery_?" ]]; then
-      printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
       printf "\t%sDevice:%s %s\n" "$lightgreen" "$normal" "$(basename "$hidpp_path")"
       printf "\t%s%s %s:%s %s%%\n" "$lightgreen" "$(cat "$hidpp_path/manufacturer")" "$(cat "$hidpp_path/model_name")" "$normal" "$(cat "$hidpp_path/capacity")"
+		else
+			printf "HID++ battery not present.\n"
     fi
   done
 }
@@ -207,6 +207,7 @@ battery_check() {
 }
 
 main() {
+	clear
   if [[ $# -gt 0 ]]; then
     case "$1" in
       -h|--help )
@@ -227,5 +228,4 @@ main() {
 
 ## Execution ##
 
-clear
 main "$@"
