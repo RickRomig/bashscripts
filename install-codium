@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 18 Oct 2024
+# Updated      : 10 Jan 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,7 +45,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.10.24292"
+readonly version="1.11.25010"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -55,7 +55,7 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="18 Oct 2024"
+	updated="10 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Install/Removes VSCodium & applies settings
@@ -73,7 +73,7 @@ _HELP_
   exit "$errcode"
 }
 
-codiumversion() {
+codium_version() {
 	# codium --version | head -n 1
 	dpkg -l codium | awk '/ii/ {print $3}'
 }
@@ -125,7 +125,7 @@ install_vscodium() {
 	sudo apt-get update
 	sudo apt-get install -y codium
 	apply_settings
-	printf "VSCodium %s successfully installed.\n" "$(codiumversion)"
+	printf "VSCodium %s successfully installed.\n" "$(codium_version)"
 }
 
 remove_vscodium() {
@@ -173,7 +173,7 @@ main() {
 				help 0
 			;;
 			i )
-				exists codium && leave "VSCodium $(codiumversion) is already installed."
+				exists codium && leave "VSCodium $(codium_version) is already installed."
 				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
@@ -189,8 +189,6 @@ main() {
 			s )
 				exists codium || leave "VSCodium is not installed."
 				show_title
-				sudo_login 2
-				show_message "Checking dependencies..."
 				apply_settings
 			;;
 			v )
