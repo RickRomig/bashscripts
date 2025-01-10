@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 18 Nov 2024
+# Last updated : 10 Jan 2025
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -212,6 +212,7 @@ exists() {
 # Arguments: none
 ###############################################################################
 get_distribution() {
+	local distro
   if [[ -f /etc/lsb-release ]]; then
 		distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release  | sed 's/"//g')
   else
@@ -225,7 +226,7 @@ get_distribution() {
 # Purpose: Returns true if the distribution is directly based on Debian.
 # Arguments: none
 # Returns: True or False
-# Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
+# Notes: Antix, BunsenLabs Lithium, and MX Linux show as a Debian codename.
 ###############################################################################
 is_debian() {
   local codename
@@ -756,8 +757,8 @@ check_packages() {
 in_repos() {
   local in_repo package
   package="$1"
-  in_repo=$(apt-cache show "$package" 2>/dev/null)
-  [[ -n "$in_repo" ]] && return "$TRUE" || return "$FALSE"
+  in_repo=$(apt-cache show "$package" 2>/dev/null | awk '/Package:/ {print $NF}')
+  [[ "$in_repo" ]] && return "$TRUE" || return "$FALSE"
 }
 
 ###############################################################################
@@ -997,13 +998,15 @@ default_no() {
 }
 
 ###############################################################################
-# is_url_good
+# url_accessible
 # Purpose: Returns true if URL is accessible
 # Argument:
 # $1 -> URL to be checked
 # Returns: True or False
 ###############################################################################
-is_url_good() {
-  local url="$1"
-  wget --spider -q "$url" && return "$TRUE" || return "$FALSE"
+url_accessible() {
+  local url result
+  url="$1"
+  result=$(curl --head --connect-timeout 8 --max-time 14 --silent --output /dev/null --write-out '%{http_code}' "$url")
+  [[ "$result" -eq 200 ]] && return "$TRUE" || return "$FALSE"
 }
