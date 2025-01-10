@@ -74,7 +74,7 @@ show_public() {
   # if [[ "$public_ipv6" ]]; then
   #   printf "\t%sIPv4:%s %s\n" "$darkgray" "$normal" "$public_ipv6"
   # else
-  #   printf "\tNo public IPv4 address found.\n"
+  #   printf "\tNo public IPv6 address found.\n"
   # fi
 }
 
