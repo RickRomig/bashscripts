@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 08 Nov 2024
+# Updated      : 10 Jan 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -141,7 +141,7 @@ update_flatpak() {
     printf "User installations...\n"
     flatpak update --user --noninteractive --force-remove --assumeyes
     printf "System-wide installations...\n"
-    sudo flatpak update --system --noninteractive --force-remove --assumeyes
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/nul
     printf "\n"
   else
     printf "No Flatpaks installed.\n\n"
@@ -224,7 +224,7 @@ apt_update() {
         3 )
           install_updates
           remove_orphans
-          purge_configs
+          purge_rc_packages
           update_complete "$nupd"
           break
         ;;
@@ -252,7 +252,7 @@ apt_update() {
 show_header() {
   local script version local_host
   script=$(basename "$0")
-  version="3.4.24313"
+  version="3.6.25010"
   local_host="${HOSTNAME:-$(hostname)}"
 	sudo_login 0
   clear
@@ -267,25 +267,39 @@ Checking for updates...${normal}
 _HEADER_
 }
 
+check_action() {
+  local action
+  action="${1:-nala}" # Default is nala
+  exists nala || action="apt" # if nala not installed, change default to apt
+  case "$action" in
+    apt | nala )
+      echo "$action" ;;
+    * )
+      echo "apt"
+  esac
+}
+
 main() {
   local action
   action="${1:-nala}"
+  action=$(check_action "$action")
   SECONDS=0
   sudo_login 0
   show_header
   check_disk_space
-  if [[ "$action" == "apt" ]] || ! exists nala; then
-    apt_update
-  else
-    nala_update
-  fi
+  case "$action" in
+    apt )
+      apt_update ;;
+    nala )
+      nala_update ;;
+    * )
+      diehard  "Invalid argument" "Enter 'apt' 'nala' or leave blank."
+  esac
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
-  if [[ "$action" == "apt" ]] || ! exists nala; then
-    check_reboot_required
-  fi
+  [[ "$action" == "apt" ]] && check_reboot_required
   exit
 }
 
