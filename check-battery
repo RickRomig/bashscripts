@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 30 Jul 2020
-# Updated      : 30 Sep 2024
+# Updated      : 09 Jan 2025
 # Comments     : Obtains battery data from upower utility.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,14 +43,14 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.6.24274"
+readonly version="4.7.25009"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="30 Sep 2024"
+  updated="09 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Shows battery charge and health information
@@ -132,7 +132,6 @@ battery_specs() {
   printf "    %-21s%s\n" "Technology:" "$battery_tech"
 }
 
-
 ac_status() {
   local status
   status=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep 'AC')" | awk '/online:/ {print $NF}')
@@ -144,11 +143,15 @@ ac_status() {
 
 hidpp_battery() {
   local hidpp_data
-  hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
   printf "\n%sHID++ Battery:%s\n" "$orange" "$normal"
-  printf "    Device: %s\n" "$(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
-  printf "    %s:   " "$(echo "$hidpp_data" | awk '/model/ {print $NF}')"
-  printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
+  if /usr/bin/upower -e | grep -q hidpp; then
+	  hidpp_data=$(/usr/bin/upower -i "$(/usr/bin/upower -e | grep hidpp)")
+		printf "    Device: %s\n" "$(echo "$hidpp_data" | awk '/native-path/ {print $NF}')"
+		printf "    %s:   " "$(echo "$hidpp_data" | awk '/model/ {print $NF}')"
+		printf "%s\n" "$(echo "$hidpp_data" | awk '/percentage/ {print $NF}')"
+  else
+		printf "    No HID++ battery present.\n"
+  fi
 }
 
 battery_check() {
@@ -167,17 +170,15 @@ battery_check() {
       printf "\n%sNo battery detected.%s\n" "$lightred" "$normal" >&2
     fi
     ac_status
-    /usr/bin/upower -e | grep -q mouse_hidpp_battery && hidpp_battery
+    hidpp_battery
   else
     printf "\nThis system is not a laptop.\n" >&2
   fi
-  printf "\n%s v%s\n" "$script" "$version"
-  exit
 }
 
 main() {
 	clear
-  if [[ $# -gt 0 ]]; then
+  if [[ "$#" -gt 0 ]]; then
     case "$1" in
       -h|--help )
         help 0
@@ -188,11 +189,14 @@ main() {
       ;;
       * )
         printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
-      help 2
+	      help 2
     esac
+	else
+		check_package upower
+		battery_check
+	  overline "$script $version"
+	  exit
   fi
-  check_package upower
-  battery_check
 }
 
 ## Execution ##
