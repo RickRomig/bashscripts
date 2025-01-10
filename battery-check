@@ -202,13 +202,11 @@ battery_check() {
   else
     printf "\nThis system is not a laptop.\n" >&2
   fi
-  leave "$script v$version"
-
 }
 
 main() {
 	clear
-  if [[ $# -gt 0 ]]; then
+  if [[ "$#" -gt 0 ]]; then
     case "$1" in
       -h|--help )
         help 0
@@ -221,9 +219,12 @@ main() {
         printf "%s Invalid argument - %s\n" "$RED_ERROR" "$1" >&2
         help 2
     esac
+	else
+		check_package bc
+		battery_check
+		over_line "$script v$version"
+		exit
   fi
-  check_package bc
-  battery_check
 }
 
 ## Execution ##
