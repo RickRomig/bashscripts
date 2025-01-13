@@ -44,7 +44,6 @@ fi
 
 script=$(basename "$0"); readonly script
 readonly version="5.11.24293"
-readonly updated="13 Aug 2024"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
