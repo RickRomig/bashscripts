@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 02 May 2024
-# Last updated : 20 Oct 2024
+# Last updated : 13 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -34,7 +34,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="2.4.24294"
+readonly version="2.5.25013"
 readonly GH_URL="https://github.com/fastfetch-cli/fastfetch/releases"
 readonly CFG_D="$HOME/.config/fastfetch"
 readonly LOGO_D="$HOME/.local/share/fastfetch/logos"	# location for custom logos, if used.
@@ -109,7 +109,7 @@ check_distro() {
 }
 
 ff_version() {
-	fastfetch --version | cut -d' ' -f2
+	fastfetch --version-raw
 }
 
 newest_version() {
@@ -174,7 +174,7 @@ fastfetch_config() {
 help() {
 	local errcode  updated
 	errcode="${1:-2}"
-	updated="20 Oct 2024"
+	updated="13 Jan 2025"
 	cat << _HELP_
 $script v$version ($updated)
 Installs, configures, removes, updates FastFetch
