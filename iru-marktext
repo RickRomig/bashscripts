@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 19 Oct 2024
+# Updated      : 14 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.7.24293"
+readonly version="4..25014"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -114,7 +114,7 @@ apply_preferences() {
 	local json_file="preferences.json"
 	[[ -d "$cfg_dir" ]] && mkdir -p "$cfg_dir"
 	printf "Applying %s...\n" "$json_file"
-	cat << END_PREFS > "$cfg_dir/$json_file"
+	cat << _PREFS_ > "$cfg_dir/$json_file"
 {
 	"autoSave": true,
 	"autoSaveDelay": 5000,
@@ -179,14 +179,14 @@ apply_preferences() {
 	"defaultDirectoryToOpen": "",
 	"zoom": 1.25
 }
-END_PREFS
+_PREFS_
   printf "MarkText %s applied.\n" "$json_file"
 }
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Oct 2024"
+	updated="14 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -205,6 +205,7 @@ _HELP_
 
 main() {
   local noOpt opt optstr new_ver
+	check_dependencies
 	noOpt=1
 	optstr=":chiru"
 	while getopts "$optstr" opt; do
@@ -221,7 +222,6 @@ main() {
 			tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
-			check_dependencies
 			new_ver="$(newest_version)"
 			echo "${lightyellow}Installing MarkText version $new_ver...${normal}"
 			install_marktext "$new_ver"
@@ -235,7 +235,6 @@ main() {
 			tmp_file=$(mktemp) || die "Failed to create temporary file." 1
 			tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
 			trap cleanup EXIT
-			check_dependencies
 			new_ver="$(newest_version)"
 			[[ "$new_ver" ]] || die "No download available. Try again later." 1
 			compare_versions "$new_ver"
