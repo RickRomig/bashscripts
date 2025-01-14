@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 22 Oct 2020
-# Updated      : 23 Sep 2024
+# Updated      : 14 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,20 +41,37 @@ else
   exit 1
 fi
 
-## Variables ##
+## Functions ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.2.24267"
-readonly logind_conf="/etc/systemd/logind.conf"
-readonly sed_file="$HOME/bin/files/laptoplid.sed"
+modify_logind() {
+  local logind_conf="/etc/systemd/logind.conf"
+  local sed_file="$HOME/bin/files/laptoplid.sed"
+  if [[ -f "$sed_file" ]]; then
+    sudo_login 2
+    printf "Allows a laptop lid to be closed without going into suspend mode.\n"
+    printf "Modifying %s and restarting systemd-logind service.\n" "$logind_conf"
+    sudo sed -i.bak -f "$sed_file" "$logind_conf"
+    sudo systemctl restart systemd-logind.service
+    printf "%s modified and backup created.\n" "$logind_conf"
+  else
+    printf  "A required file, %s, was not found. Operation canceled" "$(basename "$sed_file")"
+  fi
+}
+
+main() {
+  local lhost script version
+  lhost="${HOSTNAME:=-$(hostname)}"
+  script=$(basename "$0")
+  version="4.3.25014"
+  if is_laptop; then
+    modify_logind
+  else
+    printf "%s is not a laptop. Operation canceled.\n" "$lhost"
+  fi
+  over_line "$script v$version"
+  exit
+}
 
 ## Execution ##
 
-clear
-printf "%s v%s\n" "$_script" "$_version"
-printf "Allows a laptop lid to be closed without going into suspend mode.\n\n"
-is_laptop || leave "This system is not a laptop. $logind_conf was not modified."
-sudo_login 2
-sudo sed -i.bak -f "$sed_file" "$logind_conf"
-sudo systemctl restart systemd-logind.service
-leave "$logind_conf modified. Backup file (${logind_conf}.bak) created."
+main "$@"
