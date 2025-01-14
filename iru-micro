@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 05 Sep 2024
+# Updated      : 14 Jan 2025
 # Comments     : -u option updates installed version only. Does not do initial install.
 #              : Due to changes in the micro repoisitory, scripts installs from a .tar.gz file.
 #              : Version 2.0.13 is the latest version compatible with Debian Bullseye and older.
@@ -45,11 +45,10 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.0.24249"
-readonly _updated="05 Sep 2024"
+script=$(basename "$0"); readonly _script
+readonly version="6.4.25014"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
-readonly cfg_d=$HOME"/.config/micro"
+readonly cfg_d="$HOME/.config/micro"
 
 ## Functions ##
 
@@ -80,7 +79,11 @@ micro_version() {
 
 newest_version() {
   wget -qO "$tmp_file" "$gh_url"
-  new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//')
+  if check_distro; then
+    new_ver=$(sed 's/\// /g' "$tmp_file" | grep -Ev 'beta|-rc' | awk '/download/ && /linux/ {print $7;exit}' | sed 's/^v//')
+  else
+    new_ver="2.0.13"
+  fi
   echo "$new_ver"
 }
 
@@ -88,9 +91,11 @@ compare_versions() {
   local cur_ver
   cur_ver=$(micro_version)
   if [[ "$cur_ver" == "$new_ver" ]]; then
-    echo "${lightyellow}Micro $cur_ver is the current version. No update required.${normal}"
+    printf "%sMicro %s is the current version. No update required.%s/n" "$lightyellow" "$cur_ver" "$normal"
+    check_distro || printf "Bat %s is the latest version compatible with %s./n" "$new_ver" "$(get_distribution)"
   else
     echo "${lightyellow}Installed version of Micro is $cur_ver, updating to $new_ver...${normal}"
+    check_distro || printf "Bat %s is the latest version compatible with %s./n" "$new_ver" "$(get_distribution)"
     install_micro
   fi
 }
@@ -102,7 +107,7 @@ install_micro() {
   wget -q -P "$tmp_dir/" "$gh_url/download/v$new_ver/$new_pkg"
   kill "$!";printf "done\n";tput cnorm
   printf "Installing Micro %s...\n" "$new_ver"
-  tar -xzf "$tmp_dir/$new_pkg"
+  tar -xzvf "$tmp_dir/$new_pkg" -C "$tmp_dir/"
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro /usr/bin/
   sudo cp -v "$tmp_dir/micro-$new_ver"/micro.1 /usr/share/man/man1/
   check_package xclip
@@ -111,22 +116,22 @@ install_micro() {
 
 remove_micro() {
   cur_ver=$(micro_version)
-  echo "Removing the Micro CLI text editor..."
+  printf "Removing the Micro CLI text editor...\n"
   sudo dpkg --remove -y micro
   [[ -d "$cfg_d" ]] && rm -rf "$cfg_d"
   [[ -d /root/.config/micro ]] && sudo rm -rf /root/.config/micro
-  echo "Micro $cur_ver and configuration files have been removed."
+  printf "Micro %s and configuration files have been removed.\n" "cur_ver"
 }
 
 apply_settings() {
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  echo "Applying Micro settings..."
+  printf "Applying Micro settings...\n"
   settings
-  echo "Micro setttings applied."
+  printf "Micro setttings applied.\n"
 }
 
 settings() {
-  cat <<- END_SETTINGS > "$cfg_d/settings.json"
+  cat <<- _SETTINGS_ > "$cfg_d/settings.json"
 {
   "colorscheme": "atom-dark",
   "diffgutter": true,
@@ -135,19 +140,19 @@ settings() {
 	"tabsize": 2,
   "wordwrap": true
 }
-END_SETTINGS
-  echo "Micro settings.json created."
+_SETTINGS_
+  printf "Micro settings.json created.\n"
 }
 
 apply_bindings() {
   [[ -d "$cfg_d" ]] || mkdir -p "$cfg_d"
-  echo "Applying Micro keybindings..."
+  printf "Applying Micro keybindings...\n"
   bindings
-  echo "Micro keybindings applied."
+  printf "Micro keybindings applied.\n"
 }
 
 bindings() {
-  cat << END_BINDINGS > "$cfg_d/bindings.json"
+  cat << _BINDINGS_ > "$cfg_d/bindings.json"
 {
   "Alt-/": "lua:comment.comment",
   "CtrlUnderscore": "lua:comment.comment",
@@ -155,14 +160,16 @@ bindings() {
   "Ctrl-Alt-v": "VSplit",
   "Ctrl-Alt-z": "HSplit"
 }
-END_BINDINGS
-  echo "micro bindings.json created."
+_BINDINGS_
+  printf "micro bindings.json created.\n"
 }
 
 help() {
-  local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local errcode updated
+	errcode="${1:-2}"
+	updated="14 Jan 2025"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
 
 ${green}Usage:${normal} $_script [OPTION]
@@ -174,65 +181,67 @@ ${orange}Available options:${normal}
   -r  Removes the Micro CLI text editor from the system.
   -s  Installs/updates the Micro settings json file.
   -u  Updates the Micro CLI text editor to the latest version.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+	local noOpt opt optstr new_ver
+	noOpt=1
+	optstr=":bhirsu"
+	check_dependencies
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			b )
+				exists micro || leave "Micro is not installed."
+				apply_bindings
+			;;
+			h )
+				help 0
+			;;
+			i )
+				exists micro && leave "Micro $(micro_version) is already installed."
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				sudo_login 2
+				new_ver="$(newest_version)"
+				printf "%sInstalling Micro version %s...%s\n" "$lightyellow" "$new_ver" "$normal"
+				install_micro
+				apply_settings
+				apply_bindings
+			;;
+			r )
+				exists micro || leave "Micro is not installed."
+				sudo_login 2
+				remove_micro
+			;;
+			s )
+				exists micro || leave "Micro is not installed."
+				apply_settings
+			;;
+			u )
+				exists micro || leave "Micro is not installed."
+				tmp_file=$(mktemp) || die "Failed to create temporary file." 1
+				tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
+				trap cleanup EXIT
+				sudo_login 2
+				new_ver="$(newest_version)"
+				[[ "$new_ver" ]] || die "No download available. Try again later." 1
+				compare_versions
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+		done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script v$version"
+	exit
 }
 
 ## Execution ##
 
-printf "Installs, updates, or removes the Micro CLI text editor.\n"
-
-noOpt=1
-optstr=":bhirsu"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    b )
-      exists micro || leave "Micro is not installed."
-      apply_bindings
-    ;;
-    h )
-      help 0
-    ;;
-    i )
-      exists micro && leave "Micro $(micro_version) is already installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      echo "${lightyellow}Installing Micro version $new_ver...${normal}"
-      install_micro
-      apply_settings
-      apply_bindings
-    ;;
-    r )
-      exists micro || leave "Micro is not installed."
-      sudo_login 2
-      remove_micro
-    ;;
-    s )
-      exists micro || leave "Micro is not installed."
-      apply_settings
-    ;;
-    u )
-      exists micro || leave "Micro is not installed."
-      tmp_file=$(mktemp) || die "Failed to create temporary file." 1
-      tmp_dir=$(mktemp -d) || die "Failed to create temporary directory." 1
-      trap cleanup EXIT
-      sudo_login 2
-      check_dependencies
-      new_ver="$(newest_version)"
-      [[ "$new_ver" ]] || die "No download available. Try again later." 1
-      compare_versions
-    ;;
-    ? )
-      echo "$RED_ERROR Invalid option -${OPTARG}" >&2
-      help 2
-  esac
-  noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-box "$_script v$_version"
-exit
+main "$@"
