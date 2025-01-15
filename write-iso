@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 13 Jan 2025
+# Updated      : 15 Jan 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -56,7 +56,7 @@ dryrun="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="13 Jan 2025"
+	updated="15 Jan 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -121,7 +121,7 @@ simulate_dd() {
   printf "\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
   printf "\nContents of /dev/%s:\n" "$usb"
 	printf "Disk label: %s\n" "$mount_name"
-  ls "/media/$user/$mount_name"
+  ls -F "/media/$user/$mount_name"
 }
 
 write_dd() {
@@ -134,8 +134,8 @@ write_dd() {
 	  printf "%s written to /dev/%s.\n" "$(basename "$iso")" "$usb"
     printf "\nContents of /dev/%s\n\n" "$usb"
 		printf "Disk label: %s\n" "$mount_name"
-    ls "/media/$user/$mount_name"
-else
+    ls -F "/media/$user/$mount_name"
+	else
     diehard "$iso write to /dev/$usb failed.\n" "$script v$version"
   fi
 }
@@ -158,7 +158,7 @@ write_iso() {
 	fi
 	printf "Current contents of /dev/%s:\n" "$usbdevice"
 	printf "Disk label: %s\n" "$mount_name"
-	ls "/media/$user/$mount_name"
+	ls -F "/media/$user/$mount_name"
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
