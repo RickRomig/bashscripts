@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 23 Mar 2023
-# Updated      : 21 Sep 2024
+# Updated      : 14 Jan 2025
 # Comments     : Based on a script by Joe Collins at EzeeLinux.com
 # TODO (rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,29 +43,31 @@ fi
 
 ## Global Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="6.1.24265"
-readonly _updated="21 Sep 2024"
-readonly lhost="${HOSTNAME:=-$(hostname)}"
+script=$(basename "$0"); readonly script
+readonly version="6.3.25014"
 
 ## Funtions ##
 
 intro() {
-  cat << END_INTRO
+  cat << _INTRO_
 Installs laptop-specific utilities:
  * Thermald - monitors and controls temperature.
  * ACPI - checks the state of ACPI devices.
  * TLP - advanced power management to maximize battery life.
  * Touchpad Indicator - utility to enable/disable the touchpad.
 
-END_INTRO
+_INTRO_
 }
 
 help() {
   local errcode="${1:-2}"
+  local updated="21 Sep 2024"
   intro
-  cat << END_HELP
-${green}Usage:${normal} $_script [OPTION]
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
+Installs laptop-specific utlities.
+
+${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -h  Display help.
@@ -73,17 +75,9 @@ ${orange}Available options:${normal}
   -l  List installed utilities.
   -s  Start TLP service
 
-END_HELP
+_HELP_
   intro
   exit "$errcode"
-}
-
-main() {
-  install_thermald
-  install_acpi
-  install_tlp
-  install_touchpad_indicator
-  util_status
 }
 
 installed() {
@@ -138,6 +132,7 @@ install_tlp() {
 
 tlp_status() {
   local status=1
+  installed tlp || leave "TLP is not installed."
   if is_systemd; then
     systemctl status tlp | grep -qw active && status=0
   elif is_sysv; then
@@ -177,36 +172,49 @@ util_status() {
   installed touchpad-indicator && printf "%22s\n" "Touchpad Indicator"
 }
 
+main() {
+  local lhost noOpt opt optstr
+  lhost="${HOSTNAME:=-$(hostname)}"
+	noOpt=1
+	optstr=":hils"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			h )
+				help 0
+			;;
+				i )
+        is_laptop || die "$lhost is not a laptop." 1
+        sudo_login 2
+        intro
+        install_thermald
+        install_acpi
+        install_tlp
+        install_touchpad_indicator
+        util_status
+      ;;
+      l )
+        is_laptop || die "$lhost is not a laptop." 1
+        util_status
+      ;;
+      s )
+        is_laptop || die "$lhost is not a laptop." 1
+        sudo_login 2
+        tlp_status
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  over_line "$script v$version"
+  exit
+}
+
 ## Execution ##
 
-noOpt=1
-optstr=":hils"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    h )
-      help 0
-    ;;
-    i )
-      is_laptop || die "$lhost is not a laptop." 1
-      sudo_login 2
-      intro
-      main
-    ;;
-    l )
-      is_laptop || die "$lhost is not a laptop." 1
-      util_status
-    ;;
-    s )
-      is_laptop || die "$lhost is not a laptop." 1
-      sudo_login 2
-      start_tlp
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
+
+## Execution ##
