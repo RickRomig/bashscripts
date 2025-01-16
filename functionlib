@@ -292,7 +292,7 @@ is_noble() {
 support_ppa() {
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    focal|jammy|noble|uma|una|vanessa|vera|victoria|virginia|wilma )
+    focal|jammy|noble|uma|una|vanessa|vera|victoria|virginia|wilma|xia )
       return "$TRUE"
     ;;
     * )
