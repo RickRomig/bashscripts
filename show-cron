@@ -44,7 +44,7 @@ fi
 
 ## Functions ##
 
-jobs() {
+anacron_jobs() {
   local count cron_dir interval
   interval="$1"
   cron_dir="/etc/cron.$interval"
@@ -52,36 +52,44 @@ jobs() {
   [[ "$count" -gt 0 ]] && return "$TRUE" || return "$FALSE"
 }
 
-print_jobs() {
+print_anacron_jobs() {
   local cron_dir interval
   interval="$1"
   cron_dir="/etc/cron.$interval"
   find "$cron_dir" -maxdepth 1 -type f -iname \* | awk -F"/" '{print "  " $NF}'
 }
 
-show_anacron() {
+list_anacron_jobs() {
   local interval cron_spool
   interval="$1"
   cron_spool="/var/spool/anacron/cron.$interval"
   printf "\n%sAnacron %s:%s Last run on %s\n" "$orange" "${interval^}" "$normal" "$(sudo cat "$cron_spool" 2>/dev/null)"
-  if jobs "$interval"; then
-    print_jobs "$interval"
+  if anacron_jobs "$interval"; then
+    print_anacron_jobs "$interval"
   else
     printf "No jobs scheduled.\n"
   fi
 }
 
+show_anacron() {
+  local interval intervals
+  intervals=( daily weekly monthly )
+  for interval in "${intervals[@]}"; do
+    list_anacron_jobs "$interval"
+  done
+}
+
 show_user_cron() {
-	local index max num_users
+	local index max norm_user num_users
   num_users=$(awk -F: '$3 >= 1000 && !($1 == "nobody" && $3 == 65534) {SUM+=1} END {print SUM}' /etc/passwd)
-  index=1000
+  index=1000  # starting point for regular users
   max=$(( num_users + index ))
 
   while [[ "$index" -le "$max" ]]; do
     norm_user="$(awk -v pat="$index" -F: '$0~pat{print $1}' /etc/passwd)"
     if [[ -n "$norm_user" ]]; then
       printf "\n%sCron jobs for %s:%s\n" "$orange" "${norm_user^}"  "$normal"
-      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  "$1"\t"$NF}'
+      sudo crontab -l -u "$norm_user" | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk '{print "  "$1,$2,$3,$4,$5"\t"$NF}'
 		fi
     (( index++ ))
   done
@@ -89,29 +97,25 @@ show_user_cron() {
 
 show_root_cron() {
   printf "\n%sCron jobs for root:%s\n" "$orange" "$normal"
-  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk -F"/" '{print "  "$1"\t"$NF}'
-  printf "\n"
+  sudo crontab -l | grep -v '^#' | sed 's/>\/dev\/null 2>&1//' | awk '{print "  "$1,$2,$3,$4,$5"\t"$NF}'
 }
 
 main() {
-  local _script _version lhost interval intervals
+  local script version lhost interval intervals
   script=$(basename "$0")
-  version="6.0.24272"
+  version="6.1.25016"
   lhost="${HOSTNAME:-$(hostname)}"
-  intervals=( daily weekly monthly )
 
   sudo_login 0
   clear
   printf "%s%sJobs for %s%s\n" "$bold" "$green" "$lhost" "$normal"
-  for interval in "${intervals[@]}"; do
-    show_anacron "$interval"
-  done
+  show_anacron
   show_user_cron
   show_root_cron
-  under_line "$script v$version" "-"
+  over_line "$script v$version" "-"
   exit
 }
 
 ## Execution ##
 
-main
+main "$@"
