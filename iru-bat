@@ -65,7 +65,7 @@ check_distro() {
   local codename
   codename=$(lsb_release -c -s)
   case "$codename" in
-    bookworm|bullseye|boron|elsie|faye|focal|jammy|noble|una|vanessa|vera|victoria|virginia|wilma ) return "$TRUE" ;;
+    bookworm|bullseye|boron|elsie|faye|focal|jammy|noble|una|vanessa|vera|victoria|virginia|wilma|xia ) return "$TRUE" ;;
     * ) return "$FALSE" ;;
   esac
 }
