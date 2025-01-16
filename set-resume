@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, 12 Nov 2019
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Nov 2019
-# Updated      : 23 Aug 2024
+# Updated      : 16 Jan 2025
 # Comments     : Extracts swap partition UUID from output of /sbin/blkid
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,38 +42,32 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="5.4.24236"
-readonly _updated="23 Aug 2024"
-
 ## Functions ##
 
 print_message() {
-  cat << END_MESSAGE
+  cat << _MESSAGE_
   Set RESUME environment variable after an update-initramfs error message.
   The error message wil be similar to:
   I: The initramfs will attempt to resume from /dev/sda2
   I: (UUID=09e25397-4a2c-4fb0-a605-a7013eecb59c)
   I: Set the RESUME variable to override this.
-END_MESSAGE
+_MESSAGE_
 }
 
 get_swap_uuid() {
+  local swap_uuid
   if antix_mx; then
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $4}')
   else
     swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $2}')
     [[ "$swap_uuid" == "LABEL=swap" ]] && swap_uuid=$(/sbin/blkid | awk -F\" '/swap/ {print $3}')
   fi
-  printf "%s\n" "$swap_uuid"
+  printf "%s" "$swap_uuid"
 }
 
 set_resume() {
-  local uuid resume_path
-  uuid="$1"
-  resume_path="/etc/initramfs-tools/conf.d/resume"
+  local uuid="$1"
+  local resume_path="/etc/initramfs-tools/conf.d/resume"
   printf "\nSWAP UUID: %s\n" "$uuid"
   printf "\nSetting the RESUME environment variable...\n"
   printf "RESUME=UUID=%s\n" "$uuid" | sudo tee "$resume_path" > /dev/null
@@ -84,15 +78,21 @@ update_initramfs() {
   sudo update-initramfs -u -k all
 }
 
+main() {
+  local script version swap_uuid
+  script=$(basename "$0")
+  version="5.5.25016"
+  sudo_login 2
+  print_message
+  swap_uuid=$(get_swap_uuid)
+  [[ "$swap_uuid" ]] || die "No UUID for swap found." 1
+  set_resume "$swap_uuid"
+  update_initramfs
+  over_line "$script v$version" "-"
+  printf "Reboot the system for the change to take affect.\n"
+  exit
+}
+
 ## Execution ##
 
-sudo_login 2
-
-box "$_script v$_version" "*"
-print_message
-printf "\nExtracting the swap partition UUID using /sbin/blkid ...\n"
-swap_uuid=$(get_swap_uuid)
-[[ "$swap_uuid" ]] || die "No UUID for swap found." 1
-set_resume "$swap_uuid"
-update_initramfs
-leave "Reboot the system for the change to take affect."
+main "$@"
