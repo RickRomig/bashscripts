@@ -2,7 +2,7 @@
 ##########################################################################
 # Script Name  : iru-micro
 # Description  : Installs, updates, and removes the Micro CLI text editor.
-# Dependencies : gdebi, wget
+# Dependencies : wget
 # Arguments    : [-b] [-h] [-i] [-r] [-s] [-u] (See help function)
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
@@ -57,11 +57,6 @@ readonly cfg_d="$HOME/.config/micro"
 cleanup() {
   [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
   [[ -f "$tmp_file" ]] && rm -f "$tmp_file"
-}
-
-check_dependencies() {
-  local packages=( gdebi wget )
-  check_packages "${packages[@]}"
 }
 
 check_distro() {
@@ -189,7 +184,7 @@ main() {
 	local noOpt opt optstr new_ver
 	noOpt=1
 	optstr=":bhirsu"
-	check_dependencies
+	check_package wget
 	while getopts "$optstr" opt; do
 		case "$opt" in
 			b )
