@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 24 Aug 2024
+# Updated:     : 16 Jan 2025
 # Comments     : Will not get desktop session info from an SSH connection, run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -40,14 +40,6 @@ else
   exit 1
 fi
 
-## Global Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="3.7.24237"
-readonly lhost="${HOSTNAME:-$(hostname)}"
-readonly info_file="$HOME/$lhost.info"
-today=$(date +'%d %B %Y'); readonly today
-
 ## Functions ##
 
 check_dependencies() {
@@ -65,14 +57,23 @@ cleanup() {
 }
 
 save_info() {
+  local main_host="hp-800g2-ssf"
   printf "\n"
   if default_yes "Save system information to ~/$(basename "$info_file")"; then
     printf "Writing system information to ~/%s\n" "$(basename "$info_file")"
     cp -v "$tmp_file" "$info_file"
     chmod 664 "$info_file"
+    default_yes "Copy $(basename "$info_file") to $main_host?" && send_to_main
   else
     printf "System information was not written to ~/%s\n" "$(basename "$info_file")"
   fi
+}
+
+send_to_main() {
+  local main_ip ip_addr
+  ip_addr=$(local_ip)
+  main_ip="10"
+  [[ "$ip_addr" != "$main_ip" ]] && scp -p "$info_file" rick@"$LOCALNET.$main_ip":Documents/mosfanet/Computers/info/
 }
 
 rename_mnt_pt() {
@@ -173,7 +174,7 @@ memory_info() {
   local mem_max mem_type phys_mem
 	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
 	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
-	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}' | sed 's/^ //')
+	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
@@ -232,11 +233,8 @@ ssd_hd_info() {
     printf "   %-15s%s" "Form Factor:" "$hd_ff"
     hd_rpm=$(awk -F: '/Rotation/ {print $NF}' "$hd_data" | sed 's/^ //')
     case "$hd_rpm" in
-    	[0-9]* )
-    		printf " %s-rpm Hard Disk Drive\n" "$hd_rpm"
-    	;;
-    	* )
-    		printf " %s\n" "$hd_rpm"
+			[0-9]* ) printf " %s-rpm Hard Disk Drive\n" "$hd_rpm"	;;
+			* ) printf " %s\n" "$hd_rpm"
     esac
 	done
 }
@@ -277,36 +275,45 @@ battery_info() {
   fi
 }
 
+main() {
+  local script version lhost info_file today
+  script=$(basename "$0")
+  version="3.9.25016"
+  lhost="${HOSTNAME:-$(hostname)}"
+  info_file="$HOME/$lhost.info"
+  today=$(date +'%d %B %Y')
+
+  tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
+  trap cleanup EXIT
+  sudo_login 2
+  check_dependencies
+  clear
+  {
+	  printf "System information for %s, as of %s\n\n" "$lhost" "$today"
+	  mfg_info
+	  os_info
+	  cpu_info
+	  memory_info
+	  graphics_info
+	  wired_info
+	  wireless_info
+    if [[ -b /dev/sda ]]; then
+      hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
+      ssd_hd_info
+    fi
+    [[ -c /dev/nvme0 ]] && nvme_info
+	  partition_info
+	  is_laptop && battery_info
+	  printf "\n%s v%s\n" "$script" "$version"
+  } | tee "$tmp_file"
+
+  # Change lsblk timeshift mountpoint to normal partition name.
+  grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
+  # Save system info to file in the home directory?
+  save_info
+  exit
+}
+
 ## Execution ##
 
-tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
-trap cleanup EXIT
-sudo_login 2
-check_dependencies
-clear
-{
-	printf "System information for %s, as of %s\n\n" "$lhost" "$today"
-	mfg_info
-	os_info
-	cpu_info
-	memory_info
-	graphics_info
-	wired_info
-	wireless_info
-  if [[ -b /dev/sda ]]; then
-    hd_data=$(mktemp -q) || die "Failed to create temporary file." 1
-    ssd_hd_info
-  fi
-  [[ -c /dev/nvme0 ]] && nvme_info
-	partition_info
-	is_laptop && battery_info
-	printf "\n%s v%s\n" "$_script" "$_version"
-} | tee "$tmp_file"
-
-# Change lsblk timeshift mountpoint to normal partition name.
-grep -q '/run/timeshift/backup' "$tmp_file" && rename_mnt_pt
-
-# Save system info to file in the home directory?
-save_info
-
-exit
+main "$@"
