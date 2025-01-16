@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2020, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com
 # Created      : 27 Sep 2020
-# Updated      : 23 Aug 2024
+# Updated      : 16 Jan 2025
 # Comments     : Preferred (default) method is /etc/sudoers.d/0pwfeedback.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,9 +44,8 @@ fi
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="4.5.24236"
-readonly _updated="23 Aug 2024"
+script=$(basename "$0"); readonly script
+readonly version="4.6.25016"
 readonly sudoers_file="/etc/sudoers"
 readonly pwfb_dir="/etc/sudoers.d"
 readonly pwfb_file="0pwfeedback"
@@ -97,48 +96,55 @@ disable_pwfeedback() {
 
 help() {
   local errcode="${1:-2}"
-  cat << END_HELP
-${orange}$_script${normal} $_version ($_updated)
+  local updated="16 Jan 2025"
+  cat << _HELP_
+${orange}$script${normal} $version ($updated)
 Enable/Disable password feedback in the terminal.
 
-${green}Usage:${normal} $_script [OPTIONS]
+${green}Usage:${normal} $script [OPTIONS]
 
 ${orange}Available options:${normal}
   -e  Enable password feedback
   -d  Disable password feedback
   -h  Help
   -s  Status of password feedback
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+main() {
+  local noOpt opt optstr
+  noOpt=1
+  optstr=":edhs"
+  while getopts "$optstr" opt; do
+    case "$opt" in
+      e )
+        sudo_login 2
+        enable_pwfeedback
+      ;;
+      d )
+        sudo_login 2
+        disable_pwfeedback
+      ;;
+      h )
+        help 0
+      ;;
+      s )
+        sudo_login 2
+        pwfeedback_status
+      ;;
+      ? )
+        printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+        help 2
+    esac
+	  noOpt=0
+  done
+  [[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+  shift "$(( OPTIND - 1 ))"
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-noOpt=1
-optstr=":edhs"
-while getopts "$optstr" opt; do
-  case "$opt" in
-    e )
-      sudo_login 2
-      enable_pwfeedback
-    ;;
-    d )
-      sudo_login 2
-      disable_pwfeedback
-    ;;
-    h )
-      help 0
-    ;;
-    s )
-      sudo_login 2
-      pwfeedback_status
-    ;;
-    ? )
-      printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
-      help 2
-  esac
-	noOpt=0
-done
-[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
-shift "$(( OPTIND - 1 ))"
-leave "$_script v$_version"
+main "$@"
