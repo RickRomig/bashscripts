@@ -8,7 +8,7 @@
 # Author       : Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : Unknown
-# Updated      : 23 Aug 2024
+# Updated      : 16 Jan 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -29,19 +29,19 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
-## Variables ##
+set -eu
 
-_script=$(basename "$0"); readonly _script
-readonly _version="1.4.24236"
-readonly _updated="23 Aug 2024"
+main() {
+  local script version
+  script=$(basename "$0")
+	version="1.5.25016"
+	echo "$script v$version  - renames filenames containing spaces."
+	# check for filenames containing spaces in the current directory
+	find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
+	printf "%s v%s\n" "$script" "$version"
+	exit
+}
 
 ## Execution ##
 
-echo "$_script v$_version  - renames filenames containing spaces."
-echo -e "Last updated: $_updated\n"
-
-# check for filenames containing spaces
-
-find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
-
-exit
+main "$@"
