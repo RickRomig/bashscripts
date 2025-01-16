@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2017, Richard Romig
 # Email        : rick.romig@gmail.com
 # Created      : 2017
-# Updated      : 23 Aug 2024
+# Updated      : 16 Jan 2025
 # Comment      : File extensions are not case sensitive, will change to lowercase.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
@@ -30,91 +30,103 @@
 
 ## Variables ##
 
-_script=$(basename "$0"); readonly _script
-readonly _version="2.6.24236"
-readonly _updated="23 Aug 2024"
+_cript=$(basename "$0"); readonly script
+readonly version="2.8.25016"
 
 ## Functions ##
 
-
 help() {
   local errcode="${1:-2}"
-  cat << END_HELP
-$_script $_version ($_updated)
+  local updated="16 Jan 2025"
+  cat << _HELP_
+$script $version ($updated)
 Bulk renames file extensions in the current diectory.
 
-Usage: $_script <file-extension>
+Usage: $script <file-extension>
 
-Example: $_script JPG
+Example: $script JPG
 * Supported extensions: AVI, BAK, FLV, GIF, HTM, HTML, JPEG, JPG, MP3, MP4, MPG, MPEG, PDF, PNG, TXT, WMV
 * Input file extensions are not case sensitive.
 * Any combination of upper and lower case are acceptable. Changed file extensions will be lowercase.
-END_HELP
+_HELP_
   exit "$errcode"
+}
+
+rename_extension() {
+  local ext="$1"
+  # Rename file extensions based on the passed argument
+  shopt -s nocasematch
+  case $ext in
+    avi )
+      echo "Renaming .$ext files to .avi"
+      rename -v 's/\.AVI$/\.avi/i' ./* ;;
+    bak )
+      echo "Renaming .$ext files to .bak"
+      rename -v 's/\.BAK$/\.bak/i' ./* ;;
+    flv )
+      echo "Renaming .$ext files to .flv"
+      rename -v 's/\.FLV$/\.flv/i' ./* ;;
+    gif )
+      echo "Renaming .$ext files to .gif"
+      rename -v 's/\.GIF$/\.gif/i' ./* ;;
+    htm|html )
+      echo "Renaming .$ext files to .html"
+      rename -v 's/\.HTML?$/\.html/i' ./* ;;
+    img )
+      echo "Renameing .$ext files to .img"
+      rename -v 's/\.IMG/\.img/i' ./* ;;
+    jpeg|jpg )
+      echo "Renaming .$ext files to .jpg"
+      rename -v 's/\.JPE?G$/\.jpg/i' ./* ;;
+    mp3 )
+      echo "Renaming .$ext files to .mp3"
+      rename -v 's/\.MP3$/\.mp3/i' ./* ;;
+    mp4 )
+      echo "Renaming .$ext files to .mp4"
+      rename -v 's/\.MP4$/\.mp4/i' ./* ;;
+    mpg|mpeg )
+      echo "Renaming .$ext files to .mpg"
+      rename -v 's/\.MPE?G$/\.mpg/i' ./* ;;
+    mkv )
+      echo "Renaming .$ext files to .mkv"
+      rename -v 's/\.MKV/\.mkv/i' ./* ;;
+    pdf )
+      echo "Renaming .$ext files to .pdf"
+      rename -v 's/\.PDF$/\.pdf/i' ./* ;;
+    png )
+      echo "Renaming .$ext files to .png"
+      rename -v 's/\.PNG$/\.png/i' ./* ;;
+    txt )
+      echo "Renaming .$ext files to .txt"
+      rename -v 's/\.TXT$/\.txt/i' ./* ;;
+    webm )
+      echo "Renaming .$ext files  to .webm"
+      rename -v 's/\.WEBM/\.webm/i' ./* ;;
+    wmv )
+      echo "Renaming .$ext files to .wmv"
+      rename -v 's/\.WMV$/\.wmv/i' ./* ;;
+    * )
+      printf "%s %s is NOT a supported file extension.\n" "$RED_ERROR" "$ext" <&2
+      shopt -u nocasematch
+      help 1
+  esac
+  shopt -u nocasematch
+}
+
+main() {
+  local extension
+  if [[ "$#" -eq 0 ]]; then
+    printf "\%s Must provide a file extension to be renamed.\n" "$RED_ERROR" <&2
+    help 2
+  else
+    extension="$1"
+    printf "Bulk renames file extensions in the current diectory.\n"
+    rename_extension "$extension"
+  fi
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-# Check for arguments
-
-if [[ "$#" -eq 0 ]]; then
-  echo -e "\e[91mERROR:\e[0m Must provide a file extension to be renamed." <&2
-  help 2
-else
-  ext="$1"
-fi
-
-echo "$_script v$_version"
-echo "Bulk renames file extensions in the current diectory."
-
-# Rename file extensions based on the passed argument
-
-shopt -s nocasematch
-case $ext in
-  avi)
-    echo "Renaming .$ext files to .avi"
-    rename -v 's/\.AVI$/\.avi/i' ./* ;;
-  bak)
-    echo "Renaming .$ext files to .bak"
-    rename -v 's/\.BAK$/\.bak/i' ./* ;;
-  flv)
-    echo "Renaming .$ext files to .flv"
-    rename -v 's/\.FLV$/\.flv/i' ./* ;;
-  gif)
-    echo "Renaming .$ext files to .gif"
-    rename -v 's/\.GIF$/\.gif/i' ./* ;;
-  htm|html)
-    echo "Renaming .$ext files to .html"
-    rename -v 's/\.HTML?$/\.html/i' ./* ;;
-  jpeg|jpg)
-    echo "Renaming .$ext files to .jpg"
-    rename -v 's/\.JPE?G$/\.jpg/i' ./* ;;
-  mp3)
-    echo "Renaming .$ext files to .mp3"
-    rename -v 's/\.MP3$/\.mp3/i' ./* ;;
-  mp4)
-    echo "Renaming .$ext files to .mp4"
-    rename -v 's/\.MP4$/\.mp4/i' ./* ;;
-  mpg|mpeg)
-    echo "Renaming .$ext files to .mpg"
-    rename -v 's/\.MPE?G$/\.mpg/i' ./* ;;
-  pdf)
-    echo "Renaming .$ext files to .pdf"
-    rename -v 's/\.PDF$/\.pdf/i' ./* ;;
-  png)
-    echo "Renaming .$ext files to .png"
-    rename -v 's/\.PNG$/\.png/i' ./* ;;
-  txt)
-    echo "Renaming .$ext files to .txt"
-    rename -v 's/\.TXT$/\.txt/i' ./* ;;
-  wmv)
-    echo "Renaming .$ext files to .wmv"
-    rename -v 's/\.WMV$/\.wmv/i' ./* ;;
-  *)
-    echo -e "\e[1;31mERROR:\e[0m .$ext is NOT a supported file extension."
-    shopt -u nocasematch
-    help 1
-esac
-shopt -u nocasematch
-
-exit
+main "$@"
