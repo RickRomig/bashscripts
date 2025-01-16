@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ##########################################################################
-# Script Name  : purge-image-rc
+# Script Name  : purge-rc
 # Description  : Purges config files from removed kernels in the 'rc' state
 # Dependencies : None
 # Arguments    : None
 # Author       : Copyright (C) 2020, Richard B. Romig, LudditeGeek
 # Email        : rick.romig@gmail.com | eick.romig@mymetronet.net
 # Created      : 27 Sep 2020
-# Updated      : 27 May 2024
+# Updated      : 16 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -41,10 +41,7 @@ else
   exit 1
 fi
 
-## Variables ##
-
-_script=$(basename "$0"); readonly _script
-readonly _version="4.3.24148"
+set -eu
 
 ## Functions ##
 
@@ -61,26 +58,32 @@ purge_rc_packages() {
 }
 
 list_rc_packages() {
+  local rcpkgs
+  rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
   printf "Packages in the 'rc' state:\n"
   printf "%s\n" "$rcpkgs"
 }
 
 list_headers() {
   printf "Installed linux headers and images:\n"
-  dpkg --list | grep -Ei --color 'linux-image|linux-headers' | cut -d' ' -f1,3
+  dpkg --list | grep -Ei --color 'linux-image|linux-headers' |  awk '{$1=$1}1' | cut -d' ' -f2,3 | column -t
+}
+
+main() {
+  local script version
+  script=$(basename "$0")
+  version="4.8.25016"
+  if dpkg --list | grep -q '^rc'; then
+    list_rc_packages
+    purge_rc_packages
+  else
+    printf "%sNo packages in the 'rc' state to be purged.%s\n" "$green" "$normal"
+  fi
+  list_headers
+  over_line "$script v$version"
+  exit
 }
 
 ## Execution ##
 
-# clear
-box "$_script v$_version"
-rcpkgs=$(dpkg --list | awk '/^rc/ {print $1,$2}')
-if [[ -n "$rc_img" ]]; then
-  sudo_login 2
-  list_rc_packages
-  purge_rc_packages
-else
-  printf "No packages in the 'rc' state to be purged.\n"
-fi
-list_headers
-exit
+main "$@"
