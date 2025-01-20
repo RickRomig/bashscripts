@@ -122,6 +122,9 @@ apply_config() {
 # Show line numbers, Git modifications and file header (but no grid)
 --style="numbers,changes,header,grid"
 
+# Set tabs to 2 spaces
+--tabs 2
+
 # Use italic text on the terminal (not supported on all terminals)
 # --italic-text=always
 
