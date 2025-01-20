@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 08 Nov 2024
+# Updated      : 20 Jan 2025
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
@@ -50,6 +50,7 @@ check_drivetemp() {
   grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
   printf "drivetemp module - OK\n"
   sleep 2
+  printf '\e[A\e[K'
 }
 
 check_dependencies() {
@@ -57,6 +58,49 @@ check_dependencies() {
   check_packages "${packages[@]}"
   # Check drivetemp modules for SATA drives.
   [[ -b /dev/sda ]] && check_drivetemp
+}
+
+memory_usage() {
+	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}' | sed 's/i//g')"
+  printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
+  ps axch -o cmd:15,%mem --sort=-%mem | head -n 5
+}
+
+cpu_usage() {
+  local cores cpu_usage cpu_use
+  cores="$(grep -c "^processor" /proc/cpuinfo)"
+  cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
+  cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
+	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
+  printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
+  ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 5
+}
+
+cpu_temperature(){
+  local sensor_json="$1"
+	if echo "$sensor_json" | grep -q 'k10temp-pci-00c3'; then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')"
+	elif echo "$sensor_json" | grep -q 'dell_smm-virtual-0'; then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')"
+	elif echo "$sensor_json" | grep -q 'Package id 0'; then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')"
+	elif echo "$sensor_json" | grep -q 'Core 0'; then
+		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')"
+  else
+    printf "%-10sNot available\n" "CPU:"
+	fi
+}
+
+gpu_temperature() {
+  # Not all systems will display GPU temperature.
+  local sensor_json="$1"
+  if echo "$sensor_json" | grep -q 'nouveau-pci-0100'; then
+    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."nouveau-pci-0100"."temp1"."temp1_input"')"
+  elif echo "$sensor_json" | grep -q 'pch_skylake-virtual-0'; then
+    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"')"
+  else
+    printf "%-10sNot available\n" "GPU:"
+  fi
 }
 
 nvme_temperature() {
@@ -89,52 +133,10 @@ sata_temperature() {
 	done
 }
 
-cpu_temperature(){
-  local sensor_json="$1"
-	if echo "$sensor_json" | grep -q 'k10temp-pci-00c3'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."k10temp-pci-00c3"."temp1"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'dell_smm-virtual-0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."dell_smm-virtual-0"."CPU"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'Package id 0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Package id 0"."temp1_input"')"
-	elif echo "$sensor_json" | grep -q 'Core 0'; then
-		printf "%-10s%2.1f\U2103 \n" "CPU:" "$(echo "$sensor_json" | jq -r '."coretemp-isa-0000"."Core 0"."temp2_input"')"
-  else
-    printf "%-10sNot available\n" "CPU:"
-	fi
-}
-
-gpu_temperature() {
-  # Not all systems will display GPU temperature.
-  local sensor_json="$1"
-  if echo "$sensor_json" | grep -q 'nouveau-pci-0100'; then
-    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."nouveau-pci-0100"."temp1"."temp1_input"')"
-  elif echo "$sensor_json" | grep -q 'pch_skylake-virtual-0'; then
-    printf "%-10s%2.1f\U2103 \n" "GPU:" "$(echo "$sensor_json" | jq -r '."pch_skylake-virtual-0"."temp1"."temp1_input"')"
-  else
-    printf "%-10sNot available\n" "GPU:"
-  fi
-}
-
-memory_usage() {
-	printf "\n%sMemory usage:%s %s\n" "$orange" "$normal" "$(/usr/bin/free -h | awk '/^Mem:/ {print $3 "/" $2}' | sed 's/i//g')"
-  printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
-  ps axch -o cmd:15,%mem --sort=-%mem | head -n 5
-}
-
-cpu_usage() {
-  local cores cpu_usage cpu_use
-  cores="$(grep -c "^processor" /proc/cpuinfo)"
-  cpu_usage="$(ps aux | awk 'BEGIN {sum=0} {sum+=$3}; END {print sum}')"
-  cpu_use="$((${cpu_usage/\.*} / ${cores:-1}))"
-	printf "\n%sCPU usage: %s%s%%\n" "$orange" "$normal" "$cpu_use"
-  printf "%sProcess%s\t\t%sPercentage%s\n" "$underline" "$normal" "$underline" "$normal"
-  ps axch -o cmd:15,%cpu --sort=-%cpu | head -n 5
-}
-
 disk_usage() {
 	printf "\n%sDisk usage:%s\n" "$orange" "$normal"
-  df -hT -x fuse.portal | sed -n '1p;/^\//p'  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
+  df -hT -x fuse.portal | sed -n '1p;/^\//p'
+  # '-x fuse.portal' to eliminate 'df: /run/user/1000/doc: Operation not permitted' error
 }
 
 show_header() {
@@ -148,7 +150,7 @@ show_header() {
 show_footer() {
   local script version
   script=$(basename "$0")
-  version="6.5.24313"
+  version="6.6.25020"
   printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
   printf "Last reboot: %s\n" "$(/usr/bin/who -b | awk '{print $(NF-1)" at "$NF}')"
   over_line "$script $version"
@@ -157,9 +159,7 @@ show_footer() {
 
 main() {
   check_dependencies
-  local sensor_json script version
-  script=$(basename "$0")
-  version="6.5.24313"
+  local sensor_json
   sensor_json="$(sensors -j)"
   clear
   show_header
