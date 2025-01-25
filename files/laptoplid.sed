@@ -10,4 +10,3 @@ s/suspend$/ignore/
 s/^#//
 s/yes$/no/
 }
- 
