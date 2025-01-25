@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 13 Oct 2024
+# Updated      : 25 Jan 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,14 +45,14 @@ set -eu
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.8.24287"
+readonly version="4.9.25025"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="13 Oct 2024"
+  updated="25 Jan 2025"
   cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -76,11 +76,11 @@ view_file() {
   box "File: $textfile" "*"
   if (( filelines <= catmax )); then
 	  cat "$textfile"
-	  over_line "$script $version" "*"
   else
 	  less "$textfile"
-	  echo "$script $version"
+    head -n5 "$textfile"
   fi
+  over_line "$script $version" "-"
 }
 
 main() {
