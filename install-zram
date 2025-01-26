@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Last updated : 18 Jan 2025
+# Last updated : 26 Jan 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -36,7 +36,8 @@ set -eu
 install_zram() {
 	sudo apt install -y zram-tools
 	sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
-	printf "Zram swap file installed.\n"
+  sudo systemctl restart zramswap.service
+	printf "Zram-tools installed.\n"
 }
 
 get_swap_type() {
@@ -82,7 +83,7 @@ over_line() {
 main() {
   local script version swap_type
   script=$(basename "$0")
-  version="1.1.25018"
+  version="1.2.25026"
   swap_type=$(get_swap_type)
   case "$swap_type" in
     disk )
@@ -90,7 +91,7 @@ main() {
     part )
       printf "Swap partition already exists.\n" ;;
     * )
-      printf  "No swap exists. Installing Zram swap file...\n"
+      printf  "No swap exists. Installing Zram-tools...\n"
       sudo_login 2
       install_zram
   esac
