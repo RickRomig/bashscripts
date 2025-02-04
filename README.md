@@ -35,6 +35,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 ### The Scripts
 **Note:** Many of these scripts source `functionlib` which should be available in your ~/bin directory or in your path.
 - **battery-check** - Displays charge and health status of a laptop battery. Pulls its data from files in `/sys/class/power_supply/BAT?`.
+- **bu** - Backs up the /etc and /home directories to an external USB drive. Based on BU 1.1 by Joe Collins (May 2019) with additional features added to check the status of the backup drive and improved options. Unfortunately, Joe's GitHub is no longer available.
 - **catless** - Displays a text file using either cat or less, depending on the size of the file and the number of lines in the current display.
 - **check-battery** - Displays charge and health status of a laptop battery using the upower utility.
 - **check-updates** - Check for updates using apt-get or nala. With apt-get, a menu offers options to install updates, clean apt cache, remove orphaned apps, or defer the update. If flatpak is installed, it updates flatpak apps.
@@ -74,16 +75,15 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 
 ### Feedback:
 
-Feel free to contact me with comments and suggestions. I can be reached through my blog, Twitter, and email.
+Feel free to contact me with comments and suggestions. I can be reached through my blog and email.
 
 * [GitHub](https://github.com/RickRomig/bashscripts)
 * [Rick's Tech Stuff](https://ricktech.wordpress.com)
-* [Twitter (@ludditegeek)](https://twitter.com/ludditegeek)
 * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romig@mymetronet.net](mailto:rick.romig@mymentronet.net)
 
 Rick Romig (*The Luddite Geek*)
 
-15 Aug 2024
+04 Feb 2025
 
 ### DISCLAIMER
 
