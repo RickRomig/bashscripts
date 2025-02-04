@@ -1,0 +1,338 @@
+#!/usr/bin/env bash
+###############################################################################
+# Script Name  : bu
+# Description  : Backup /etc and /home directories to an external USB drive
+# Dependencies : rsync
+# Arguments    : -h, -b -r (See help or show_opts functions)
+# Author       : Copyright (C) 2025, Richard B. Romig
+# Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
+# Created      : 04 Feb 2023
+# Last updated : 04 Feb 2025
+# Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
+# TODO (Rick)  :
+# License      : GNU General Public License, version 2.0
+###############################################################################
+#
+# Copyright © 2025, Richard B. Romig
+# Email: rick.romig@gmail.com
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program. If not, see <https://www.gnu.org/licenses/>.
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+# Load function library
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
+set -eu
+
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="4.6.25035"
+user=$(whoami); readonly user
+readonly host="${HOSTNAME:-$(hostname)}"
+readonly mount_point="/media/$user/BU_Drive"
+exit_status=0
+SECONDS=0
+
+## Functions ##
+
+drive_test() {
+	printf "%sChecking Backup USB Drive%s\n" "$green" "$normal"
+  check_usb || die "No USB drive connected!" 1
+	bu_drive_label || die "Invalid partition label. Run 'bu -s' for drive setup information." 1
+  check_uuid || die "Incorrect drive to backup $host." 1
+  mount | grep -qw BU_Drive > /dev/null 2>&1 || mount_bu
+  bu_drive_fs || die "Drive must be formatted with EXT4 or XFS." 1
+	printf "Space available on BU_Drive: %s\n" "$(df -h "$mount_point" | tail -n1 | awk '{print $4}')"
+	printf "USB Backup Drive is mounted and meets all criteria.\n"
+}
+
+check_usb() {
+	[[ $(lsblk -S -o  TRAN | grep 'usb') = *usb* ]] && return "$TRUE" || return "$FALSE"
+}
+
+bu_drive_label() {
+	local bu_label
+	bu_label="$(lsblk -o label | grep -w BU_Drive)"
+	[[ -n "$bu_label" ]] && return "$TRUE" || return "$FALSE"
+}
+
+check_uuid() {
+	# Associated UUID of backup drive with a particular host. Substitute your own information as needed.
+	local hname uuid uuid_path
+  uuid=( "5d3290de-3fa7-4e3c-94b8-aca062c427ef" "5d1a8caa-36cf-4a36-8457-1a2bb2f85fd3" "89740987-ca0a-4b33-bb56-9055bb9e1daa" "772dcef3-6f46-4e58-b6d1-00ca9292c062" )
+  hname=( "hp-800g2-sff" "hp-850-g3" "hp-probook-6570" "lenovo-m91p" )
+	uuid_path="/dev/disk/by-uuid"
+
+	if [[ -L "$uuid_path/${uuid[0]}" ]]; then
+		[[ "$host" == "${hname[0]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[1]}" ]]; then
+		[[ "$host" == "${hname[1]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[2]}" ]]; then
+		[[ "$host" == "${hname[2]}" ]] && return "$TRUE" || return "$FALSE"
+	elif [[ -L "$uuid_path/${uuid[3]}" ]]; then
+		[[ "$host" == "${hname[3]}" ]] && return "$TRUE" || return "$FALSE"
+  else
+	  return "$TRUE"
+	fi
+}
+
+mount_bu() {
+  local usbdrv
+  usbdrv="$(lsblk -fs | awk '/BU_Drive/ {print $1}')"
+  [[ -d "$mount_point" ]] || sudo mkdir -p "$mount_point"
+  sudo mount /dev/"$usbdrv" "$mount_point"
+}
+
+bu_drive_fs() {
+  local fs_type
+	fs_type="$(lsblk -f | awk '/BU_Drive/ {print $2}')"
+	[[ "$fs_type" == "ext4" || "$fs_type" == "XFS" ]] && return "$TRUE" || return "$FALSE"
+}
+
+sync_drives() {
+	printf "Syncing Drives"
+	dots "."
+	sync
+	kill "$!"
+	printf "done\n"
+  tput cnorm
+}
+
+unmount_usb_drive() {
+	if default_yes "Unmount BU_Drive?"; then
+		sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
+		[[ -d "$mount_point" ]] && sudo rmdir "$mount_point"
+		printf "It is now safe to remove the USB drive.\n"
+	else
+		printf "BU_Drive is still mounted.\n"
+	fi
+}
+
+bu_prep() {
+  printf "Changing ownership of BU_Drive to %s...\n" "$user"
+	sudo chown "$user" "$mount_point"
+	printf "Checking for/creating machine specific directories...\n"
+	[[ -d "$mount_point"/BU_Backups/"$host" ]] || mkdir -p "$mount_point"/BU_Backups/"$host"
+	printf "BU_Drive is ready.\n"
+}
+
+backup() {
+	bu_prep
+  printf "%sBacking up /etc and /home to BU_Drive/BU_Backups/%s/%s\n" "$green" "$host" "$normal"
+  if sudo rsync -aH --delete --exclude 'timeshift' --exclude '.local/share/libvirt/images' --exclude 'mnt' --exclude 'lost+found' --info=progress2 /etc /home "$mount_point"/BU_Backups/"$host"/; then
+    # Clear any accidental input during backup:
+    read -rt 1 -n 10000 _discard
+    printf "%sBackup completed.%s\n" "$green" "$normal"
+    rm -f /"$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
+    touch "$mount_point/BU_Backups/$host/BU Backup was successful: $(date '+%F')"
+  else
+    # Clear any accidental input during backup:
+    read -rt 1 -n 10000 _discard
+    rm -f "$mount_point"/BU_Backups/"$host"/BU\ Backup* >/dev/null 2>&1
+    touch "$mount_point/BU_Backups/$host/BU Backup had some errors: $(date '+%F')"
+		printf "%s rsync exited with errors!\n" "$RED_ERROR" >&2
+		printf "* Try reinserting the backup drive and running the command again to correct them.\n" >&2
+    printf "* If errors persist then you may have corrupt files or failing hardware.\n" >&2
+		exit_status=1
+  fi
+}
+
+restore() {
+  # Restore host's /home directory.
+  if [[ -d "$mount_point"/BU_Backups/"$host"/ ]]; then
+	  printf "%s\n" "$RED_WARNING"
+		printf "Any new files created in /home since last backup WILL BE DELETED!\n"
+		if y_or_n "Are you sure you want to restore now? [y/n]"; then
+			printf "Close any running applications and press any key to continue.\n"
+			anykey
+			printf "\n%sRestoring /home... Please DO NOT open any applications.$s\n" "$green" "$normal"
+			if sudo rsync -aH --delete --exclude 'timeshift' --info=progress2 "$mount_point"/BU_Backups/"$host"/home/ /home/; then
+				# Clear any accidental input during restore:
+				read -rt 1 -n 10000 _discard
+				printf "%sRestoration Complete!%s\n" "$green" "$normal"
+	      printf "Restart machine for all changes to take effect.\n"
+				else
+				# If rsync fails, clear any accidental input during restore:
+				read -rt 1 -n 10000 _discard
+				printf "%s rsync exited with errors!\n" "$RED_ERROR" >&2
+				printf "DO NOT DO ANYTHING UNTIL YOU:\n" >&2
+				printf "* Make sure BU_Drive USB is still plugged in.\n" >&2
+				printf "* Remount BU_Drive USB by unplugging it and plugging it back in.\n" >&2
+				printf "* Wait a few seconds and try running 'bu --restore' again.\n" >&2
+				printf "* You may need to manually restore your data if errors persist.\n" >&2
+	      exit_status=1
+			fi
+		else
+			printf "%Restoration canceled.%s\n" "$orange" "$normal"
+	  fi
+	else
+		printf "%s Cannot find valid backup directory for %s!\n" "$RED_ERROR" "$host" >&2
+    printf "* This drive may not have been used to backup this machine.\n" >&2
+    printf "* BU_Backups/%s directory may have been moved or deleted.\n" "$host" >&2
+    printf "* Hostname or username may have changed since last backup.\n" >&2
+    exit_status=1
+	fi
+}
+
+help() {
+	local updated="04 Feb 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Updated: $updated
+Backup /etc/ and /home/ directories to an external USB drive.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  -b  Fully backs up the host /etc and /home directories.
+  -d  Displays Disclaimer.
+  -h  Displays this help text.
+  -i  Displays information about this script.
+  -r  Restore the host /home directory.
+  -s  Instructions for setting up the BU_Drive.
+
+_HELP_
+}
+
+show_description() {
+	cat << _DESCRIPTION_
+ Description:
+
+ BU is a program that makes keeping all of your user data safely backed up on
+ a dedicated external USB drive easy.
+
+ BU will update files that have changed, remove files that have been
+ deleted and add any new files that have been created since the last backup.
+ The initial backup can take a lot of time if you have a lot of data stored
+ in your system's /home directory. BU creates a directory with the host name
+ of the machine it's backing up from inside BU_Backups. This allows users to
+ share one BU_Drive with multiple machines.
+
+ The directory structure and all files are stored openly to allow users easy
+ access if they only need to retrieve a few files or directories using a file
+ manager.
+
+ The BU Restore function is an interactive tool that lets a user restore his/her
+ /home directories to a previous state. This function will only work when
+ restoring to a machine with the exact same hostname as the one the backups were
+ made from. It is intended for emergency use, as when significant number of
+ directories and files are accidentally removed from /home.
+
+_DESCRIPTION_
+}
+
+drive_setup() {
+	cat << _SETUP_
+ BU_Drive Setup:
+
+ - You need to prepare a BU Drive with a tool like Gparted or Gnome Disks.
+ - This can be any USB storage device.
+ - The dedicated USB drive MUST contain a partition formatted with a Linux native
+ file system such as Ext4 or XFS.
+ - The partition MUST be labeled "BU_Drive" so BU can find it and use it for backups.
+ - The partition needs to have enough free capacity to store all data in /home on
+ all of the machines you want to use the drive for.
+ Note: The script will only allow media formatted with Ext4 or XFS. Non-native file
+ systems like FAT32 or NTFS will cause the script to exit with an error.
+
+_SETUP_
+}
+
+show_disclaimer() {
+	cat << _DISCLAIMER_
+ Disclaimer:
+
+ THIS SOFTWARE IS PROVIDED BY MOSFANET "AS IS" AND ANY EXPRESS OR IMPLIED
+ WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ EVENT SHALL MOSFANET BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+_DISCLAIMER_
+}
+
+main() {
+	local noOpt optstr opt
+	box "${script^^} -- USB Backup Tool (Version $version)"
+	printf "Copyright \UA9 2023, Rick Romig\n\n"
+
+	noOpt=1
+	optstr=":bdhirs"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			b )
+				sudo_login 2
+				drive_test
+				check_package rsync
+				backup
+				sync_drives
+				unmount_usb_drive
+			;;
+			d )
+				show_disclaimer
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			h )
+				help
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			i )
+				show_description
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			r )
+				sudo_login 2
+				drive_test
+				check_package rsync
+				restore
+				sync_drives
+				unmount_usb_drive
+			;;
+			s )
+				drive_setup
+				mount | grep -qw BU_Drive > /dev/null 2>&1 && unmount_usb_drive
+			;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help; }
+	shift "$(( OPTIND - 1 ))"
+	under_line "Script completed in $(format_time $SECONDS)" "-"
+	if [[ "$exit_status" -eq 0 ]]; then
+		leave ""
+	else
+		printf "%sThere were errors!%s\n" "$lightred" "$normal" >&2
+		exit "$exit_status"
+	fi
+}
+
+## Execution ##
+
+main "$@"
