@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 07 Feb 2025
+# Updated      : 08 Feb 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,21 +45,22 @@ set -eu
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.10.25038"
+readonly version="4.10.25039"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="07 Feb 2025"
+  updated="08 Feb 2025"
   cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
+Line numbers can be displayed in the output by adding an 'n' or 'N' flag after the file name.
 
- ${green}Usage:${normal} $script [filename] [n | N]	# n | N enables line numbers
+ ${green}Usage:${normal} $script filename [n | N]	# n | N enables line numbers
  ${green}Usage:${normal} $script [-h | --help]	# displays help
 
 _HELP_
