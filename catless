@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 25 Jan 2025
+# Updated      : 07 Feb 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,45 +45,58 @@ set -eu
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.9.25025"
+readonly version="4.10.25038"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="25 Jan 2025"
+  updated="07 Feb 2025"
   cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
 the file and the number of rows in the current terminal window. Less is used when
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
 
- ${green}Usage:${normal} $script filename [-h] [--help]
+ ${green}Usage:${normal} $script [filename] [n | N]	# n | N enables line numbers
+ ${green}Usage:${normal} $script [-h | --help]	# displays help
 
 _HELP_
   exit "$errcode"
 }
 
 view_file() {
-  local catmax filelines textfile
+  local catmax filelines ln textfile
   textfile="$1"
-    # Get 87% of screen
+  ln="$2"
+	# Get 87% of screen
   catmax=$(( $(tput lines)*87/100 ))
   # Find the number of lines in the file
   filelines=$(wc -l "$textfile" | cut -d' ' -f1)
   # View the file
   box "File: $textfile" "*"
   if (( filelines <= catmax )); then
-	  cat "$textfile"
+    case "$ln" in
+      [nN]* )
+        cat -n "$textfile" ;;
+      * )
+        cat "$textfile"
+    esac
   else
-	  less "$textfile"
-    head -n5 "$textfile"
+    case "$ln" in
+      [nN]* )
+        less -N "$textfile"
+        head -n5 "$textfile" ;;
+      * )
+        less "$textfile"
+        head -n5 "$textfile"
+    esac
   fi
-  over_line "$script $version" "-"
 }
 
 main() {
+	local line_numbers="${2:-y}"
   if [[ $# -eq 0 ]]; then
     printf "%s No argument passed.\n" "$RED_ERROR" >&2
     help 1
@@ -96,7 +109,8 @@ main() {
     printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
     exit 1
   elif file -bL "$1" | grep -qEi "text|json"; then
-    view_file "$1"
+    view_file "$1" "$line_numbers"
+    over_line "$script $version" "-"
     exit 0
   else
     printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
