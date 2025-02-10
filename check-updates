@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Jan 2025
+# Updated      : 10 Feb 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -47,7 +47,45 @@ fi
 
 set -eu
 
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="4.0.25041"
+SECONDS=0
+
 ## Functions ##
+
+help() {
+  local updated="10 Feb 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+Performs a system update using Apt or Nala.
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+  apt	Performs a system upgrade using apt-get
+  help	Show help
+  nala	Performs a system upgrade using nala
+${orange}Notes:${normal}
+  No argument defaults to using nala
+  Invalid argument defaults to using apt-get
+  Argument is case-insensitive
+_HELP_
+  exit 0
+}
+
+check_action() {
+  local action
+  action="${1:-nala}" # Default is nala
+  exists nala || action="apt" # if nala not installed, change default to apt
+  case "$action" in
+    apt | nala | help )
+      echo "$action" ;;
+    * )
+      echo "apt"
+  esac
+}
 
 check_disk_space() {
 	local df_stats r_size r_used r_perc r_avail
@@ -60,7 +98,8 @@ check_disk_space() {
 }
 
 check_reboot_required() {
-  if [ -f /var/run/reboot-required ]; then
+  if [[ -f /var/run/reboot-required || -f /run/reboot-required ]]; then
+    cat /var/run/reboot-required.pkgs
     if default_no "Do you want to reboot now?"; then
       sudo reboot
     else
@@ -250,11 +289,7 @@ apt_update() {
 }
 
 show_header() {
-  local script version local_host
-  script=$(basename "$0")
-  version="3.6.25010"
-  local_host="${HOSTNAME:-$(hostname)}"
-	sudo_login 0
+  local local_host="${HOSTNAME:-$(hostname)}"
   clear
   cat << _HEADER_
 ${bold}${orange}$script $version
@@ -267,39 +302,29 @@ Checking for updates...${normal}
 _HEADER_
 }
 
-check_action() {
-  local action
-  action="${1:-nala}" # Default is nala
-  exists nala || action="apt" # if nala not installed, change default to apt
-  case "$action" in
-    apt | nala )
-      echo "$action" ;;
-    * )
-      echo "apt"
-  esac
-}
-
 main() {
   local action
   action="${1:-nala}"
-  action=$(check_action "$action")
-  SECONDS=0
-  sudo_login 0
+  action=$(check_action "${action,,}")
   show_header
   check_disk_space
   case "$action" in
     apt )
+      sudo_login 2
       apt_update ;;
     nala )
+      sudo_login 2
       nala_update ;;
+    help )
+      help ;;
     * )
-      diehard  "Invalid argument" "Enter 'apt' 'nala' or leave blank."
+      die "Invalid argument. Enter 'apt' 'nala' 'help' or leave blank."
   esac
   exists cinnamon-spice-updater && update_spices
   exists flatpak && update_flatpak
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
-  [[ "$action" == "apt" ]] && check_reboot_required
+  check_reboot_required
   exit
 }
 
