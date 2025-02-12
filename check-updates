@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 10 Feb 2025
+# Updated      : 11 Feb 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -50,13 +50,13 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.0.25041"
+readonly version="4.1.25042"
 SECONDS=0
 
 ## Functions ##
 
 help() {
-  local updated="10 Feb 2025"
+  local updated="11 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using Apt or Nala.
@@ -64,7 +64,7 @@ Performs a system update using Apt or Nala.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  apt	Performs a system upgrade using apt-get
+  apt	  Performs a system upgrade using apt-get
   help	Show help
   nala	Performs a system upgrade using nala
 ${orange}Notes:${normal}
@@ -77,7 +77,7 @@ _HELP_
 
 check_action() {
   local action
-  action="${1:-nala}" # Default is nala
+  action="${1:-nala}"					# Default is nala
   exists nala || action="apt" # if nala not installed, change default to apt
   case "$action" in
     apt | nala | help )
@@ -100,6 +100,7 @@ check_disk_space() {
 check_reboot_required() {
   if [[ -f /var/run/reboot-required || -f /run/reboot-required ]]; then
     cat /var/run/reboot-required.pkgs
+    printf "\n%sREBOOT REQUIRED%s\n" "$orange" "$normal"
     if default_no "Do you want to reboot now?"; then
       sudo reboot
     else
@@ -212,6 +213,7 @@ count_updates() {
 }
 
 nala_update() {
+  printf "%sChecking for updates...%s\n" "$orange" "$normal"
   sudo nala upgrade
   if default_no "Run autoremove/autopurge?"; then
     printf "\n%sRemoving orphaned packages...%s\n" "$orange" "$normal"
@@ -226,6 +228,7 @@ nala_update() {
 
 apt_update() {
   local nupd options _opt
+  printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
   # Get number of packages that can be upgraded
   nupd=$(count_updates)
@@ -295,9 +298,7 @@ show_header() {
 ${bold}${orange}$script $version
 System: $local_host $(local_ip)
 Distro: $(get_distribution)
-Kernel: $(uname -sr)
-
-Checking for updates...${normal}
+Kernel: $(uname -sr)${normal}
 
 _HEADER_
 }
