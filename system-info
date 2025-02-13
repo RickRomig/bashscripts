@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 15 Jul 2022
-# Updated:     : 16 Jan 2025
+# Updated:     : 13 Feb 2025
 # Comments     : Will not get desktop session info from an SSH connection, run locally.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -166,15 +166,15 @@ cpu_info() {
   local arch model threads
   model=$(/usr/bin/lscpu | awk -F: '/Model name:/ {print $NF}' | sed 's/^  *//g;s/([^)]*)//g')
   arch=$(/usr/bin/lscpu | awk '/Architecture:/ {print $NF}')
-  threads=$(/usr/bin/lscpu | awk '/CPU\(s\)/ {print $NF;exit}')
+  threads=$(/usr/bin/lscpu | awk 'NR == 5 {print $NF}')
 	printf "\n%-9s %s, %s, %s threads \n" "CPU:" "$model" "$arch" "$threads"
 }
 
 memory_info() {
   local mem_max mem_type phys_mem
 	phys_mem=$(sudo /usr/bin/lshw -class memory -short -quiet | awk '/System/ {print $(NF-2)}' | sed 's/GiB/ GB/')
-	mem_type=$(sudo dmidecode --type 17 | awk '/Type:/ {print $NF; exit}')
-	mem_max=$(sudo dmidecode --type 16 | awk -F: '/Capacity/ {print $NF; exit}')
+  mem_type=$(sudo dmidecode --type 17 | awk 'NR == 16 {print $NF}')
+  mem_max=$(sudo dmidecode --type 16 | awk -F: 'NR == 10 {print $NF}' | sed 's/^ //')
 	printf "%-9s %s %s (%s maximum)\n" "Memory:" "$phys_mem" "$mem_type" "$mem_max"
 }
 
@@ -278,7 +278,7 @@ battery_info() {
 main() {
   local script version lhost info_file today
   script=$(basename "$0")
-  version="3.9.25016"
+  version="3.11.25044"
   lhost="${HOSTNAME:-$(hostname)}"
   info_file="$HOME/$lhost.info"
   today=$(date +'%d %B %Y')
