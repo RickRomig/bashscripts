@@ -719,6 +719,7 @@ check_package() {
     printf '\e[A\e[K'
   else
     printf "Installing %s ...\n" "$package"
+    sudo_login 2
     sudo apt-get install "$package" -yyq
   fi
 }
@@ -741,6 +742,7 @@ check_packages() {
       printf '\e[A\e[K'
 		else
 			printf "Installing %s ...\n" "$pkg"
+      sudo_login 2
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
