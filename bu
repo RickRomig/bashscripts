@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2025, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Created      : 04 Feb 2023
-# Last updated : 05 Feb 2025
+# Last updated : 20 Feb 2025
 # Comments     : Based on BU USB Backup Tool (Version 1.1) by Joe Collins.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -46,7 +46,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.7.25036"
+readonly version="4.8.25051"
 user=$(whoami); readonly user
 readonly host="${HOSTNAME:-$(hostname)}"
 readonly mount_point="/media/$user/BU_Drive"
@@ -125,12 +125,13 @@ sync_drives() {
 }
 
 unmount_usb_drive() {
-	if default_yes "Unmount BU_Drive?"; then
-		sudo umount "$mount_point" && printf "BU_Drive unmounted.\n"
+	printf "Unmountng %s...\n" "$mount_point"
+	if sudo umount "$mount_point"; then
 		[[ -d "$mount_point" ]] && sudo rmdir "$mount_point"
-		printf "It is now safe to remove the USB drive.\n"
+		printf "BU_Drive unmounted.\nIt is now safe to remove the USB drive.\n"
 	else
-		printf "BU_Drive is still mounted.\n"
+		printf "%s %s failed to unmount.\n" "$RED_ERROR" "$mount_point"
+		exit_status=1
 	fi
 }
 
@@ -201,7 +202,7 @@ restore() {
 }
 
 help() {
-	local updated="04 Feb 2025"
+	local updated="20 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Backup /etc/ and /home/ directories to an external USB drive.
@@ -209,10 +210,10 @@ Backup /etc/ and /home/ directories to an external USB drive.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -b  Fully backs up the host /etc and /home directories.
-  -d  Displays Disclaimer.
-  -h  Displays this help text.
-  -i  Displays information about this script.
+  -b  Backup the host /etc and /home directories.
+  -d  Show Disclaimer.
+  -h  Show this help message and exit.
+  -i  Show information about this script.
   -r  Restore the host /home directory.
   -s  Instructions for setting up the BU_Drive.
 
@@ -284,7 +285,6 @@ _DISCLAIMER_
 main() {
 	local noOpt optstr opt
 	box "${script^^} -- USB Backup Tool (Version $version)"
-	printf "Copyright \UA9 2023, Rick Romig\n\n"
 
 	noOpt=1
 	optstr=":bdhirs"
