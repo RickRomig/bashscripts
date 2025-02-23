@@ -7,7 +7,7 @@
 # Author       : Copyright © 2024 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 03 Aug 2024
-# Last updated : 18 Oct 2024
+# Last updated : 23 Feb 2025
 # Comments     : the executable and its manpage will be renamed from ‘bat’ to  ‘batcat’
 #              : because of a file name clash with another Debian package.
 # TODO (Rick)  :
@@ -47,7 +47,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.5.24274"
+readonly version="1.7.25054"
 readonly cfg_d=$HOME"/.config/bat"
 
 ## Functions ##
@@ -55,7 +55,7 @@ readonly cfg_d=$HOME"/.config/bat"
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="18 Oct 2024"
+	updated="23 Feb 2025"
 	cat << END_HELP
 ${orange}$script${normal} $version, Upated: $updated
 Installs/removes/configures bat/batcat
@@ -64,8 +64,8 @@ ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
 	-c	Create bat configuration file
-	-h	Show help
-	-i	Install bat from Debian/Ubuntu repositories
+	-h	Show this help message and exit
+	-i	Install bat from Debian/Ubuntu repository
 	-r	Remove bat and configuration file
 END_HELP
   exit "$errcode"
