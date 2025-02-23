@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 12 Dec 2019
-# Updated      : 18 Oct 2024
+# Updated      : 23 Feb 2025
 # Comments     : For Debian, Ubuntu, Mint ... (Code from Brave's instructions)
 #              : Brave is only supported on 64-bit AMD/Intel architectures (amd64/x86_64).
 # TODO (Rick)  :
@@ -45,7 +45,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.9.24292"
+readonly version="4.11.25054"
 readonly brave_key="/usr/share/keyrings/brave-browser-archive-keyring.gpg"
 readonly brave_list="/etc/apt/sources.list.d/brave-browser-release.list"
 
@@ -99,19 +99,19 @@ remove_configs() {
 help() {
   local errcode updated
   errcode="${1:-2}"
-	updated="18 Oct 2024"
-  cat << END_HELP
+	updated="23 Feb 2025"
+  cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs/Removes the Brave browser
 
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -h  Show this help text.
+  -h  Show this help message and exit.
   -i  Install the Brave Browser.
   -p  Remove the Brave Browser & purge configuration files.
   -r  Remove the Brave Browser & leave configuration files.
-END_HELP
+_HELP_
   exit "$errcode"
 }
 
