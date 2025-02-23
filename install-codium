@@ -7,7 +7,7 @@
 # Author       : Copyright © 2023 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 04 Aug 2023
-# Updated      : 10 Jan 2025
+# Updated      : 23 Feb 2025
 # Comments     : Alternative to downloading directly from GitHub repo.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,7 +45,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="1.11.25010"
+readonly version="2.2.25054"
 readonly key_file="/usr/share/keyrings/vscodium-archive-keyring.asc"
 readonly src_list="/etc/apt/sources.list.d/vscodium.list"
 verbose_mode="$FALSE"
@@ -55,16 +55,16 @@ verbose_mode="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="10 Jan 2025"
+	updated="23 Feb 2025"
 	cat << _HELP_
-${orange}$script${normal} $version ($updated)
+${orange}$script${normal} $version, updated: ($updated)
 Install/Removes VSCodium & applies settings
 
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -a  Set apt gpg key and source list
-  -h  Display help
+  -h  Show this help message and exit
   -i  Install VSCodium via apt
   -r  Remove VSCodium
   -s  Apply VSCodium settings
@@ -147,11 +147,6 @@ show_message() {
   [[ "$verbose_mode" = "$TRUE" ]] && echo "$message"
 }
 
-show_title() {
-	box "$script v$version"
-	printf "Installs/removes VSCodium\n"
-}
-
 main() {
   local noOpt opt optstr
 	noOpt=1
@@ -161,7 +156,6 @@ main() {
 			a)
 				exists codium || leave "VSCodium is not installed."
 				printf "Setting the GPG key and creating the source list file.\n"
-				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
 				check_package wget
@@ -174,7 +168,6 @@ main() {
 			;;
 			i )
 				exists codium && leave "VSCodium $(codium_version) is already installed."
-				show_title
 				sudo_login 2
 				show_message "Checking dependencies..."
 				check_package wget
@@ -182,13 +175,11 @@ main() {
 			;;
 			r )
 				exists codium || leave "VSCodium is not installed."
-				show_title
 				sudo_login 2
 				remove_vscodium
 			;;
 			s )
 				exists codium || leave "VSCodium is not installed."
-				show_title
 				apply_settings
 			;;
 			v )
@@ -203,9 +194,10 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
-	over_line "$script v$version)"
+	over_line "$script $version)"
 	exit
 }
+
 	## Execution ##
 
 	main "$@"
