@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 17 Feb 2025
+# Updated      : 28 Feb 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -47,14 +47,14 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="9.8.25048"
+readonly version="9.9.25059"
 
 ## Functions ##
 
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="17 Feb 2025"
+	updated="28 Feb 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
@@ -157,7 +157,7 @@ status_msg() {
 check_checksum() {
 	local file lines
   file="$1"
-  lines=$(wc -l "$file" | cut -d' ' -f1)
+  lines=$(wc -l < "$file")
   [[ "$lines" -eq 1 ]] && return "$TRUE" || return "$FALSE"
 }
 
