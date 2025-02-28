@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 08 Feb 2025
+# Updated      : 28 Feb 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -45,14 +45,14 @@ set -eu
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.10.25039"
+readonly version="4.11.25059"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="08 Feb 2025"
+  updated="28 Feb 2025"
   cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -67,24 +67,19 @@ _HELP_
   exit "$errcode"
 }
 
+over_max() {
+	local catmax filelines textfile
+	textfile="$1"
+	catmax=$(( $(tput lines)*87/100 ))
+	filelines=$(wc -l < "$textfile")
+	(( filelines > catmax )) && return "$TRUE" || return "$FALSE"
+}
+
 view_file() {
-  local catmax filelines ln textfile
-  textfile="$1"
-  ln="$2"
-	# Get 87% of screen
-  catmax=$(( $(tput lines)*87/100 ))
-  # Find the number of lines in the file
-  filelines=$(wc -l "$textfile" | cut -d' ' -f1)
-  # View the file
+  local textfile="$1"
+  local ln="$2"
   box "File: $textfile" "*"
-  if (( filelines <= catmax )); then
-    case "$ln" in
-      [nN]* )
-        cat -n "$textfile" ;;
-      * )
-        cat "$textfile"
-    esac
-  else
+  if over_max "$textfile"; then
     case "$ln" in
       [nN]* )
         less -N "$textfile"
@@ -92,6 +87,13 @@ view_file() {
       * )
         less "$textfile"
         head -n5 "$textfile"
+    esac
+  else
+    case "$ln" in
+      [nN]* )
+        cat -n "$textfile" ;;
+      * )
+        cat "$textfile"
     esac
   fi
 }
