@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 17 Feb 2025
+# Updated      : 04 Mar 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -47,7 +47,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.5.25048"
+readonly version="6.6.25003"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 
@@ -56,7 +56,7 @@ dryrun="$FALSE"
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="17 Feb 2025"
+	updated="04 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -108,6 +108,16 @@ unmount_usb() {
 	printf "It's now safe to remove the USB drive.\n"
 }
 
+list_usb_contents() {
+	local mount_name usbdevice usbpart
+	usbdevice="$1"
+	usbpart="${usbdevice}1"
+	mount_name=$(lsblk | grep "$usbpart" | cut -d'/' -f4- )
+  printf "\nContents of /dev/%s:\n" "$usbpart"
+	printf "Disk label: %s\n" "$mount_name"
+  ls -F "/media/$user/$mount_name"
+}
+
 simulate_dd() {
   local iso usb mount_name
 	iso="$1"
@@ -119,9 +129,6 @@ simulate_dd() {
   kill "$!"
   tput cnorm
   printf "\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
-  printf "\nContents of /dev/%s:\n" "$usb"
-	printf "Disk label: %s\n" "$mount_name"
-  ls -F "/media/$user/$mount_name"
 }
 
 write_dd() {
@@ -132,9 +139,6 @@ write_dd() {
 	printf "\nWriting %s to /dev/%s...\n" "$(basename "$iso")" "$usb"
 	if sudo dd if="$iso" of="/dev/$usb" bs=16M status=progress oflag=sync; then
 	  printf "%s written to /dev/%s.\n" "$(basename "$iso")" "$usb"
-    printf "\nContents of /dev/%s\n\n" "$usb"
-		printf "Disk label: %s\n" "$mount_name"
-    ls -F "/media/$user/$mount_name"
 	else
     diehard "$iso write to /dev/$usb failed.\n" "$script v$version"
   fi
@@ -156,9 +160,7 @@ write_iso() {
 		mount_name="$(date +%y%b%d)"
 		mount_usb "$usbpart"
 	fi
-	printf "Current contents of /dev/%s:\n" "$usbdevice"
-	printf "Disk label: %s\n" "$mount_name"
-	ls -F "/media/$user/$mount_name"
+	list_usb_contents "$usbdevice" # "$mount_name"
 	# Confirm action or cancel
 	if [[ "$dryrun" == "$TRUE" ]]; then
 		simulate_dd "$isofile" "$usbdevice" "$mount_name"
@@ -168,7 +170,6 @@ write_iso() {
 		if yes_or_no "Write $(basename "$isofile") to /dev/$usb_device?"; then
 			sudo_login 2
 			write_dd "$isofile" "$usbdevice" "$mount_name"
-			printf "Unmounting the USB Drive from /dev/%s/%s\n" "$user"  "$mount_name"
 			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
 		printf "Operation canceled. No action taken.\n"
