@@ -8,7 +8,7 @@
 # Author       : Copyright (C) 2021, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 24 Aug 2021
-# Last updated : 04 Feb 2025
+# Last updated : 06 Mar 2025
 # Comments     : Ignores Beta and Release Candidate versions in GitHub releases.
 #              : Chromium browser does not create config directory until opened.
 #              : Starting with Micro 2.0.14, no deb package released. Uses tar.gz
@@ -63,7 +63,7 @@ installed_version() {
     gitea )
       ver=$(gitea --version 2>/dev/null | cut -d' ' -f3) ;;
     * )
-      ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+-].*//') ;;
+      ver=$(dpkg -l "$pkg" 2>/dev/null | awk '/ii/ {print $3}' | sed 's/[~+ud].*//')
   esac
   echo "$ver"
 }
@@ -158,7 +158,7 @@ terminals() {
 
 browsers() {
 	local cur_ver packages package
-	packages=( brave-browser chromium firefox google-chrome )
+	packages=( brave-browser chromium firefox librewolf google-chrome )
 
 	printf "%-15s%s\n" "Browser" "Version"
 	for package in "${packages[@]}"; do
@@ -175,7 +175,7 @@ browsers() {
 main() {
   local script version
   script=$(basename "$0")
-  version="14.1.25035"
+  version="14.2.25065"
   clear
   box "$script $version"
   printf "Newest & installed versions of select programs.\n\n"
