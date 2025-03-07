@@ -2,13 +2,12 @@
 ##########################################################################
 # Script Name  : install-zram
 # Description  : installs and configures Zram swap file.
-# Dependencies : none
+# Dependencies : ~/bin/functionlib
 # Arguments    : none
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Jan 2025
-# Last updated : 26 Jan 2025
-# Comments     :
+# Last updated : 07 Mar 2025
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
 ##########################################################################
@@ -29,73 +28,70 @@
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
 
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
+
 set -eu
 
 ## Functions ##
+
+find_current_swap() {
+  local swap_dev
+  swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
+  # swap_dev=$(sudo swapon --show | awk 'NR != 1 {print $1}')
+  echo "$swap_dev"
+}
+
+disable_swap() {
+  local swap_dev="$1"
+  sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
+  sudo swapoff "$swap_dev"
+  printf "%s is disabled as swap.\n" "$swap_dev"
+}
 
 install_zram() {
 	sudo apt install -y zram-tools
 	sudo sed -i.bak '/ALGO/s/^#//;/PERCENT/s/^#//;s/50$/25/' /etc/default/zramswap
   sudo systemctl restart zramswap.service
-	printf "Zram-tools installed.\n"
-}
-
-get_swap_type() {
-  local s_type
-  s_type=$(/usr/bin/lsblk | grep -w SWAP | awk '{print $6}')
-  echo "$s_type"
-}
-
-die() {
-  local errmsg errcode
-  errmsg="${1:-Undefined error}"
-  errcode="${2:-1}"
-  printf "\e[91mERROR:\e[0m %s\n" "$errmsg" >&2
-  exit "$errcode"
-}
-
-sudo_login() {
-  local delay="${1:-2}"
-  if id -nG "$USER" | grep -qw sudo; then
-    if ! sudo -vn 2>/dev/null; then
-      sudo ls > /dev/null 2>&1
-      if [[ "$delay" -gt 0 ]]; then
-        sleep "$delay"
-        printf '\e[A\e[K'
-      fi
-    fi
- else
-    die "$USER is not a member of the sudo group. Access denied."
-  fi
-}
-
-# shellcheck disable=SC2001
-over_line() {
-  local char len line title
-  title="$1"
-  char="${2:--}"
-  len=${#char}
-  (( len > 1 )) && char=${char::1}
-  line=$(echo "$title" | sed "s/./$char/g")
-  printf "%s\n%s\n"  "$line" "$title"
+	printf "Zram-tools installed and configured.\n"
 }
 
 main() {
-  local script version swap_type
+  local script version swap_dev
   script=$(basename "$0")
-  version="1.2.25026"
-  swap_type=$(get_swap_type)
-  case "$swap_type" in
-    disk )
-      printf "Swap file already exists.\n" ;;
-    part )
-      printf "Swap partition already exists.\n" ;;
-    * )
-      printf  "No swap exists. Installing Zram-tools...\n"
-      sudo_login 2
-      install_zram
-  esac
-  /usr/bin/lsblk
+  version="3.0.25066"
+  sudo_login 2
+  swap_dev=$(find_current_swap)
+  if [[ "$swap_dev" ]]; then
+    case "$swap_dev" in
+      "/dev/zram0" )
+        printf "zram-tools is installed and the active swap.\n"
+      ;;
+      * )
+        printf "Current swap is %s\n" "$swap_dev"
+        if yes_or_no "Do you want to disable $swap_dev and install zram-tools?"; then
+          disable_swap "$swap_dev"
+          install_zram
+        else
+					printf "%s remains enabled as swap.\n" "$swap_dev"
+          printf "zram-tools was not installed.\n"
+        fi
+    esac
+  else
+    printf "No swap device detected. Installing zram-tools...\n"
+    install_zram
+  fi
+  printf "Active swap devices:\n"
+  sudo swapon --show
   over_line "$script $version"
   exit
 }
