@@ -7,11 +7,10 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 28 Jan 2025
-# Last updated : 28 Jan 2025
+# Last updated : 06 Mar 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
-##########################################################################
 #
 # Copyright © 2025, Richard B. Romig
 # Email: rick.romig@gmail.com
@@ -28,6 +27,7 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+##########################################################################
 
 ## Shellcheck Directives ##
 # shellcheck source=/home/rick/bin/functionlib
@@ -48,17 +48,22 @@ set -eu
 main() {
 	local script version swap_dev
 	script=$(basename "$0")
-	version="1.0.25028"
+	version="1.1.25065"
 	swap_dev=$(awk '/file/ || /partition/ {print $1}' /proc/swaps)
 	if [[ "$swap_dev" ]]; then
 		case "$swap_dev" in
 			"/dev/zram0" )
-				printf "zram-tools installed and active.\n"
+				printf "zram-tools installed and active swap.\n"
 			;;
 			* )
-				sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
-				sudo swapoff "$swap_dev"
-				printf "Swap device %s disabled.\n" "$swap_dev"
+				printf "Current swap is %s\n" "$swap_dev"
+				if yes_or_no "Do you want to disable ${swap_dev}?"; then
+					sudo sed -i.bak '/swap/s/^UUID=/# UUID=/' /etc/fstab
+					sudo swapoff "$swap_dev"
+					printf "%s is disabled as swap.\n" "$swap_dev"
+				else
+					printf "%s remains enabled as swap.\n" "$swap_dev"
+				fi
 		esac
 	else
 		printf "No swap device detected.\n"
