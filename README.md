@@ -64,7 +64,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **pwfeedback** - Enables/disables password feedback when typing password at the comand line.
 - **rename-host** - Rename the system's hostname, based on a set of rules.
 - **ren-ext** - Rename capitalized, mixed capitalization, and non-standard file extensions.
-- **ren-space** - Replaces spaces in a file name with underscores.
+- **ren-space** - Replaces spaces in a file name with hyphens, underscores, or dots.
 - **show-cron** - Displays anacron jobs and crontabs for users and root.
 - **set-resume** - Sets the RESUME environment variable with the UUID of the swap partition.
 - **system-info** - Displays system information in an easy-to-read format.
@@ -83,7 +83,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-07 March 2025
+08 March 2025
 
 ### DISCLAIMER
 
