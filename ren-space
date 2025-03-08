@@ -4,16 +4,15 @@
 # Description  : replaces spaces with underscores in filenames in the current
 #                directory
 # Dependencies : None
-# Args         : None
-# Author       : Richard Romig
-# Email        : rick.romig@gmail.com
-# Created      : Unknown
-# Updated      : 16 Jan 2025
+# Arguments    : See help() function for available options.
+# Author       : Copyright © 2025 Richard B. Romig, Mosfanet
+# Email        : rick.romig@gmail | rick.romig@mymetronet.net
+# Created      : 08 Mar 2025
+# Updated      : 08 Mar 2025
 # Comment      :
 # License      : GNU General Public License, version 2.0
-###############################################################################
 
-# Copyright © 2023, Richard B. Romig
+# Copyright © 2025, Richard B. Romig
 # Email: rick.romig@gmail.com
 #
 # This program is free software; you can redistribute it and/or modify
@@ -28,17 +27,71 @@
 #
 # You should have received a copy of the GNU General Public License along
 # with this program. If not, see <https://www.gnu.org/licenses/>.
+###############################################################################
+
+## Shellcheck Directives ##
+# shellcheck source=/home/rick/bin/functionlib
+
+## Source function library ##
+
+if [[ -x "$HOME/bin/functionlib" ]]; then
+  source "$HOME/bin/functionlib"
+else
+  printf "\e[91mERROR:\e[0m functionlib not found!\n" >&2
+  exit 1
+fi
 
 set -eu
 
+## Global Variables ##
+
+script=$(basename "$0"); readonly script
+readonly version="2.0.25067"
+
+## Functions ##
+
+help() {
+	local errcode updated
+	errcode="${1:-2}"
+	updated="08 Mar 2025"
+	cat << _HELP_
+${orange}$script${normal} $version, Upated: $updated
+renames filenames containing spaces, replacing spaces with - or . or _
+
+${green}Usage:${normal} $script [OPTION]
+
+${orange}Available options:${normal}
+	-d	Replace spaces with dashes/hyphens
+	-h	Show this help message and exit
+	-p	Replace spaces with periods/dots
+	-u	Replace spaces with underscores
+_HELP_
+  exit "$errcode"
+}
+
 main() {
-  local script version
-  script=$(basename "$0")
-	version="1.5.25016"
-	echo "$script v$version  - renames filenames containing spaces."
-	# check for filenames containing spaces in the current directory
-	find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || echo "No filenames containing spaces found."
-	printf "%s v%s\n" "$script" "$version"
+	local noOpt opt optstr
+	noOpt=1
+	optstr=":dhpu"
+	while getopts "$optstr" opt; do
+		case "$opt" in
+			d )
+				find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /-/g' ./* || printf "No filenames containing spaces found.\n" ;;
+			h )
+				help 0 ;;
+			p )
+				find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /./g' ./* || printf "No filenames containing spaces found.\n" ;;
+			u )
+				find . -maxdepth 1 -type f | grep -q " " && rename -v 's/ /_/g' ./* || printf "No filenames containing spaces found.\n" ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+	done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
 	exit
 }
 
