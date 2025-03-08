@@ -49,7 +49,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **install-codium** - Installs/Removes VSCodium.
 - **install-firefox-deb** - Installs Firefox from the Mozilla DEB repository.
 - **install-virtmgr** - Installs virt-manager, KVM/QEMU, and associated utilities.
-- **install-zram** - Installs and configures ZRam swap file if no swap file/partition exists.
+- **install-zram** - Installs and configures ZRam swap files. If a swap file or partition already exists, it will be disabled before installng ZRam-tools.
 - **ip-info** - Displays IP address information for wired and wireless connections to include MAC addresses, DNS addresses, and default gateway.
 - **iru-bat** - Installs, removes, updates the Bat utility.
 - **iru-fastfetch** - Installs, removes, updates the Fastfetch tool to fetch system information. (Configuration file in the `files` diretory.)
@@ -82,8 +82,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 * Email: [rick.romig@gmail.com](mailto:rick.romig@gmail.com) or [rick.romig@mymetronet.net](mailto:rick.romig@mymentronet.net)
 
 Rick Romig (*The Luddite Geek*)
-
-04 Feb 2025
+07 March 2025
 
 ### DISCLAIMER
 
