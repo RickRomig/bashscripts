@@ -69,6 +69,7 @@ All the scripts are licensed under the Gnu Public Licence, v2.0. Feel free to do
 - **set-resume** - Sets the RESUME environment variable with the UUID of the swap partition.
 - **system-info** - Displays system information in an easy-to-read format.
 - **system-status** - Displays a snapshot of CPU, memory, & disk usage, as well as system temperatures and uptime.
+- **umount-usb** - Script to unmount a USB drive in the /media/<user> directory.
 - **upper2lower** - Changes filenames to all lowercase.
 - **verify-iso** - Verifies checksums for downloaded ISO files. Uses `fzf` (fuzzy finder) to select ISO and checksum files.
 - **write-iso** - Writes ISO files to USB drive using `dd`. Uses `fzf` (fuzzy finder) to select ISO files and available USB devices.
@@ -83,7 +84,7 @@ Feel free to contact me with comments and suggestions. I can be reached through 
 
 Rick Romig (*The Luddite Geek*)
 
-08 March 2025
+12 March 2025
 
 ### DISCLAIMER
 
