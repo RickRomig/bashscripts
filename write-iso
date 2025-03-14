@@ -7,29 +7,13 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 04 Mar 2025
+# Updated      : 14 Mar 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
-#              : After a dryrun, USB drive will not be unmounted.
+#              : After a dryrun, USB drive will remain unmounted.
 # TODO (Rick)  :
-# # License      : GNU General Public License, version 2.0
-
-# Copyright © 2025, Richard B. Romig
-# Email: rick.romig@gmail.com
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
+# License      : GNU General Public License, version 2.0 <https://github.com/RickRomig/bashscripts>
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -47,16 +31,28 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.6.25003"
+readonly version="7.0.25073"
 user=$(whoami); readonly user
 dryrun="$FALSE"
+FMENU="fzf --header=$(basename "$0") \
+           --layout=reverse \
+           --exact \
+           --border=bold \
+           --border=rounded \
+           --margin=5% \
+           --color=dark \
+           --height=95% \
+           --info=hidden \
+           --header-first \
+           --bind change:top \
+           --prompt"
 
 ## Functions ##
 
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="04 Mar 2025"
+	updated="14 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -76,16 +72,35 @@ check_usb_drive() {
 	[[ $(lsblk -S -o TRAN | grep 'usb') = *usb* ]] || diehard "No USB drive connected." "Insert and mount the target USB drive." "$script v$version"
 }
 
+select_directory() {
+	local iso_d selected_dir
+	local iso_dirs=()
+	for dist_d in $HOME/Downloads/ISO; do
+		if [[ -d "$dist_d" ]]; then
+		iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
+		fi
+	done
+	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
+	printf "%s" "$selected_dir"
+}
+
 select_iso() {
-	local isofile iso_d
-	iso_d="$HOME/Downloads/ISO/"
-	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 75% --reverse --prompt "Select the ISO file to write: ")
-	echo "$isofile"
+	local iso_d selected_iso
+	iso_d="$1"
+	local iso_files=()
+	for iso_files in $iso_d; do
+		if [[ -d "$iso_d" ]]; then
+			iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
+		fi
+	done
+	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
+	printf "%s" "$selected_iso"
 }
 
 select_usb() {
 	local usb_device
-	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --height 40% --reverse --prompt "Select the USB drive to write to: ")
+	# usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | fzf --height 40% --reverse --prompt "Select the USB drive to write to: ")
+	usb_device=$(lsblk -o HOTPLUG,TYPE,NAME,SIZE,LABEL | awk '$2 == "disk" && $1 == "1" {print $0}' | awk '{$1=$1}1' | sed 's/1//' | $FMENU "Select the USB drive to write to: ")
 	usb_device=$(echo "$usb_device" | awk '{print $2}')
 	echo "$usb_device"
 }
@@ -124,11 +139,11 @@ simulate_dd() {
 	usb="$2"
 	mount_name="$3"
   printf "\nWriting %s to /dev/%s (SIMULATED) ...\n" "$(basename "$iso")" "$usb"
-  spin
+  dots "."
   sleep 10
   kill "$!"
   tput cnorm
-  printf "\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
+  printf "done\n%s written to /dev/%s (SIMULATED)\n"  "$(basename "$iso")" "$usb"
 }
 
 write_dd() {
@@ -172,7 +187,7 @@ write_iso() {
 			write_dd "$isofile" "$usbdevice" "$mount_name"
 			mount | grep -q "/dev/$usbpart" > /dev/null 2>&1 && unmount_usb "$mount_name" "$usbpart"
 		else
-		printf "Operation canceled. No action taken.\n"
+			printf "Operation canceled. No action taken.\n"
 		fi
 	fi
 }
@@ -195,9 +210,10 @@ main() {
 				printf "Writes ISO to a USB drive.\n\n"
 				check_package fzf
 				check_usb_drive
-				iso_file=$(select_iso)
-				usb_device=$(select_usb)
-				write_iso "$iso_file" "$usb_device"
+				iso_dir=$(select_directory)
+				iso_file=$(select_iso "$iso_dir")
+				usb_device=$(select_usb "$iso_dir")
+				write_iso "$iso_dir/$iso_file" "$usb_device"
 			;;
 			? )
 				printf "%s Invalid option: -%s\n" "$RED_ERROR" "$OPTARG" >&2
@@ -207,6 +223,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
 	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
 	exit
 }
 
