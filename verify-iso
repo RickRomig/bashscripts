@@ -7,29 +7,13 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 28 Feb 2025
+# Updated      : 14 Mar 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
-#              : .md5, .sha256, or .sha512
+#              : .md5, sha1, .sha256, or .sha512
 # TODO (Rick)  :
-#
-# Copyright © 2022, Richard B. Romig
-# Email: rick.romig@gmail.com
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
-# License      : GNU General Public License, version 2.0
+# License      : GNU General Public License, version 2.0 <https://github.com/RickRomig/bashscripts>
 ##########################################################################
 
 ## Shellcheck Directives ##
@@ -47,14 +31,26 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="9.9.25059"
+readonly version="10.0.25073"
+FMENU="fzf --header=$(basename "$0") \
+           --layout=reverse \
+           --exact \
+           --border=bold \
+           --border=rounded \
+           --margin=5% \
+           --color=dark \
+           --height=95% \
+           --info=hidden \
+           --header-first \
+           --bind change:top \
+           --prompt"
 
 ## Functions ##
 
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="28 Feb 2025"
+	updated="4 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
@@ -67,25 +63,49 @@ ${orange}Available options:${normal}
 
   * With no argument, defaults to verifying an ISO file.
 	* Checksum files must be a single line specifically for the ISO file you wish to check.
-  * Checksum files must have a file extension of .md5, .sha1, .sha256. or .sha512.
+  * Checksum files must have a file extension of .md5, .sha1, .sha256, or .sha512.
   * The basename of the checksum file should match the basename name of the ISO.
 
 _HELP_
   exit "$errcode"
 }
 
+select_directory() {
+	local iso_d selected_dir
+	local iso_dirs=()
+	for dist_d in $HOME/Downloads/ISO; do
+		if [[ -d "$dist_d" ]]; then
+		iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
+		fi
+	done
+	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
+	printf "%s" "$selected_dir"
+}
+
 select_iso() {
-	local iso_d isofile
+	local iso_d selected_iso
 	iso_d="$1"
-	isofile=$(find "$iso_d" -maxdepth 3 -type f -iname "*.iso" -print | sort -d | fzf --height 75% --reverse --prompt "Select the ISO file to check: ")
-	echo "$isofile"
+	local iso_files=()
+	for iso_files in $iso_d; do
+		if [[ -d "$iso_d" ]]; then
+			iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
+		fi
+	done
+	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
+	printf "%s" "$selected_iso"
 }
 
 select_checksum() {
-	local iso_d checksum
+	local iso_d selected_chksum
 	iso_d="$1"
-	checksum=$(find "$iso_d" -maxdepth 3 -type f -name "*.md5" -or -name "*.sha*" | sort -d | fzf --height 75% --reverse --prompt "Select the checksum file: ")
-	echo "$checksum"
+	local chksum_files=()
+	for chksum_files in $iso_d; do
+		if [[ -d "$iso_d" ]]; then
+			chksum_files+=("$(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n" | sort -d)")
+		fi
+	done
+	selected_chksum=$($FMENU "Select Checksum file: " < <(printf "%s\n" "${chksum_files[@]}"))
+	printf "%s" "$selected_chksum"
 }
 
 check_sha1() {
@@ -192,13 +212,14 @@ compare_checksums() {
 
 verify_iso() {
 	local checksum isofile iso_dir
-	iso_dir="$HOME/Downloads/ISO/"
+	iso_dir=$(select_directory)
 	isofile=$(select_iso "$iso_dir")
 	checksum=$(select_checksum "$iso_dir")
-	printf "\n%-18s %s\n" "Selected ISO:" "$(basename "$isofile")"
-	printf "%-18s %s\n\n" "Selected Checksum:" "$(basename "$checksum")"
-	check_checksum "$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
-	compare_checksums "$isofile" "$checksum"
+	printf "\n%-18s %s\n" "Selected Distro:" "$(basename "$iso_dir")"
+	printf "%-18s %s\n" "Selected ISO:" "$isofile"
+	printf "%-18s %s\n\n" "Selected Checksum:" "$checksum"
+	check_checksum "$iso_dir/$checksum" || diehard "Too many lines in checksum file." "Reduce file to a single line." "$script $version"
+	compare_checksums "$iso_dir/$isofile" "$iso_dir/$checksum"
 }
 
 check_verify() {
@@ -225,6 +246,7 @@ main() {
 	done
 	[[ "$noOpt" = 1 ]] && check_verify
 	shift "$(( OPTIND - 1 ))"
+	over_line "$script $version"
 	exit
 }
 
