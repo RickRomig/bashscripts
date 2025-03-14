@@ -15,23 +15,6 @@
 # Warning!     : Using 'set -o pipefail' in script may cause unexpected behavior or some variables to not be recognized.
 # License      : GNU General Public License, version 2.0
 ###############################################################################
-#
-# Copyright © 2019, Richard B. Romig
-# Email: rick.romig@gmail.com
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License along
-# with this program. If not, see <https://www.gnu.org/licenses/>.
-
 ## Shellcheck Directives ##
 # shellcheck disable=SC2034 # diabled globally because of colors block.
 
@@ -39,11 +22,14 @@
 
 declare -r TRUE=0
 declare -r FALSE=1
+declare -r GITEA_URL="http://192.168.0.16:3000/Nullifidian"
+declare -r GITHUB_URL="https://github.com/RickRomig/bashscripts"
 RED_ERROR=$(printf "\e[91mERROR:\e[0m"); readonly RED_ERROR
 RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); readonly RED_WARNING
 
-# First three octets of the local network. Assumes a /24 private network.
+# Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
 LOCALNET=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly LOCALNET
+# LOCALNET=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
 
 ## Colors ##
 
@@ -119,7 +105,7 @@ die() {
 # Example: diehard "File not found." "Check directory."
 ###############################################################################
 diehard() {
-	local line
+  local line
 	printf "\e[91mERROR:\e[0m "
 	exec 2>&1; for line; do printf "%s\n" "$line"; done; exit 1
 }
@@ -134,9 +120,8 @@ diehard() {
 # Do not use in scripts with functions that return non-error integers.
 ###############################################################################
 error_handler() {
-  local err_code line_nr
-  err_code="$1"
-  line_nr="$2"
+  local err_code="$1"
+  local line_nr="$2"
   printf "\e[91mERROR:\e[0m (%s) occurred on line %s\n" "$err_code" "$line_nr" >&2
   exit "$err_code"
 }
@@ -154,8 +139,8 @@ root_user() {
 ###############################################################################
 # user_exists
 # Purpose: Return true if user exists in /etc/passwd
-# Arguments:
-#   $1 -> username to check in /etc/passwd
+# Argument:
+#   $1 -> Username to check in /etc/passwd
 # Returns: True or False
 ###############################################################################
 user_exists() {
@@ -165,23 +150,23 @@ user_exists() {
 
 ###############################################################################
 # sudo_login
-# Argument:
-#   $1 -> number or seconds to sleep before blanking the prompt line. If delay is 0, blanking line is skippped.
 # Purpose: Prompts for user password if user is in the sudo group.
 # If user is not in the sudo group, displays error message and exits.
+# Argument:
+#   $1 -> number or seconds to sleep before blanking the prompt line. If delay is 0, blanking line is skippped.
 ###############################################################################
 sudo_login() {
   local delay="${1:-2}"
   if id -nG "$USER" | grep -qw sudo; then
     if ! sudo -vn 2>/dev/null; then
-			sudo ls > /dev/null 2>&1
+      sudo ls > /dev/null 2>&1
       if [[ "$delay" -gt 0 ]]; then
         sleep "$delay"
         printf '\e[A\e[K'
       fi
     fi
-  else
-    die "$USER is not a member of the sudo group. Access denied." 1
+ else
+    diehard "$USER is not a member of the sudo group. Access denied." "This incident will be reported to Big Brother."
   fi
 }
 
@@ -212,9 +197,9 @@ exists() {
 # Arguments: none
 ###############################################################################
 get_distribution() {
-	local distro
+  local distro
   if [[ -f /etc/lsb-release ]]; then
-		distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release  | sed 's/"//g')
+    distro=$(awk -F= '/DISTRIB_DESCRIPTION/ {print $NF}' /etc/lsb-release | sed 's/"//g')
   else
     distro=$(/usr/bin/lsb_release --description --short)
   fi
@@ -226,13 +211,13 @@ get_distribution() {
 # Purpose: Returns true if the distribution is directly based on Debian.
 # Arguments: none
 # Returns: True or False
-# Notes: Antix, BunsenLabs Lithium, and MX Linux show as a Debian codename.
+# Notes: Antix, BunsenLabs, and MX Linux show as a Debian codename.
 ###############################################################################
 is_debian() {
   local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    bookworm|bullseye|debbie|elsie|faye|boron )
+    bookworm|bullseye|faye|boron )
       return "$TRUE"
     ;;
     * )
@@ -290,9 +275,10 @@ is_noble() {
 # Returns: True or False
 ###############################################################################
 support_ppa() {
+  local codename
   codename=$(/usr/bin/lsb_release --codename --short)
   case "$codename" in
-    focal|jammy|noble|uma|una|vanessa|vera|victoria|virginia|wilma|xia )
+    jammy|noble|vanessa|vera|victoria|virginia|wilma|xia )
       return "$TRUE"
     ;;
     * )
@@ -431,14 +417,14 @@ leapyear() {
 ###############################################################################
 # local_ip
 # Purpose: Extract the last octet of the local IP address
-# Assumes a Class C /24 network, last octet of 1 - 254
-# Priority is wired connection, then wireless.
 # Arguments: none
+# Assumes a Class C /24 network, last octet of 1 - 254
+# See ~/bin/snippets/ip-addresses.md for other methods
 ###############################################################################
 local_ip() {
   local octet
   octet=$(ip route get 1.2.3.4 | awk '{print $7}' | cut -d'.' -f4)
-  [[ -z "$octet" ]] && die "No IP address found. Check network status." 1
+  [[ "$octet" ]] || die "No IP address found. Check network status." 1
   printf "%s" "$octet"
 }
 
@@ -469,7 +455,7 @@ valid_ip() {
     if (( octet > 0 )) && (( octet < 255 )); then
       # Valid address - test if reachable or local machine
       if [[ "$localip" -eq "$octet" ]]; then
-        status=2    # Valid address - local machine
+        status=2
         printf "%s %s.%s is the local client computer.\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
       elif ping -c 1 "$LOCALNET.$octet" > /dev/null 2>&1; then
         status=0
@@ -483,8 +469,8 @@ valid_ip() {
       printf "%s %s.%s is not a valid IP address.\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$LOCALNET" "$octet" >&2
     fi
   else
-  printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
-     status=5
+    status=5
+    printf "%s Invalid argument: %s\nEnter the last octet of the target IP address (1 - 254).\n" "$RED_ERROR" "$octet" >&2
   fi
 
   (( status == 0 )) && return "$status" || exit "$status"
@@ -527,7 +513,7 @@ edit_view_quit() {
         break
       ;;
       * )
-        printf "\e{33mInvalid choice. Try again.\e[0m\n" >&2
+        printf "%sInvalid choice. Try again.%s\n" "$orange" "$normal" >&2
     esac
   done
 }
@@ -558,26 +544,6 @@ remove_tilde() {
 }
 
 ###############################################################################
-# check_for_file
-# Purpose: Checks for a needed support file in ~/bin/files
-# Arugment:
-#   $1 -> File name to be checked.
-# Displays OK for 2 seconds if found, exits the script if not.
-###############################################################################
-check_for_file() {
-  local file_dir target_file
-  target_file="${1:-foo.bar}"
-  file_dir="$HOME/bin/files"
-  if [[ -f "$file_dir/$target_file" ]]; then
-    printf "%s [OK]\n" "$target_file"
-    sleep 2
-    printf '\e[A\e[K'
-  else
-    die "$target_file not found!" 1
-  fi
-}
-
-###############################################################################
 # anykey
 # Purpose: Press any key to continue
 # Arguments: none
@@ -599,7 +565,7 @@ anykey() {
 print_line() {
   local char width len
   char="${1:-=}"
-  width=$(tput cols); local width
+  width=$(tput cols)
   if [[ "$#" -gt 1 ]]; then char="$1"; width="$2"; fi
   len=${#char}
   (( len > 1 )) && char=${char::1}
@@ -618,7 +584,7 @@ print_line() {
 ###############################################################################
 # shellcheck disable=SC2001
 box() {
-  local char width len edge title
+  local char len edge title
   char="${2:-*}"
   len=${#char}
   (( len > 1 )) && char=${char::1}
@@ -628,7 +594,6 @@ box() {
 }
 
 ###############################################################################
-# shellcheck disable=SC2001
 # under_line
 # Purpose: Displays a line of hyphen/dashes under a line of text.
 # Arguments:
@@ -640,7 +605,7 @@ box() {
 ###############################################################################
 # shellcheck disable=SC2001
 under_line() {
-  local char width len edge title
+  local char len line title
   title="$1"
   char="${2:--}"
   len=${#char}
@@ -661,7 +626,7 @@ under_line() {
 ###############################################################################
 # shellcheck disable=SC2001
 over_line() {
-  local char width len edge title
+  local char len line title
   title="$1"
   char="${2:--}"
   len=${#char}
@@ -681,7 +646,7 @@ leave() {
   local message msg_file
   message="$1"
   msg_file="$HOME/.local/share/doc/leave.txt"
-  [[ -z "$message" ]] && message=$(shuf -n 1 "$msg_file")
+  [[ "$message" ]] || message=$(shuf -n 1 "$msg_file")
   printf "%s\n" "$message"
   exit 0
 }
@@ -692,7 +657,7 @@ leave() {
 # Argument:
 #   $1 -> $SECONDS
 # Place SECONDS=0 ahead of task to be timed.
-# SECONDS and ((...)) are undefined in POSIX.
+# NOTE: SECONDS and ((...)) are undefined in POSIX.
 ###############################################################################
 format_time() {
   local ET h m s
@@ -704,12 +669,32 @@ format_time() {
 }
 
 ###############################################################################
+# check_for_file
+# Purpose: Checks for a needed support file in ~/bin/files
+# Arugment:
+#   $1 -> File name to be checked.
+# Displays OK for 2 seconds if found, exits the script if not.
+###############################################################################
+check_for_file() {
+  local file_dir target_file
+  target_file="${1:-foo.bar}"
+  file_dir="$HOME/bin/files"
+  if [[ -f "$file_dir/$target_file" ]]; then
+    printf "%s [OK]\n" "$target_file"
+    sleep 2
+    printf '\e[A\e[K'
+  else
+    die "$target_file not found!" 1
+  fi
+}
+
+###############################################################################
 # check_package
 # Purpose: Check if a package is installed, and install if not.
 # Argurment:
-#   $1 -> name of package to check and install
+#   $1 -> name of package to check and/or install
 # Example: check_package "$package"
-# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
+# NOTE: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_package() {
   local package="$1"
@@ -726,15 +711,15 @@ check_package() {
 
 ###############################################################################
 # check_packages
-# Purpose: Check if a group of packages are installed, and install if not.
+# Purpose: Check if several packages are installed, and install if not.
 # Argurment:
-#   $@ -> array of packages to check and install
+#   $@ -> array of packages to check and/or install
 # Example: packages=( pkg1 pkg2 ... ); check_packages "${packages[@]}"
-# Note: if set -o pipefail is used in script, function will try to install package even if already installed.
+# NOTE: if set -o pipefail is used in script, function will try to install package even if already installed.
 ###############################################################################
 check_packages() {
-	local pkgs=("$@")
-  printf "Checking dependencies...\n"
+	local pkg pkgs
+  pkgs=("$@")
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s [OK]\n" "$pkg"
@@ -849,6 +834,7 @@ mount_nas() {
 unmount_nas() {
   local mounted share
   share="NASD97167"
+  mounted=$(mount | grep "$share"); local mounted
   if [[ -n "$mounted" ]]; then
     fusermount -u "$HOME/mnt/$share"
     [[ -d "$tmp_dir" ]] && rm -rf "$tmp_dir"
@@ -857,6 +843,17 @@ unmount_nas() {
   else
     printf "%s is not mounted.\n" "$share" >&2
   fi
+}
+
+###############################################################################
+# clone_repo
+# Purpose: Clone a git repository on the Gitea server to ~/Downloads
+# Argument:
+#   $1 -> name of the repository to clone
+###############################################################################
+clone_repo() {
+  local git_repo="${1}.git"
+  git clone "$GITEA_URL/$git_repo" "$HOME/Downloads"
 }
 
 ###############################################################################
@@ -880,12 +877,13 @@ dots() {
 ###############################################################################
 # spin
 # Purpose: Display a spinning character to indicate a running process.
-# Refer to ~/bin/functions/dots-spin.md for ussage instructions.
 # Arguments: none
+# Refer to ~/bin/functions/dots-spin.md for ussage instructions.
 ###############################################################################
 # shellcheck disable=SC1003
 spin() {
-  local spinner="( '|' '/' '-' '\' )"
+  local i spinner
+  spinner=( '|' '/' '-' '\' )
   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
 }
 
@@ -893,7 +891,7 @@ spin() {
 # y_or_n
 # Purpose: Displays a yes or no prompt (y|n).
 # Argument:
-# 	$1 -> A string requiring a yes or no response.
+# $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
@@ -922,7 +920,7 @@ y_or_n() {
 # yes_or_no
 # Purpose: Displays a yes or no prompt (yes|no).
 # Argument:
-# 	$1 -> A string requiring a yes or no response.
+# $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -951,7 +949,7 @@ yes_or_no() {
 # default_yes
 # Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter.
 # Argument:
-# 	$1 -> A string requiring a yes or no response.
+# $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
@@ -977,7 +975,7 @@ default_yes() {
 # default_no
 # Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter.
 # Argument:
-# 	$1 -> A string requiring a yes or no response.
+# $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -985,7 +983,7 @@ default_no() {
   local yn yn_prompt
   yn_prompt="$1"
   while true; do
-   read -rp "$yn_prompt [y/N] " yn
+    read -rp "$yn_prompt [y/N] " yn
     case "$yn" in
       [Yy]* )
         return "$TRUE"
