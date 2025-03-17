@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2023, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 18 Feb 2023
-# Updated      : 14 Mar 2025
+# Updated      : 17 Mar 2025
 # Comments     : Testing indicates USB drive need to be mounted.
 #              : Works with fuzzy finder (fzf) or zenity, if installed.
 #              : To test without writing to USB drive, use the -d option to enable a dryrun.
@@ -31,7 +31,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="7.0.25073"
+readonly version="7.0.25076"
 user=$(whoami); readonly user
 dryrun="$FALSE"
 FMENU="fzf --header=$(basename "$0") \
@@ -52,7 +52,7 @@ FMENU="fzf --header=$(basename "$0") \
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="14 Mar 2025"
+	updated="17 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Writes ISO to a USB drive
@@ -76,9 +76,7 @@ select_directory() {
 	local iso_d selected_dir
 	local iso_dirs=()
 	for dist_d in $HOME/Downloads/ISO; do
-		if [[ -d "$dist_d" ]]; then
-		iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
-		fi
+		[[ -d "$dist_d" ]] && iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
@@ -89,9 +87,7 @@ select_iso() {
 	iso_d="$1"
 	local iso_files=()
 	for iso_files in $iso_d; do
-		if [[ -d "$iso_d" ]]; then
-			iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
-		fi
+		[[ -d "$iso_d" ]] && iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
 	done
 	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
 	printf "%s" "$selected_iso"
