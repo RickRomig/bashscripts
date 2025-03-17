@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 09 Apr 2022
-# Updated      : 14 Mar 2025
+# Updated      : 17 Mar 2025
 # Comments     : Each ISO file must have its own checksum file.
 #              : Checksum file must be one line only for ISO being checked.
 #              : Checksum files must have one of the following extensions:
@@ -31,7 +31,7 @@ fi
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="10.0.25073"
+readonly version="10.0.25076"
 FMENU="fzf --header=$(basename "$0") \
            --layout=reverse \
            --exact \
@@ -50,7 +50,7 @@ FMENU="fzf --header=$(basename "$0") \
 help() {
 	local errcode updated
 	errcode="${1:-2}"
-	updated="4 Mar 2025"
+	updated="17 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Updated: $updated
 Verifies SHA256/SHA512/MD5 checksums with ISO files.
@@ -74,9 +74,7 @@ select_directory() {
 	local iso_d selected_dir
 	local iso_dirs=()
 	for dist_d in $HOME/Downloads/ISO; do
-		if [[ -d "$dist_d" ]]; then
-		iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
-		fi
+		[[ -d "$dist_d" ]] && iso_dirs+=("$(find "$dist_d" -type d -print | sort -d)")
 	done
 	selected_dir=$($FMENU "Select distribution directory: " < <(printf "%s\n" "${iso_dirs[@]}"))
 	printf "%s" "$selected_dir"
@@ -87,9 +85,7 @@ select_iso() {
 	iso_d="$1"
 	local iso_files=()
 	for iso_files in $iso_d; do
-		if [[ -d "$iso_d" ]]; then
-			iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
-		fi
+		[[ -d "$iso_d" ]] && iso_files+=("$(find "$iso_d" -type f -iname "*.iso" -printf "%f\n" | sort -d)")
 	done
 	selected_iso=$($FMENU "Select ISO file: " < <(printf "%s\n" "${iso_files[@]}"))
 	printf "%s" "$selected_iso"
@@ -100,9 +96,7 @@ select_checksum() {
 	iso_d="$1"
 	local chksum_files=()
 	for chksum_files in $iso_d; do
-		if [[ -d "$iso_d" ]]; then
-			chksum_files+=("$(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n" | sort -d)")
-		fi
+		[[ -d "$iso_d" ]] && chksum_files+=("$(find "$iso_d" -type f \( -name "*.md5" -or -name "*.sha*" \) -printf "%f\n" | sort -d)")
 	done
 	selected_chksum=$($FMENU "Select Checksum file: " < <(printf "%s\n" "${chksum_files[@]}"))
 	printf "%s" "$selected_chksum"
