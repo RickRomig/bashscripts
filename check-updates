@@ -48,7 +48,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.0.25088"
+readonly version="6.1.25088"
 SECONDS=0
 
 ## Functions ##
@@ -217,6 +217,57 @@ nala_update() {
   printf "\n"
 }
 
+apt_menu() {
+  local nupd options _opt
+	nupd="$1"
+	COLUMNS=40
+	printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
+	PS3="Choose an option: "
+	options=(
+		"Install updates."
+		"Install updates and clean cache."
+		"Install updates and remove orphaned packages."
+		"Install updates, clean cache, and remove orphaned packages."
+		"Defer updates until later."
+	)
+	select _opt in "${options[@]}"; do
+		case $REPLY in
+			1 )
+				install_updates
+				update_complete "$nupd"
+				break
+			;;
+			2 )
+				install_updates
+				clean_apt_cache
+				update_complete "$nupd"
+				break
+			;;
+			3 )
+				install_updates
+				remove_orphans
+				purge_rc_packages
+				update_complete "$nupd"
+				break
+			;;
+			4 )
+				install_updates
+				clean_apt_cache
+				remove_orphans
+				purge_rc_packages
+				update_complete "$nupd"
+				break
+			;;
+			5 )
+				defer_updates "$nupd"
+				break
+			;;
+			* )
+				printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
+		esac
+	done
+}
+
 apt_update() {
   local nupd options _opt
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
@@ -225,53 +276,7 @@ apt_update() {
   if (( nupd > 0 )); then
     printf "Upgradable packages:\n"
     list_uprgradable
-    # Options menu
-    COLUMNS=40
-    printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
-    PS3="Choose an option: "
-    options=(
-      "Install updates."
-      "Install updates and clean cache."
-      "Install updates and remove orphaned packages."
-      "Install updates, clean cache, and remove orphaned packages."
-      "Defer updates until later."
-    )
-    select _opt in "${options[@]}"; do
-      case $REPLY in
-        1 )
-          install_updates
-          update_complete "$nupd"
-          break
-        ;;
-        2 )
-          install_updates
-          clean_apt_cache
-          update_complete "$nupd"
-          break
-        ;;
-        3 )
-          install_updates
-          remove_orphans
-          purge_rc_packages
-          update_complete "$nupd"
-          break
-        ;;
-        4 )
-          install_updates
-          clean_apt_cache
-          remove_orphans
-          purge_configs
-          update_complete "$nupd"
-          break
-        ;;
-        5 )
-          defer_updates "$nupd"
-          break
-        ;;
-        * )
-          printf "%sInvalid option!%s Select 1..%d\n" "$lightred" "$normal" "${#options[@]}" >&2
-      esac
-    done
+    apt_menu "$nupd"
   else
     printf "%sPackages are up to date.%s\n" "$orange" "$normal"
     printf "Packages held:\n"
