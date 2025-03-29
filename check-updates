@@ -269,7 +269,7 @@ apt_menu() {
 }
 
 apt_update() {
-  local nupd options _opt
+  local nupd
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
   nupd=$(count_updates)
