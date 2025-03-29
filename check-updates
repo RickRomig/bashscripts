@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 15 Mar 2025
+# Updated      : 28 Mar 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -48,7 +48,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.0.25074"
+readonly version="6.0.25087"
 SECONDS=0
 
 ## Functions ##
@@ -63,40 +63,13 @@ Performs a system update using Apt or Nala.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  apt	  Performs a system upgrade using apt-get
-  help	Show this help message and exit
-  nala	Performs a system upgrade using nala
+  -a	  Perform a system upgrade using apt-get
+  -h    Show this help message and exit
+  -n    Perform a system upgrade using nala
 ${orange}Notes:${normal}
-  1) No argument defaults to using nala
-  2) If nala is not installed, defers to using apt-get
-  3) Argument is not case-sensitive
+  If nala is not installed, defers to using apt-get
 _HELP_
   exit 0
-}
-
-check_action() {
-  local action="$1"
-  case "${action,,}" in
-    apt )
-      show_header
-      check_disk_space
-      sudo_login 2
-      apt_update ;;
-    nala )
-      show_header
-      check_disk_space
-      sudo_login 2
-      if exists nala; then
-        nala_update
-      else
-        apt_update
-      fi ;;
-    help )
-      help 0 ;;
-    * )
-      printf "%s Invalid argument - %s\n" "$RED_ERROR" "$action"
-      help 1
-  esac
 }
 
 check_disk_space() {
@@ -316,10 +289,36 @@ _HEADER_
 }
 
 main() {
-  local action="${1:-nala}" # Default is nala
-  check_action "$action"
+  local noOpt opt optstr
+	noOpt=1
+	optstr=":ahn"
+	while getopts "$optstr" opt; do
+    case "$opt" in
+      a )
+        show_header
+        check_disk_space
+        sudo_login 2
+        apt_update
+      ;;
+      h )
+        help 0
+      ;;
+      n )
+        show_header
+        check_disk_space
+        sudo_login 2
+        if exists nala; then nala_update; else apt_update; fi
+      ;;
+			? )
+				printf "%s Invalid option -%s\n" "$RED_ERROR" "$OPTARG" >&2
+				help 2
+		esac
+		noOpt=0
+  done
+	[[ "$noOpt" = 1 ]] && { printf "%s No argument passed.\n" "$RED_ERROR" >&2; help 1; }
+	shift "$(( OPTIND - 1 ))"
   exists cinnamon-spice-updater && update_spices
-  exists flatpak && update_flatpak
+  if exists flatpak; then update_flatpak; else printf "\nFlatpak is not installed.\n"; fi
   check_disk_space
   over_line "Update completed in $(format_time $SECONDS)"
   check_reboot_required
