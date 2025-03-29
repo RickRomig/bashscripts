@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 28 Mar 2025
+# Updated      : 29 Mar 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -48,14 +48,14 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.0.25087"
+readonly version="6.0.25088"
 SECONDS=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-  local updated="15 Mar 2025"
+  local updated="29 Mar 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using Apt or Nala.
@@ -185,7 +185,13 @@ update_summary() {
 	nnew=$(echo "$summary" | cut -d' ' -f2)
 	nrem=$(echo "$summary" | cut -d' ' -f3)
 	ndef=$(echo "$summary" | cut -d' ' -f4)
-	printf "\n%s to upgrade, %s new packages, %s to remove, %s deferred.\n\n" "$nupd" "$nnew" "$nrem" "$ndef"
+  printf "Package summary:\n"
+  printf "%s|%s|%s|%s\n" "$nupd" "$nnew" "$nrem" "$ndef" | column -t -s "|" -N UPGRADE,NEW,REMOVE,HOLD
+}
+
+list_uprgradable() {
+  apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
+  update_summary
 }
 
 count_updates() {
@@ -215,15 +221,10 @@ apt_update() {
   local nupd options _opt
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
-  # Get number of packages that can be upgraded
   nupd=$(count_updates)
-  update_summary
-  # If there are packages to be upgraded
   if (( nupd > 0 )); then
-    # List upgradeable packages
-    printf "Packages to be upgraded:\n"
-    apt list --upgradable 2>/dev/null | sed '1d' | cut -d'/' -f1
-
+    printf "Upgradable packages:\n"
+    list_uprgradable
     # Options menu
     COLUMNS=40
     printf "\n%s%sUpdate options:%s\n" "$underline" "$green" "$normal"
@@ -272,7 +273,9 @@ apt_update() {
       esac
     done
   else
-    printf "\n%sAll packages are up to date.%s\n" "$orange" "$normal"
+    printf "%sPackages are up to date.%s\n" "$orange" "$normal"
+    printf "Packages held:\n"
+    list_uprgradable
   fi
 }
 
