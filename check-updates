@@ -166,7 +166,7 @@ update_flatpak() {
     printf "User installations...\n"
     flatpak update --user --noninteractive --force-remove --assumeyes
     printf "System-wide installations...\n"
-    sudo flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/nul
+    sudo flatpak update --system --noninteractive --force-remove --assumeyes 2> /dev/null
     printf "\n"
   else
     printf "No Flatpaks installed.\n\n"
