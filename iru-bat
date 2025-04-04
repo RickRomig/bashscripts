@@ -6,7 +6,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 09 Jan 2022
-# Updated      : 19 Oct 2024
+# Updated      : 04 Apr 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -43,7 +43,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="5.11.24293"
+readonly version="5.12.25094"
 readonly gh_url="https://github.com/sharkdp/bat/releases"
 readonly bat_cfg_d=$HOME"/.config/bat"
 
@@ -148,7 +148,7 @@ _CONFIG_
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="19 Oct 2024"
+	updated="04 Apr 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, updates, or removes the Bat utililty.
@@ -156,7 +156,7 @@ Installs, updates, or removes the Bat utililty.
 ${green}Usage:${normal} $script [OPTION]
 ${orange}Available options:${normal}
   -c  Installs/updates Bat configuration file.
-  -h  Displays help.
+  -h  Show this help message and exit.
   -i  Installs the Bat utility.
   -r  Removes the Bat utility from the system.
   -u  Updates the Bat utility to the latest version.
