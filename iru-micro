@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig, 10 Jan 2022
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 14 Jan 2025
+# Updated      : 04 Apr 2025
 # Comments     : -u option updates installed version only. Does not do initial install.
 #              : Due to changes in the micro repoisitory, scripts installs from a .tar.gz file.
 #              : Version 2.0.13 is the latest version compatible with Debian Bullseye and older.
@@ -46,7 +46,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly _script
-readonly version="6.4.25014"
+readonly version="6.5.25094"
 readonly gh_url="https://github.com/zyedidia/micro/releases"
 readonly cfg_d="$HOME/.config/micro"
 
@@ -162,7 +162,7 @@ _BINDINGS_
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="14 Jan 2025"
+	updated="04 Apr 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, or removes the Micro CLI text editor.
@@ -171,7 +171,7 @@ ${green}Usage:${normal} $_script [OPTION]
 
 ${orange}Available options:${normal}
   -b  Installs/updates the Micro key-bindings json file.
-  -h  Displays help.
+  -h  Show this help message and exit.
   -i  Installs the Micro CLI text editor.
   -r  Removes the Micro CLI text editor from the system.
   -s  Installs/updates the Micro settings json file.
