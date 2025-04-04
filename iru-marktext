@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2022, Richard B. Romig
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 10 Jan 2022
-# Updated      : 14 Jan 2025
+# Updated      : 04 Apr 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -44,7 +44,7 @@ fi
 ## Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4..25014"
+readonly version="4.9.25094"
 readonly gh_url="https://github.com/marktext/marktext/releases"
 readonly cfg_dir="$HOME/.config/marktext"
 
@@ -186,7 +186,7 @@ _PREFS_
 help() {
   local errcode updated
 	errcode="${1:-2}"
-	updated="14 Jan 2025"
+	updated="04 Apr 2025"
   cat << _HELP_
 ${orange}$script${normal} $version ($updated)
 Installs, configures, updates, removes the Mark Text markdown editor.
@@ -195,7 +195,7 @@ ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
   -c  Applies Marktext preferences.
-  -h  Displays help.
+  -h  Show this help message and exit.
   -i  Installs the Marktext markdown editor.
   -r  Removes the Marktext markdown editor from the system.
   -u  Updates the Marktext markdown editor to the latest version.
