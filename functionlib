@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 28 Feb 2025
+# Last updated : 05 Apri 2025
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -681,7 +681,7 @@ check_for_file() {
   file_dir="$HOME/bin/files"
   if [[ -f "$file_dir/$target_file" ]]; then
     printf "%s [OK]\n" "$target_file"
-    sleep 2
+    sleep 1
     printf '\e[A\e[K'
   else
     die "$target_file not found!" 1
@@ -700,11 +700,11 @@ check_package() {
   local package="$1"
   if dpkg -l | grep -qw "$package"; then
     printf "%s [OK]\n" "$package"
-    sleep 2
+    sleep 1
     printf '\e[A\e[K'
   else
     printf "Installing %s ...\n" "$package"
-    sudo_login 2
+    sudo_login 1
     sudo apt-get install "$package" -yyq
   fi
 }
@@ -723,11 +723,11 @@ check_packages() {
 	for pkg in "${pkgs[@]}"; do
 		if dpkg -l | grep -qw "$pkg"; then
 			printf "%s [OK]\n" "$pkg"
-      sleep 2
+      sleep 1
       printf '\e[A\e[K'
 		else
 			printf "Installing %s ...\n" "$pkg"
-      sudo_login 2
+      sudo_login 1
 			sudo apt-get install "$pkg" -yyq
 		fi
 	done
