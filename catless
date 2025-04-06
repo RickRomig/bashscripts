@@ -7,7 +7,7 @@
 # Author       : Copyright ©  2020, Richard B. Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.com
 # Crated       : 02 Jan 2020
-# Updated      : 28 Feb 2025
+# Updated      : 06 Apr 2025
 # Comments     : Checks to see if passed argument is a valid text or json file.
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -42,17 +42,17 @@ fi
 
 set -eu
 
-## Variables ##
+## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="4.11.25059"
+readonly version="5.0.25096"
 
 ## Functions ##
 
 help() {
   local errcode updated
   errcode="${1:-2}"
-  updated="28 Feb 2025"
+  updated="06 Apr 2025"
   cat << _HELP_
 ${orange}$script${normal} v$version (updated $updated)
 Displays a text file using either cat or less depending the number of lines in
@@ -60,8 +60,12 @@ the file and the number of rows in the current terminal window. Less is used whe
 the number of lines is greater than the 87% of the rows, otherwise cat is used.
 Line numbers can be displayed in the output by adding an 'n' or 'N' flag after the file name.
 
- ${green}Usage:${normal} $script filename [n | N]	# n | N enables line numbers
- ${green}Usage:${normal} $script [-h | --help]	# displays help
+${green}Usage:${normal} $script [filename] [OPTION]
+
+${orange}Available options:${normal}
+  -h | --help  Show this help message and exit. (first argument)
+  -N | -n      Enable line numbers in the output (second argument)
+               The dash is optional. N|n works as well.
 
 _HELP_
   exit "$errcode"
@@ -78,16 +82,14 @@ over_max() {
 view_file() {
   local textfile="$1"
   local ln="$2"
-  box "File: $textfile" "*"
-  if over_max "$textfile"; then
+	if over_max "$textfile"; then
     case "$ln" in
       [nN]* )
-        less -N "$textfile"
-        head -n5 "$textfile" ;;
+        less -N "$textfile" ;;
       * )
         less "$textfile"
-        head -n5 "$textfile"
     esac
+    head -n5 "$textfile"
   else
     case "$ln" in
       [nN]* )
@@ -96,6 +98,7 @@ view_file() {
         cat "$textfile"
     esac
   fi
+  printf "%sFile: %s%s\n" "$reverse" "$textfile" "$normal"
 }
 
 main() {
@@ -110,15 +113,14 @@ main() {
     help 2
   elif [[ ! -s "$1" ]]; then
     printf "%s %s is an empty file.\n" "$RED_ERROR" "$1" >&2
-    exit 1
   elif file -bL "$1" | grep -qEi "text|json"; then
+		line_numbers="${line_numbers//[![:alnum:]]}"
     view_file "$1" "$line_numbers"
-    over_line "$script $version" "-"
-    exit 0
   else
     printf "%s %s is not a text file.\n" "$RED_ERROR" "$1" >&2
-    help 1
   fi
+   over_line "$script $version" "-"
+   exit 0
 }
 
 ## Execution ##
