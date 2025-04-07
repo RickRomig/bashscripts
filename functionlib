@@ -28,8 +28,7 @@ RED_ERROR=$(printf "\e[91mERROR:\e[0m"); readonly RED_ERROR
 RED_WARNING=$(printf "\e[91mWARNING!\e[0m"); readonly RED_WARNING
 
 # Get the local network from the first three octets of the default gateway address. Assumes a /24 (class C) private network.
-LOCALNET=$(ip route get 1.2.3.4 | awk '{print $3}' | cut -d '.' -f1,2,3); readonly LOCALNET
-# LOCALNET=$(ip route | awk '/default via/ {print $3}' | sort -u | cut -d'.' -f1,2,3)
+LOCALNET=$(ip route get 1.2.3.4 | cut -d' ' -f3 | sed 's/\..$//'); readonly LOCALNET
 
 ## Colors ##
 
