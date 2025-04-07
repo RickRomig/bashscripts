@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 30 Mar 2025
+# Updated      : 07 Apr 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -48,14 +48,14 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="6.2.25089"
+readonly version="6.2.25097"
 SECONDS=0
 
 ## Functions ##
 
 help() {
 	local errcode="${1:-2}"
-  local updated="30 Mar 2025"
+  local updated="07 Apr 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using Apt or Nala.
@@ -63,7 +63,7 @@ Performs a system update using Apt or Nala.
 ${green}Usage:${normal} $script [OPTION]
 
 ${orange}Available options:${normal}
-  -a	  Perform a system upgrade using apt-get
+  -a    Perform a system upgrade using apt-get
   -h    Show this help message and exit
   -n    Perform a system upgrade using nala
 ${orange}Notes:${normal}
