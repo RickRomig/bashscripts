@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #####################################################################
-#!/usr/bin/env bash
+# Script Name  : system-status
 # Description  : Displays a snapshot of system resources
 # Dependencies : jq, lm-sensors, sensors
 # Arguments    : none
