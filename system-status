@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018,Richard Romig, LudditeGeek@Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 17 Nov 2018
-# Updated      : 20 Jan 2025
+# Updated      : 10 Apr 2025
 # Comments     : Inspired by Joe Collins <https://www.ezeeLinux.com>
 #              : and Luke Smith <https://lukesmith.xyz>
 # 13 Feb 2022  : Added `-x fuse.portal` to df command to eliminate this error:
@@ -48,8 +48,8 @@ fi
 check_drivetemp() {
   sensors | grep -qw drivetemp || sudo modprobe drivetemp
   grep -qw drivetemp /etc/modules || echo drivetemp | sudo tee -a /etc/modules
-  printf "drivetemp module - OK\n"
-  sleep 2
+  printf "drivetemp module -[OK]\n"
+  sleep 1
   printf '\e[A\e[K'
 }
 
@@ -150,7 +150,7 @@ show_header() {
 show_footer() {
   local script version
   script=$(basename "$0")
-  version="6.6.25020"
+  version="6.7.25100"
   printf "\nThe system has been %s\n" "$(/usr/bin/uptime -p)"
   printf "Last reboot: %s\n" "$(/usr/bin/who -b | awk '{print $(NF-1)" at "$NF}')"
   over_line "$script $version"
