@@ -275,7 +275,7 @@ apt_update() {
   summary=$(apt-get dist-upgrade -s |  awk '$2 == "upgraded," {print $1,$3,$6,$(NF-2)}')
   nupd=$(count_updates "$summary")
   if (( nupd > 0 )); then
-    printf "Upgradable packages:\n"
+    printf "%sUpgradable packages:%s\n" "$orange" "$normal"
     list_uprgradable
     update_summary "$summary"
     apt_menu "$nupd"
