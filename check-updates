@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 14 Apr 2025
+# Updated      : 15 Apr 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -32,7 +32,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="7.1.25104"
+readonly version="7.1.25105"
 SECONDS=0
 
 ## Functions ##
@@ -45,7 +45,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="14 Apr 2025"
+  local updated="15 Apr 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using Apt or Nala.
@@ -187,6 +187,7 @@ apt_update() {
   local nupd #summary
   printf "%sChecking for updates...%s\n" "$orange" "$normal"
   update_apt_cache
+  apt-get dist-upgrade -s > "$tmp_file"
   nupd=$(count_updates)
   if (( nupd > 0 )); then
     printf "%sSummary:%s\n" "$orange" "$normal"
@@ -279,11 +280,7 @@ main() {
       a )
         tmp_file=$(mktemp -q) || die "Failed to create temporary file." 1
         trap cleanup EXIT
-        dots "."
-        apt-get dist-upgrade -s > "$tmp_file"
-        kill "$!"; tput cnorm; printf "play naked!\n"
         show_header
-        # cat "$tmp_file"
         check_disk_space
         sudo_login 2
         apt_update
