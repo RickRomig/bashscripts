@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2018, Richard Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Crated       : 08 Dec 2018
-# Updated      : 15 Apr 2025
+# Updated      : 16 Apr 2025
 # Comments     : For Debian/Ubuntu-based Linux distributions
 #              : apt-get is better suited than apt for use in scripts.
 #              : Lists available updates. Updates can be deferred.
@@ -32,7 +32,7 @@ set -eu
 ## Global Variables ##
 
 script=$(basename "$0"); readonly script
-readonly version="7.1.25105"
+readonly version="7.1.25106"
 SECONDS=0
 
 ## Functions ##
@@ -45,7 +45,7 @@ cleanup() {
 
 help() {
 	local errcode="${1:-2}"
-  local updated="15 Apr 2025"
+  local updated="16 Apr 2025"
 	cat << _HELP_
 ${orange}$script${normal} $version, Upated: $updated
 Performs a system update using Apt or Nala.
@@ -123,13 +123,14 @@ remove_orphans() {
 }
 
 purge_rc_packages() {
-  local rcpkg
+  # local rcpkg
   printf "\n%sPurging obsolete configuration files..%s\n" "$orange" "$normal"
   if dpkg -l | grep -c '^rc' > /dev/null; then
-    for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
-      printf "Purging %s...\n" "$rcpkg"
-      sudo apt-get remove --purge "$rcpkg" -yy
-    done
+    apt-get autopurge -yy
+    # for rcpkg in $(dpkg --list | awk '/^rc/ {print $2}'); do
+    #   printf "Purging %s...\n" "$rcpkg"
+    #   sudo apt-get remove --purge "$rcpkg" -yy
+    # done
   else
     printf "No packages in the 'rc' state.\n"
   fi
