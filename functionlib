@@ -7,7 +7,7 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 14 Apri 2025
+# Last updated : 18 Apri 2025
 # Comments     : source into the current shell environment by entering at the begining of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
@@ -869,7 +869,7 @@ dots() {
   len="${#char}"
   (( len > 1 )) && char=${char::1}
   tput civis
-  while true; do echo -n "."; sleep 0.2; done &
+  while true; do echo -n "."; sleep 0.5; done &
 }
 
 ###############################################################################
@@ -882,7 +882,7 @@ dots() {
 # spin() {
 #   local i spinner
 #   spinner=( '|' '/' '-' '\' )
-#   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.2; done; done &
+#   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.1; done; done &
 # }
 
 ###############################################################################
