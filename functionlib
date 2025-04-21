@@ -7,8 +7,8 @@
 # Author       : Copyright (C) 2019, Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail.com | rick.romig@mymetronet.net
 # Created      : 21 Sep 2019
-# Last updated : 18 Apri 2025
-# Comments     : source into the current shell environment by entering at the begining of the script:
+# Last updated : 21 Apr 2025
+# Comments     : source into the current shell environment by entering at the beginning of the script:
 #              : # shellcheck source=/home/rick/bin/functionlib.
 #              : # shellcheck disable=SC1091  # not necessary if using shellcheck -x to run shelllcheck
 #              : source "$HOME/bin/functionlib"
@@ -749,8 +749,8 @@ in_repos() {
 ###############################################################################
 # mount_server
 # Purpose: Mounts a sshfs server on the local network using sshfs in user's home directory.
-# $tmp_dir, $tmp_file must be global variables in the calling script.
 # Arguments: none
+# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 mount_server() {
   local server_ip share mounted
@@ -775,10 +775,9 @@ mount_server() {
 
 ###############################################################################
 # unmount_server() {
-# Purpose: Unmounts a sshfs server on the local network.
-# Removes temp directory and temp file, if present.
-# $tmp_dir, $tmp_file must be global variables in the calling script.
+# Purpose: Unmounts a sshfs server on the local network. Removes temp directory and temp file, if present.
 # Arguments: none
+# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 # shellcheck disable=SC2154
 unmount_server() {
@@ -798,8 +797,8 @@ unmount_server() {
 ###############################################################################
 # mount_nas
 # Purpose: Mount the NAS on the local network using sshfs.
-# $tmp_dir, $tmp_file must be global variables in the calling script.
 # Arguments: none
+# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 mount_nas() {
   local server_ip share mounted
@@ -823,10 +822,9 @@ mount_nas() {
 
 ###############################################################################
 # unmount_nas
-# Purpose: Unmounts the NAS (sshfs server) on local network
-# Removes temp directory and temp file, if present.
-# $tmp_dir, $tmp_file must be global variables in the calling script.
+# Purpose: Unmounts the NAS (sshfs server) on local network. Removes temp directory and temp file, if present.
 # Arguments: none
+# NOTE: $tmp_dir, $tmp_file must be global variables in the calling script.
 ###############################################################################
 # shellcheck disable=SC2154
 unmount_nas() {
@@ -859,37 +857,25 @@ clone_repo() {
 # Purpose: Display a series of dots to indicate a running process.
 # Argument:
 #   $1 -> optional character to be repeated. Default is '.' (period)
+# NOTES:
 # Character argument, if present, needs to be in double quotes, i.e., "-".
-# Character argument, if present, is limited to the first character entered.
+# dots "."; command; kill "$!"; tput cnorm; printf "\n"
 # Refer to ~/bin/functions/dots-spin.md for usage instructions.
 ###############################################################################
 dots() {
   local char len
   char="${1:-.}"
   len="${#char}"
-  (( len > 1 )) && char=${char::1}
-  tput civis
+  (( len > 1 )) && char=${char::1}  # takes the firt character.
+  tput civis  # rempves cursor
   while true; do echo -n "."; sleep 0.5; done &
 }
-
-###############################################################################
-# spin
-# Purpose: Display a spinning character to indicate a running process.
-# Arguments: none
-# Refer to ~/bin/functions/dots-spin.md for ussage instructions.
-###############################################################################
-# shellcheck disable=SC1003
-# spin() {
-#   local i spinner
-#   spinner=( '|' '/' '-' '\' )
-#   while true; do for i in "${spinner[@]}"; do echo -ne "\r$i"; sleep 0.1; done; done &
-# }
 
 ###############################################################################
 # y_or_n
 # Purpose: Displays a yes or no prompt (y|n).
 # Argument:
-# $1 -> A string requiring a yes or no response.
+#   $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: y_or_n "Question" && do_something || do_something_else
 ###############################################################################
@@ -918,7 +904,7 @@ y_or_n() {
 # yes_or_no
 # Purpose: Displays a yes or no prompt (yes|no).
 # Argument:
-# $1 -> A string requiring a yes or no response.
+#   $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: yes_or_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -947,7 +933,7 @@ yes_or_no() {
 # default_yes
 # Purpose: Displays a yes or no prompt (Y|n), defaults to yes if pressing Enter.
 # Argument:
-# $1 -> A string requiring a yes or no response.
+#   $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_yes "Question" && do_something || do_something_else
 ###############################################################################
@@ -973,7 +959,7 @@ default_yes() {
 # default_no
 # Purpose: Displays a yes or no prompt (y|N), defaults to no if pressing Enter.
 # Argument:
-# $1 -> A string requiring a yes or no response.
+#   $1 -> A string requiring a yes or no response.
 # Returns: True or False
 # Example: default_no "Question" && do_something || do_something_else
 ###############################################################################
@@ -999,7 +985,7 @@ default_no() {
 # url_accessible
 # Purpose: Returns true if URL is accessible
 # Argument:
-# $1 -> URL to be checked
+#   $1 -> URL to be checked
 # Returns: True or False
 ###############################################################################
 url_accessible() {
