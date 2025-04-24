@@ -7,7 +7,7 @@
 # Author       : Copyright © 2025 Richard B. Romig, Mosfanet
 # Email        : rick.romig@gmail | rick.romig@mymetronet.net
 # Created      : 23 Mar 2025
-# Last updated : 23 Apr 2025
+# Last updated : 24 Apr 2025
 # Comments     :
 # TODO (Rick)  :
 # License      : GNU General Public License, version 2.0
@@ -58,29 +58,29 @@ play_game() {
   mapfile -t white_cards < "$card_dir/$white_file"
 
   while true; do
-      clear
-      unset cards
-      question_card=$(printf "%s\n" "${black_cards[@]}" | shuf -n 1)
-      answer_cards=$(printf "%s\n" "${white_cards[@]}" | shuf -n 15)
+    clear
+    unset cards
+    question_card=$(printf "%s\n" "${black_cards[@]}" | shuf -n 1)
+    answer_cards=$(printf "%s\n" "${white_cards[@]}" | shuf -n 15)
 
-      IFS=$'\n'
-      while read -r line; do cards+=("$line"); done <<< "$answer_cards"
-      choices=("$(fzf --header="$question_card" --layout=reverse --border=bold --border=rounded --margin=5% --multi --prompt "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
+    IFS=$'\n'
+    while read -r line; do cards+=("$line"); done <<< "$answer_cards"
+    choices=("$(fzf --header="$question_card" --layout=reverse --border=bold --border=rounded --margin=5% --multi --prompt "Choose cards" < <(printf "%s\n" "${cards[@]}"))")
 
-      box "Cards Against Muggles" "*"
-      printf "\n%s\n" "$question_card"
-      printf "%s\n\n" "${choices[@]}"
-      read -rsn1 -p "Press q to quit." ans
-      [[ "${ans,}" == "q" ]] && break
-    done
-    printf '\e[A\e[K'
-    printf "\nI hope you enjoyed playing Cards Against Muggles.\n"
+    box "Cards Against Muggles" "*"
+    printf "\n%s\n" "$question_card"
+    printf "%s\n\n" "${choices[@]}"
+    read -rsn1 -p "Press q to quit." ans
+    [[ "${ans,}" == "q" ]] && break
+  done
+  printf '\e[A\e[K'
+  printf "\nI hope you enjoyed playing Cards Against Muggles.\n"
 }
 
 main() {
   local script version
   script=$(basename "$0")
-  version="2.0.25113"
+  version="2.0.25114"
   check_files
   play_game
   over_line "$script $version"
